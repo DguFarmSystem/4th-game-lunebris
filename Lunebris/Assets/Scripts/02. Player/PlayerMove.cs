@@ -6,9 +6,9 @@ namespace Player
     [DisallowMultipleComponent]
     public class PlayerMove : MonoBehaviour
     {
-        [SerializeField] private Player player;
         [SerializeField] private float speed;
 
+        private Player player;
         private Rigidbody rigid;
         private Vector3 inputVector;
 

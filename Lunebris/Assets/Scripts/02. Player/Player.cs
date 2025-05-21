@@ -54,7 +54,7 @@ namespace Player
         {
             stats[StatType.MoveSpeed] = new Stat(5f);
             stats[StatType.AttackDamage] = new Stat(10f);
-            stats[StatType.AttackSpeed] = new Stat(1f);
+            stats[StatType.AttackSpeed] = new Stat(0.5f);
             stats[StatType.SkillDamage] = new Stat(15f);
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
@@ -77,7 +77,7 @@ namespace Player
     {
         private PlayerStat stat;
 
-        private void Start()
+        private void Awake()
         {
             stat = new PlayerStat();
         }
