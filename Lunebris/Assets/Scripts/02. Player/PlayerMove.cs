@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
+// Unity
 using UnityEngine;
 
 namespace Player
 {
+    [DisallowMultipleComponent]
     public class PlayerMove : MonoBehaviour
     {
         [SerializeField] private float speed;
@@ -18,11 +18,21 @@ namespace Player
 
         private void Update()
         {
+            MoveHandler();
+        }
+
+        private void FixedUpdate()
+        {
+            Move();
+        }
+
+        private void MoveHandler()
+        {
             inputVector.x = Input.GetAxis("Horizontal");
             inputVector.z = Input.GetAxis("Vertical");
         }
 
-        private void FixedUpdate()
+        private void Move()
         {
             Vector3 moveVector = inputVector.normalized * speed * Time.fixedDeltaTime;
             rigid.MovePosition(rigid.position + moveVector);
