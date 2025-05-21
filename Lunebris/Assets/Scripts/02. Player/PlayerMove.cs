@@ -6,6 +6,7 @@ namespace Player
     [DisallowMultipleComponent]
     public class PlayerMove : MonoBehaviour
     {
+        [SerializeField] private Player player;
         [SerializeField] private float speed;
 
         private Rigidbody rigid;
@@ -13,6 +14,8 @@ namespace Player
 
         private void Start()
         {
+            player = GetComponent<Player>();
+            speed = player.GetPlayerStat().Get(StatType.MoveSpeed);
             rigid = GetComponent<Rigidbody>();
         }
 
