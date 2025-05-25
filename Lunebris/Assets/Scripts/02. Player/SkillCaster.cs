@@ -1,56 +1,45 @@
 // System
 using System.Collections;
-using System.Collections.Generic;
 
 // Unity
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Player
 {
     [DisallowMultipleComponent]
     public class SkillCaster : MonoBehaviour
     {
-        private string attribute;
-        private string skillName;
-
-        private int skillNumber;
-        private int damage;
-
-        private float coolTime;
+        [SerializeField] private Image maskImage;
+        private SkillList skillList;
         private float timer;
-
         private bool canUse;
 
         private void Start()
         {
             timer = 0f;
             canUse = true;
+
+            skillList = transform.parent.GetComponent<SkillList>();
         }
 
-        private void Init(string _attribute, string _skillName, int _skillNumber, int _damage, float _coolTime, float _timer)
-        {
-            // Initialize
-            attribute = _attribute;
-            skillName = _skillName;
-            skillNumber = _skillNumber;
-            damage = _damage;
-            coolTime = _coolTime;
-            timer = _timer;
-        }
-
-        public void UseSkill()
+        public void UseSkill(Skill _skill)
         {
             if (!canUse) return;
 
+            skillList.SelectSkill(_skill);
             DeactivateSkill();
-            StartCoroutine(CoolTimeCoroutine());
+            StartCoroutine(CoolTimeCoroutine(_skill.coolTime));
         }
 
-        private IEnumerator CoolTimeCoroutine()
+        private IEnumerator CoolTimeCoroutine(float _coolTime)
         {
-            while(timer < coolTime)
+            timer = 0f;
+
+            while(timer < _coolTime)
             {
                 timer += Time.deltaTime;
+                maskImage.fillAmount -= Time.deltaTime / _coolTime;
                 yield return null;
 
                 // UI 변화 코드
@@ -61,12 +50,16 @@ namespace Player
         private void ActivateSkill()
         {
             canUse = true;
+            maskImage.fillAmount = 0f;
+            Debug.Log("스킬 활성화");
             // UI 활성화
         }
 
         private void DeactivateSkill()
         {
             canUse = false;
+            maskImage.fillAmount = 1f;
+            Debug.Log("스킬 비활성화");
             // UI 비활성화
         }
     }

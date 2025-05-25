@@ -1,5 +1,7 @@
 // Unity
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 // System
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
-        Hp
+        MaxHp
     }
 
     /// <summary>
@@ -58,7 +60,7 @@ namespace Player
             stats[StatType.SkillDamage] = new Stat(15f);
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
-            stats[StatType.Hp] = new Stat(100f);
+            stats[StatType.MaxHp] = new Stat(1000f);
         }
 
         public float Get(StatType type) => stats[type].Total;
@@ -75,17 +77,56 @@ namespace Player
     [DisallowMultipleComponent]
     public class Player : MonoBehaviour
     {
+        [SerializeField] private Slider hpSlider;
+        [SerializeField] private TextMeshProUGUI hpTMP;
+
         private PlayerStat stat;
+
+        // Player's Current HP
+        private float currentHP;
 
         private void Awake()
         {
             stat = new PlayerStat();
         }
 
+        private void Start()
+        {
+            currentHP = stat.Get(StatType.MaxHp);
+        }
+
+        private void OnTriggerEnter(Collider collision)
+        {
+            if (collision.CompareTag("Enemy"))
+            {
+                DecreaseHP(5f);
+            }
+        }
+
+        #region Methods
         public PlayerStat GetPlayerStat()
         {
             return stat;
         }
+
+        private void IncreaseHP(float _value)
+        {
+            currentHP += _value;
+            UpdateHP();
+        }
+
+        private void DecreaseHP(float _value)
+        {
+            currentHP -= _value;
+            UpdateHP();
+        }
+
+        private void UpdateHP()
+        {
+            hpSlider.value = 1 / stat.Get(StatType.MaxHp) * currentHP;
+            hpTMP.text = currentHP.ToString() + " / " + stat.Get(StatType.MaxHp);
+        }
+        #endregion
     }
 }
 

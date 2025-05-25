@@ -1,5 +1,6 @@
 // Unity
 using UnityEngine;
+using UnityEngine.UI;
 
 // System
 using System.Collections.Generic;
@@ -49,21 +50,31 @@ namespace Player
 
         public PlayerSkill()
         {
-            skillDict[SkillType.Lux1] = new Skill(1, "Lux1", 2f, 5f);
+            skillDict[SkillType.Lux1] = new Skill(0, "Lux1", 2f, 5f);
+            skillDict[SkillType.Lux2] = new Skill(1, "Lux2", 2f, 5f);
+            skillDict[SkillType.Lux3] = new Skill(2, "Lux3", 2f, 5f);
+            skillDict[SkillType.Lux4] = new Skill(3, "Lux4", 2f, 5f);
+            skillDict[SkillType.Tenebris1] = new Skill(4, "Tenebris1", 2f, 5f);
+            skillDict[SkillType.Tenebris2] = new Skill(5, "Tenebris2", 2f, 5f);
+            skillDict[SkillType.Tenebris3] = new Skill(6, "Tenebris3", 2f, 5f);
+            skillDict[SkillType.Tenebris4] = new Skill(7, "Tenebris4", 2f, 5f);
         }
 
         // Get Skill
-        public Skill Get(SkillType _skillType) => skillDict[_skillType];
+        public Skill Get(SkillType type) => skillDict[type];
     }
 
     [DisallowMultipleComponent]
     public class SkillManager : MonoBehaviour
     {
-        private PlayerSkill skill;
+        [SerializeField] private SkillCaster[] caster;
+        [SerializeField] private MapController map;
+        private PlayerSkill playerSkill;
+        private Skill skill;
 
         private void Awake()
         {
-            skill = new PlayerSkill();
+            playerSkill = new PlayerSkill();
         }
 
         private void Update()
@@ -75,19 +86,31 @@ namespace Player
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                Debug.Log(skill.Get(SkillType.Lux1));
+                if(map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux1);
+                else skill = playerSkill.Get(SkillType.Tenebris1);
+
+                caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                Debug.Log("스킬 2");
+                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux2);
+                else skill = playerSkill.Get(SkillType.Tenebris2);
+
+                caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                Debug.Log("스킬 3");
+                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux3);
+                else skill = playerSkill.Get(SkillType.Tenebris3);
+
+                caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha4))
             {
-                Debug.Log("스킬 4");
+                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux4);
+                else skill = playerSkill.Get(SkillType.Tenebris4);
+
+                caster[skill.id].UseSkill(skill);
             }
         }
     }
