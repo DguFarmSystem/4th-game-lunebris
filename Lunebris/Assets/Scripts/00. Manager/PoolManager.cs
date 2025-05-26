@@ -7,23 +7,29 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class PoolManager : MonoBehaviour
 {
-    [Header("풀링에 넣을 프리팹")]
-    [SerializeField] private GameObject prefab;
+    //Prfabs GameObject
+    public GameObject[] prefabs;
 
-    List<GameObject> pools;
+    [SerializeField] List<GameObject>[] pools;
 
     private void Awake()
     {
-        pools = new List<GameObject>();
+        //Initialize
+        pools = new List<GameObject>[prefabs.Length];
+
+        for (int i = 0; i < pools.Length; i++)
+        {
+            pools[i] = new List<GameObject>();
+        }
     }
 
     //Get Moethod
-    public GameObject Get()
+    public GameObject Get(int index)
     {
         //For Retrun
         GameObject select = null;
 
-        foreach (GameObject item in pools)
+        foreach (GameObject item in pools[index])
         {
             //Find Object in pool
             if (!item.activeSelf)
@@ -39,22 +45,17 @@ public class PoolManager : MonoBehaviour
             }
         }
 
-        //If not find -> Instaniate
+        //If not find
         if (!select)
         {
             //instantiate
-            select = Instantiate(prefab, transform);
+            select = Instantiate(prefabs[index], transform);
 
             //add pool
-            pools.Add(select);
+            pools[index].Add(select);
         }
 
         //return object
         return select;
-    }
-
-    public void ReturnToPool(GameObject obj)
-    {
-        obj.SetActive(false);
     }
 }
