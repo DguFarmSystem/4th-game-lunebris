@@ -128,7 +128,12 @@ namespace Player
 
         private void OnTriggerEnter(Collider collision)
         {
-            if (collision.CompareTag("Enemy"))
+
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.CompareTag("Enemy"))
             {
                 DecreaseHP(50f);
             }
