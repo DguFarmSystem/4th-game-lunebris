@@ -130,7 +130,7 @@ namespace Player
         {
             if (collision.CompareTag("Enemy"))
             {
-                DecreaseHP(5f);
+                DecreaseHP(50f);
             }
         }
 
@@ -140,13 +140,13 @@ namespace Player
             return stat;
         }
 
-        private void IncreaseHP(float _value)
+        public void IncreaseHP(float _value)
         {
             currentHP += _value;
             UpdateHP();
         }
 
-        private void DecreaseHP(float _value)
+        public void DecreaseHP(float _value)
         {
             currentHP -= _value;
             UpdateHP();
@@ -158,7 +158,7 @@ namespace Player
             hpTMP.text = currentHP.ToString() + " / " + stat.Get(StatType.MaxHp);
         }
 
-        private void IncreaseXP(int _value)
+        public void IncreaseXP(int _value)
         {
             currentXP += _value;
 
