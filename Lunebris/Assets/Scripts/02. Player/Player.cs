@@ -74,25 +74,56 @@ namespace Player
         }
     }
 
+    public class EXPData
+    {
+        public int MaxEXP { get; set; }
+    }
+
     [DisallowMultipleComponent]
     public class Player : MonoBehaviour
     {
         [SerializeField] private Slider hpSlider;
         [SerializeField] private TextMeshProUGUI hpTMP;
 
-        private PlayerStat stat;
+        [SerializeField] private Slider xpSlider;
+        [SerializeField] private TextMeshProUGUI xpTMP;
 
-        // Player's Current HP
+        [SerializeField] private TextMeshProUGUI levelTMP;
+
+        private PlayerStat stat;
+        private CSVReader csvReader;
+        private List<EXPData> expData;
+
+        private int level;
+
         private float currentHP;
+
+        private int currentXP;
+        private int maxXP;
 
         private void Awake()
         {
             stat = new PlayerStat();
+            csvReader = new CSVReader();
+            expData = csvReader.ReadCSVFile<List<EXPData>>("EXPData");
         }
 
         private void Start()
         {
             currentHP = stat.Get(StatType.MaxHp);
+
+            level = 1;
+
+            currentXP = 0;
+            maxXP = expData[0].MaxEXP;
+            UpdateXP();
+        }
+
+        private void Update()
+        {
+            // Test Code
+            if (Input.GetKeyDown(KeyCode.Space))
+                IncreaseXP(50);
         }
 
         private void OnTriggerEnter(Collider collision)
@@ -125,6 +156,34 @@ namespace Player
         {
             hpSlider.value = 1 / stat.Get(StatType.MaxHp) * currentHP;
             hpTMP.text = currentHP.ToString() + " / " + stat.Get(StatType.MaxHp);
+        }
+
+        private void IncreaseXP(int _value)
+        {
+            currentXP += _value;
+
+            if (currentXP >= maxXP)
+            {
+                LevelUp(currentXP - maxXP);
+            }
+
+            UpdateXP();
+        }
+
+        private void LevelUp(int _remainXP)
+        {
+            level++;
+            maxXP = expData[level - 1].MaxEXP;
+
+            currentXP = _remainXP;
+        }
+
+        private void UpdateXP()
+        {
+            xpSlider.value = (float)currentXP / (float)maxXP;
+            xpTMP.text = currentXP.ToString() + " / " + maxXP.ToString();
+
+            levelTMP.text = "Lv." + level.ToString();
         }
         #endregion
     }
