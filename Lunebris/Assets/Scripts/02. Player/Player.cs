@@ -19,7 +19,8 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
-        MaxHp
+        MaxHp,
+        HpRegen
     }
 
     /// <summary>
@@ -61,6 +62,7 @@ namespace Player
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
+            stats[StatType.HpRegen] = new Stat(5f); //ÃÊ´ç 5
         }
 
         public float Get(StatType type) => stats[type].Total;
@@ -117,6 +119,23 @@ namespace Player
             currentXP = 0;
             maxXP = expData[0].MaxEXP;
             UpdateXP();
+
+            StartCoroutine(HPRegenRoutine());
+        }
+
+        private System.Collections.IEnumerator HPRegenRoutine()
+        {
+            while (true)
+            {
+                float regen = stat.Get(StatType.HpRegen) * Time.deltaTime;
+                if (currentHP < stat.Get(StatType.MaxHp))
+                {
+                    currentHP = Mathf.Min(currentHP + regen, stat.Get(StatType.MaxHp));
+                    UpdateHP();
+                }
+
+                yield return null;
+            }
         }
 
         private void Update()
