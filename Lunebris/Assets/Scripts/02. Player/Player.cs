@@ -19,6 +19,7 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
+        MagicDefensivePower,
         MaxHp
     }
 
@@ -60,6 +61,7 @@ namespace Player
             stats[StatType.SkillDamage] = new Stat(15f);
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
+            stats[StatType.MagicDefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
         }
 
