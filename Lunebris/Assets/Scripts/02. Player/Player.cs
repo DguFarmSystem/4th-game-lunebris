@@ -20,7 +20,7 @@ namespace Player
         CoolDown,
         DefensivePower,
         MaxHp,
-        HpRegen
+        //HpRegen
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ namespace Player
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
-            stats[StatType.HpRegen] = new Stat(5f); //초당 5
+            //stats[StatType.HpRegen] = new Stat(5f); //초당 5
         }
 
         public float Get(StatType type) => stats[type].Total;
@@ -120,10 +120,10 @@ namespace Player
             maxXP = expData[0].MaxEXP;
             UpdateXP();
 
-            StartCoroutine(HPRegenRoutine());
+            //StartCoroutine(HPRegenRoutine());
         }
 
-        private System.Collections.IEnumerator HPRegenRoutine()
+        /*private System.Collections.IEnumerator HPRegenRoutine()
         {
             while (true)
             {
@@ -136,7 +136,7 @@ namespace Player
 
                 yield return null;
             }
-        }
+        }*/
 
         private void Update()
         {
