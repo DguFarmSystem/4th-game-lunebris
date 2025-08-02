@@ -13,7 +13,7 @@ public class Enemy : MonoBehaviour
         Death();
     }
 
-    private void Death()
+    public void Death()
     {
         gameObject.SetActive(false);
         Player.Player player = FindObjectOfType<Player.Player>();
