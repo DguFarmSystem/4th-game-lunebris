@@ -10,6 +10,7 @@ namespace Player
     // Enum of Skill Type
     public enum SkillType
     {
+        Passive,
         Lux1,
         Lux2,
         Lux3,
@@ -58,6 +59,7 @@ namespace Player
             skillDict[SkillType.Tenebris2] = new Skill(5, "Tenebris2", 2f, 5f);
             skillDict[SkillType.Tenebris3] = new Skill(6, "Tenebris3", 2f, 5f);
             skillDict[SkillType.Tenebris4] = new Skill(7, "Tenebris4", 2f, 5f);
+            skillDict[SkillType.Passive] = new Skill(8, "Passive", -1f, 4f);
         }
 
         // Get Skill
@@ -109,6 +111,12 @@ namespace Player
             {
                 if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux4);
                 else skill = playerSkill.Get(SkillType.Tenebris4);
+
+                caster[skill.id].UseSkill(skill);
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftControl))
+            {
+                skill = playerSkill.Get(SkillType.Passive);
 
                 caster[skill.id].UseSkill(skill);
             }

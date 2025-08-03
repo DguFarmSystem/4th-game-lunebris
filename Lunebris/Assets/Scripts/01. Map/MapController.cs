@@ -30,6 +30,8 @@ public class MapController : MonoBehaviour
 
     [SerializeField] private GameObject[] tenebrisSkillInterfaces;
 
+    [SerializeField] private Player.SkillCaster passiveCaster;
+
     private bool canConvert = true;
 
     private void Awake()
@@ -40,7 +42,6 @@ public class MapController : MonoBehaviour
 
     private void Update()
     {
-        ConvertMap();
         UpdateBalanceSilder();
     }
 
@@ -59,9 +60,9 @@ public class MapController : MonoBehaviour
     /// <summary>
     /// Convert Map Method
     /// </summary>
-    private void ConvertMap()
+    public void ConvertMap()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && canConvert)
+        if (canConvert)
         {
             if (isWhite)
             {

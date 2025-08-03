@@ -10,6 +10,8 @@ namespace Player
     [DisallowMultipleComponent]
     public class SkillList : MonoBehaviour
     {
+        [SerializeField] private MapController map;
+
         [SerializeField] private LayerMask enemyLayer;
 
         [Header("VFX Prefabs")]
@@ -43,6 +45,9 @@ namespace Player
                 case 7:
                     Tenebris4(_skill);
                     break;
+                case 8:
+                    map.ConvertMap();
+                    break;
             }
         }
 
@@ -65,6 +70,7 @@ namespace Player
 
             foreach (var hitCollider in hitColliders)
             {
+                /*
                 Enemy enemy = hitCollider.GetComponent<Enemy>();
                 if (enemy != null)
                 {
@@ -77,6 +83,7 @@ namespace Player
                     enemy.Death();
                     UnityEngine.Debug.Log(hitCollider.name + "call death()");
                 }
+                */
             }
         }
         

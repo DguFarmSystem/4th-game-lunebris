@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using TMPro;
+using System.Linq;
 
 public class StatAugmentation
 {
@@ -125,8 +126,12 @@ public class AugmentationManager : MonoBehaviour
 
     private void AdaptAugmentation(int _gradeID, string _stat, Button _button)
     {
-        // "MoveSpeed", "AttackDamage", "AttackSpeed", "SkillDamage", "CoolDown", "DefensivePower", "MagicDefensivePower", "MaxHp"
-        TextMeshProUGUI nameTMP = _button.GetComponentInChildren<TextMeshProUGUI>();
+        TextMeshProUGUI[] tmps = _button.GetComponentsInChildren<TextMeshProUGUI>();
+        Image[] images = _button.GetComponentsInChildren<Image>();
+
+        TextMeshProUGUI nameTMP = tmps.First(tmp => tmp.name == "Name");
+        TextMeshProUGUI descTMP = tmps.First(tmp => tmp.name == "Description");
+        Image icon = images.First(image => image.name == "Icon");
 
         switch (_stat)
         {
@@ -134,56 +139,72 @@ public class AugmentationManager : MonoBehaviour
                 float randMoveSpeed = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinMoveSpeed, statAugmentations[_gradeID].MaxMoveSpeed));
 
                 _button.onClick.AddListener(() => player.IncreaseMoveSpeed(randMoveSpeed));
-                nameTMP.text = "이동 속도: " + randMoveSpeed.ToString();
+                nameTMP.text = "속행";
+                descTMP.text = "이동 속도 +" + randMoveSpeed.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "running");
                 break;
 
             case "AttackDamage":
                 float randAttackDamage = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinAttackDamage, statAugmentations[_gradeID].MaxAttackDamage));
 
                 _button.onClick.AddListener(() => player.IncreaseAttackDamage(randAttackDamage));
-                nameTMP.text = "공격력: " + randAttackDamage.ToString();
+                nameTMP.text = "무력";
+                descTMP.text = "공격력 +" + randAttackDamage.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "swords");
                 break;
 
             case "AttackSpeed":
                 float randAttackSpeed = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinAttackSpeed, statAugmentations[_gradeID].MaxAttackSpeed));
 
                 _button.onClick.AddListener(() => player.IncreaseAttackSpeed(randAttackSpeed));
-                nameTMP.text = "공격 속도: " + randAttackSpeed.ToString();
+                nameTMP.text = "속사";
+                descTMP.text = "공격 속도 +" + randAttackSpeed.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "swords");
                 break;
 
             case "SkillDamage":
                 float randSkillDamage = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinSkillDamage, statAugmentations[_gradeID].MaxSkillDamage));
 
                 _button.onClick.AddListener(() => player.IncreaseSkillDamage(randSkillDamage));
-                nameTMP.text = "스킬 데미지: " + randSkillDamage.ToString();
+                nameTMP.text = "권능";
+                descTMP.text = "스킬 데미지 +" + randSkillDamage.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "witchhat");
                 break;
 
             case "CoolDown":
                 float randCoolDown = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinCoolDown, statAugmentations[_gradeID].MaxCoolDown));
 
                 _button.onClick.AddListener(() => player.IncreaseCoolDown(randCoolDown));
-                nameTMP.text = "쿨타임 감소: " + randCoolDown.ToString();
+                nameTMP.text = "촉매";
+                descTMP.text = "스킬 가속 +" + randCoolDown.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "hourglass");
                 break;
 
             case "DefensivePower":
                 float randDefensivePower = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinDefensivePower, statAugmentations[_gradeID].MaxDefensivePower));
 
                 _button.onClick.AddListener(() => player.IncreaseDefensivePower(randDefensivePower));
-                nameTMP.text = "방어력: " + randDefensivePower.ToString();
+                nameTMP.text = "철벽";
+                descTMP.text = "방어력 +" + randDefensivePower.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "defence");
                 break;
 
             case "MagicDefensivePower":
                 float randMagicDefensivePower = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinMagicDefensivePower, statAugmentations[_gradeID].MaxMagicDefensivePower));
 
                 _button.onClick.AddListener(() => player.IncreaseMagicDefensivePower(randMagicDefensivePower));
-                nameTMP.text = "마법 저항력: " + randMagicDefensivePower.ToString();
+                nameTMP.text = "신념";
+                descTMP.text = "마법 저항력 +" + randMagicDefensivePower.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "defence");
                 break;
 
             case "MaxHp":
                 float randMaxHp = Mathf.Ceil(Random.Range(statAugmentations[_gradeID].MinMaxHp, statAugmentations[_gradeID].MaxMaxHp));
 
                 _button.onClick.AddListener(() => player.IncreaseMaxHp(randMaxHp));
-                nameTMP.text = "체력: " + randMaxHp.ToString();
+                nameTMP.text = "활력";
+                descTMP.text = "체력 +" + randMaxHp.ToString();
+                icon.sprite = GameManager.Resource.Load<Sprite>("Sprites/Augment", "heart");
                 break;
         }
     }

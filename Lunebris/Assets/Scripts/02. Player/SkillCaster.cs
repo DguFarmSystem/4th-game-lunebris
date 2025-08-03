@@ -5,12 +5,15 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+using TMPro;
+
 namespace Player
 {
     [DisallowMultipleComponent]
     public class SkillCaster : MonoBehaviour
     {
         [SerializeField] private Image maskImage;
+        [SerializeField] private TextMeshProUGUI coolTMP;
         private SkillList skillList;
         private float timer;
         private bool canUse;
@@ -40,9 +43,10 @@ namespace Player
             {
                 timer += Time.deltaTime;
                 maskImage.fillAmount -= Time.deltaTime / _coolTime;
-                yield return null;
 
-                // UI 
+                coolTMP.text = Mathf.Ceil(_coolTime - timer).ToString();
+
+                yield return null;
             }
             ActivateSkill();
         }
@@ -51,12 +55,14 @@ namespace Player
         {
             canUse = true;
             maskImage.fillAmount = 0f;
+            coolTMP.gameObject.SetActive(false);
         }
 
         private void DeactivateSkill()
         {
             canUse = false;
             maskImage.fillAmount = 1f;
+            coolTMP.gameObject.SetActive(true);
         }
     }
 }
