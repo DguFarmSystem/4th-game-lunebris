@@ -10,6 +10,11 @@ namespace Player
     [DisallowMultipleComponent]
     public class SkillList : MonoBehaviour
     {
+        [SerializeField] private LayerMask enemyLayer;
+
+        [Header("VFX Prefabs")]
+        [SerializeField] private GameObject skillAreaVFX; // ��ų ���� ȿ�� ������
+        [SerializeField] private GameObject hitVFX;
         public void SelectSkill(Skill _skill)
         {
             switch (_skill.id)
@@ -45,8 +50,36 @@ namespace Player
         {
             Debug.Log("Skill Name : " + _skill.skillName);
             Debug.Log("Skill Damage : " + _skill.damage);
-        }
 
+            float skillRadius = 5f; //��ų ����
+
+            if (skillAreaVFX != null)
+            {
+                GameObject vfx = Instantiate(skillAreaVFX, transform.position, Quaternion.identity);
+                var mainModule = vfx.GetComponent<ParticleSystem>().main;
+                mainModule.startSize = skillRadius * 2;
+                Destroy(vfx, 1.0f);
+            }
+
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, skillRadius, enemyLayer);
+
+            foreach (var hitCollider in hitColliders)
+            {
+                Enemy enemy = hitCollider.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    if (hitVFX != null)
+                    {
+                        GameObject hitVfx = Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
+                        Destroy(hitVfx, 0.5f);
+                    }
+
+                    enemy.Death();
+                    UnityEngine.Debug.Log(hitCollider.name + "call death()");
+                }
+            }
+        }
+        
         private void Lux2(Skill _skill)
         {
             Debug.Log("Skill Name : " + _skill.skillName);
