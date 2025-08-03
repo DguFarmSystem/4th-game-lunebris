@@ -20,6 +20,7 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
+        //HpRegen
         MagicDefensivePower,
         MaxHp
     }
@@ -64,6 +65,7 @@ namespace Player
             stats[StatType.DefensivePower] = new Stat(5f);
             stats[StatType.MagicDefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
+            //stats[StatType.HpRegen] = new Stat(5f); //ì´ˆë‹¹ 5
         }
 
         public float Get(StatType type) => stats[type].Total;
@@ -120,7 +122,24 @@ namespace Player
             currentXP = 0;
             maxXP = expData[0].MaxEXP;
             UpdateXP();
+
+            //StartCoroutine(HPRegenRoutine());
         }
+
+        /*private System.Collections.IEnumerator HPRegenRoutine()
+        {
+            while (true)
+            {
+                float regen = stat.Get(StatType.HpRegen) * Time.deltaTime;
+                if (currentHP < stat.Get(StatType.MaxHp))
+                {
+                    currentHP = Mathf.Min(currentHP + regen, stat.Get(StatType.MaxHp));
+                    UpdateHP();
+                }
+
+                yield return null;
+            }
+        }*/
 
         private void Update()
         {
@@ -130,14 +149,14 @@ namespace Player
 
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                Debug.Log("Ã¼·Â: " + stat.Get(StatType.MaxHp));
-                Debug.Log("ÀÌ¼Ó: " + stat.Get(StatType.MoveSpeed));
-                Debug.Log("°ø°Ý: " + stat.Get(StatType.AttackDamage));
-                Debug.Log("°ø¼Ó: " + stat.Get(StatType.AttackSpeed));
-                Debug.Log("½ºµ©: " + stat.Get(StatType.SkillDamage));
-                Debug.Log("¹æ¾î: " + stat.Get(StatType.DefensivePower));
-                Debug.Log("¸¶Àú: " + stat.Get(StatType.MagicDefensivePower));
-                Debug.Log("Äð°¨: " + stat.Get(StatType.CoolDown));
+                Debug.Log("ì²´ë ¥: " + stat.Get(StatType.MaxHp));
+                Debug.Log("ì´ì†: " + stat.Get(StatType.MoveSpeed));
+                Debug.Log("ê³µê²©: " + stat.Get(StatType.AttackDamage));
+                Debug.Log("ê³µì†: " + stat.Get(StatType.AttackSpeed));
+                Debug.Log("ìŠ¤ëŽ€: " + stat.Get(StatType.SkillDamage));
+                Debug.Log("ë°©ì–´: " + stat.Get(StatType.DefensivePower));
+                Debug.Log("ë§ˆì €: " + stat.Get(StatType.MagicDefensivePower));
+                Debug.Log("ì¿¨ê°: " + stat.Get(StatType.CoolDown));
             }
 
             UpdateHP();
@@ -195,49 +214,49 @@ namespace Player
         public void IncreaseMoveSpeed(float _value)
         {
             stat.AddBonus(StatType.MoveSpeed, _value);
-            Debug.Log("ÀÌ¼Ó Áõ°¡!");
+            Debug.Log("ì´ì† ì¦ê°€!");
         }
 
         public void IncreaseAttackDamage(float _value)
         {
             stat.AddBonus(StatType.AttackDamage, _value);
-            Debug.Log("°ø°Ý·Â Áõ°¡!");
+            Debug.Log("ê³µê²©ë ¥ ì¦ê°€!");
         }
 
         public void IncreaseAttackSpeed(float _value)
         {
             stat.AddBonus(StatType.AttackSpeed, _value);
-            Debug.Log("°ø¼Ó Áõ°¡!");
+            Debug.Log("ê³µì† ì¦ê°€!");
         }
 
         public void IncreaseSkillDamage(float _value)
         {
             stat.AddBonus(StatType.SkillDamage, _value);
-            Debug.Log("½ºÅ³µ¥¹ÌÁö Áõ°¡!");
+            Debug.Log("ìŠ¤í‚¬ë°ë¯¸ì§€ ì¦ê°€!");
         }
 
         public void IncreaseCoolDown(float _value)
         {
             stat.AddBonus(StatType.CoolDown, _value);
-            Debug.Log("Äð°¨ Áõ°¡!");
+            Debug.Log("ì¿¨ê° ì¦ê°€!");
         }
 
         public void IncreaseDefensivePower(float _value)
         {
             stat.AddBonus(StatType.DefensivePower, _value);
-            Debug.Log("¹æ¾î·Â Áõ°¡!");
+            Debug.Log("ë°©ì–´ë ¥ ì¦ê°€!");
         }
 
         public void IncreaseMagicDefensivePower(float _value)
         {
             stat.AddBonus(StatType.MagicDefensivePower, _value);
-            Debug.Log("¸¶Àú Áõ°¡!");
+            Debug.Log("ë§ˆì € ì¦ê°€!");
         }
 
         public void IncreaseMaxHp(float _value)
         {
             stat.AddBonus(StatType.MaxHp, _value);
-            Debug.Log("Ã¼·Â Áõ°¡!");
+            Debug.Log("ì²´ë ¥ ì¦ê°€!");
         }
 
         public float GetMoveSpeed()
