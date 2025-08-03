@@ -43,50 +43,50 @@ namespace Player
 
         private void Lux1(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux2(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux3(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux4(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris1(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris2(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris3(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris4(Skill _skill)
         {
-            Debug.Log("스킬 이름 : " + _skill.skillName);
-            Debug.Log("스킬 데미지 : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
     }
 }

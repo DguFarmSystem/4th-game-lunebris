@@ -9,10 +9,8 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class MapController : MonoBehaviour
 {
-    [Header("변경할 메테리얼")]
     [SerializeField] private Material material;
 
-    [Header("속성 밸런스 슬라이더")]
     [SerializeField] private Slider balanceSlider;
 
     // Define Color
@@ -22,19 +20,14 @@ public class MapController : MonoBehaviour
     private bool isWhite = false;
     private static readonly IReadOnlyList<string> attribute = new List<string> { "lux", "tenebris" };
 
-    [Header("전환 기간")]
     [SerializeField] private float convertDuration = 1f;
 
-    [Header("전환 쿨타임")]
     [SerializeField] private float convertCoolTime = 3f;
 
-    [Header("잠식에 걸리는 총 시간")]
     [SerializeField] private float eroisnTime = 30f;
 
-    [Header("Lux 스킬 인터페이스 배열")]
     [SerializeField] private GameObject[] luxSkillInterfaces;
 
-    [Header("Tenebris 스킬 인터페이스 배열")]
     [SerializeField] private GameObject[] tenebrisSkillInterfaces;
 
     private bool canConvert = true;

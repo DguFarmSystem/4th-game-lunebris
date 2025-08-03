@@ -5,6 +5,7 @@ using TMPro;
 
 // System
 using System.Collections.Generic;
+using System;
 
 namespace Player
 {
@@ -19,6 +20,7 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
+        MagicDefensivePower,
         MaxHp
     }
 
@@ -60,6 +62,7 @@ namespace Player
             stats[StatType.SkillDamage] = new Stat(15f);
             stats[StatType.CoolDown] = new Stat(0f);
             stats[StatType.DefensivePower] = new Stat(5f);
+            stats[StatType.MagicDefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
         }
 
@@ -124,6 +127,20 @@ namespace Player
             // Test Code
             if (Input.GetKeyDown(KeyCode.Space))
                 IncreaseXP(50);
+
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                Debug.Log("체력: " + stat.Get(StatType.MaxHp));
+                Debug.Log("이속: " + stat.Get(StatType.MoveSpeed));
+                Debug.Log("공격: " + stat.Get(StatType.AttackDamage));
+                Debug.Log("공속: " + stat.Get(StatType.AttackSpeed));
+                Debug.Log("스뎀: " + stat.Get(StatType.SkillDamage));
+                Debug.Log("방어: " + stat.Get(StatType.DefensivePower));
+                Debug.Log("마저: " + stat.Get(StatType.MagicDefensivePower));
+                Debug.Log("쿨감: " + stat.Get(StatType.CoolDown));
+            }
+
+            UpdateHP();
         }
 
         private void OnTriggerEnter(Collider collision)
@@ -173,6 +190,94 @@ namespace Player
             }
 
             UpdateXP();
+        }
+
+        public void IncreaseMoveSpeed(float _value)
+        {
+            stat.AddBonus(StatType.MoveSpeed, _value);
+            Debug.Log("이속 증가!");
+        }
+
+        public void IncreaseAttackDamage(float _value)
+        {
+            stat.AddBonus(StatType.AttackDamage, _value);
+            Debug.Log("공격력 증가!");
+        }
+
+        public void IncreaseAttackSpeed(float _value)
+        {
+            stat.AddBonus(StatType.AttackSpeed, _value);
+            Debug.Log("공속 증가!");
+        }
+
+        public void IncreaseSkillDamage(float _value)
+        {
+            stat.AddBonus(StatType.SkillDamage, _value);
+            Debug.Log("스킬데미지 증가!");
+        }
+
+        public void IncreaseCoolDown(float _value)
+        {
+            stat.AddBonus(StatType.CoolDown, _value);
+            Debug.Log("쿨감 증가!");
+        }
+
+        public void IncreaseDefensivePower(float _value)
+        {
+            stat.AddBonus(StatType.DefensivePower, _value);
+            Debug.Log("방어력 증가!");
+        }
+
+        public void IncreaseMagicDefensivePower(float _value)
+        {
+            stat.AddBonus(StatType.MagicDefensivePower, _value);
+            Debug.Log("마저 증가!");
+        }
+
+        public void IncreaseMaxHp(float _value)
+        {
+            stat.AddBonus(StatType.MaxHp, _value);
+            Debug.Log("체력 증가!");
+        }
+
+        public float GetMoveSpeed()
+        {
+            return stat.Get(StatType.MoveSpeed);
+        }
+
+        public float GetAttackDamage()
+        {
+            return stat.Get(StatType.AttackDamage);
+        }
+
+        public float GetAttackSpeed()
+        {
+            return stat.Get(StatType.AttackSpeed);
+        }
+
+        public float GetSkillDamage()
+        {
+            return stat.Get(StatType.SkillDamage);
+        }
+
+        public float GetCoolDown()
+        {
+            return stat.Get(StatType.CoolDown);
+        }
+
+        public float GetDefensivePower()
+        {
+            return stat.Get(StatType.DefensivePower);
+        }
+
+        public float GetMagicDefensivePower()
+        {
+            return stat.Get(StatType.MagicDefensivePower);
+        }
+
+        public float GetMaxHp()
+        {
+            return stat.Get(StatType.MaxHp);
         }
 
         private void LevelUp(int _remainXP)

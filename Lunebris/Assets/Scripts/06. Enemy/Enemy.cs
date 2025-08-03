@@ -4,6 +4,9 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class Enemy : MonoBehaviour
 {
+    [Range(0,1), Header("Moster's Attribute")]
+    [SerializeField] private int attribute;
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Attack")) return;
