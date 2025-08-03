@@ -10,6 +10,11 @@ namespace Player
     [DisallowMultipleComponent]
     public class SkillList : MonoBehaviour
     {
+        [SerializeField] private LayerMask enemyLayer;
+
+        [Header("VFX Prefabs")]
+        [SerializeField] private GameObject skillAreaVFX; // ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        [SerializeField] private GameObject hitVFX;
         public void SelectSkill(Skill _skill)
         {
             switch (_skill.id)
@@ -43,50 +48,78 @@ namespace Player
 
         private void Lux1(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
-        }
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
 
+            float skillRadius = 5f; //ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+
+            if (skillAreaVFX != null)
+            {
+                GameObject vfx = Instantiate(skillAreaVFX, transform.position, Quaternion.identity);
+                var mainModule = vfx.GetComponent<ParticleSystem>().main;
+                mainModule.startSize = skillRadius * 2;
+                Destroy(vfx, 1.0f);
+            }
+
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, skillRadius, enemyLayer);
+
+            foreach (var hitCollider in hitColliders)
+            {
+                Enemy enemy = hitCollider.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    if (hitVFX != null)
+                    {
+                        GameObject hitVfx = Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
+                        Destroy(hitVfx, 0.5f);
+                    }
+
+                    enemy.Death();
+                    UnityEngine.Debug.Log(hitCollider.name + "call death()");
+                }
+            }
+        }
+        
         private void Lux2(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux3(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux4(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris1(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris2(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris3(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris4(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
     }
 }

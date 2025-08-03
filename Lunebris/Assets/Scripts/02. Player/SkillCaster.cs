@@ -42,7 +42,7 @@ namespace Player
                 maskImage.fillAmount -= Time.deltaTime / _coolTime;
                 yield return null;
 
-                // UI 변화 코드
+                // UI 
             }
             ActivateSkill();
         }
@@ -51,16 +51,12 @@ namespace Player
         {
             canUse = true;
             maskImage.fillAmount = 0f;
-            Debug.Log("스킬 활성화");
-            // UI 활성화
         }
 
         private void DeactivateSkill()
         {
             canUse = false;
             maskImage.fillAmount = 1f;
-            Debug.Log("스킬 비활성화");
-            // UI 비활성화
         }
     }
 }
