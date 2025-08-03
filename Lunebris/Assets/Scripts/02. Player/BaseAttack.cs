@@ -19,5 +19,10 @@ namespace Player
         {
             rigid.velocity = velocity * _direction.normalized;
         }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Wall")) gameObject.SetActive(false);
+        }
     }
 }

@@ -1,12 +1,18 @@
 // Unity
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+
+// System
+using System.Collections.Generic;
 
 [DisallowMultipleComponent]
 public class AugmentationUI : MonoBehaviour
 {
     [SerializeField] private GameObject augmentationUI;
+
     [SerializeField] private Button[] augmentationSelectButtons;
+    [SerializeField] private TextMeshProUGUI augmentationName;
 
     private void Start()
     {
