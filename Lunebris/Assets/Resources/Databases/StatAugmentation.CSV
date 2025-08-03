@@ -1,0 +1,4 @@
+Grade,MinMoveSpeed,MaxMoveSpeed,MinAttackDamage,MaxAttackDamage,MinAttackSpeed,MaxAttackSpeed,MinSkillDamage,MaxSkillDamage,MinCoolDown,MaxCoolDown,MinDefensivePower,MaxDefensivePower,MinMagicDefensivePower,MaxMagicDefensivePower,MinMaxHp,MaxMaxHp
+Rare,10,30,10,30,10,30,10,30,10,30,10,30,10,30,10,30
+Epic,40,60,40,60,40,60,40,60,40,60,40,60,40,60,40,60
+Legend,70,90,70,90,70,90,70,90,70,90,70,90,70,90,70,90

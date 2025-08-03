@@ -37,7 +37,7 @@ namespace Player
 
         private void Move()
         {
-            Vector3 moveVector = inputVector.normalized * speed * Time.fixedDeltaTime;
+            Vector3 moveVector = inputVector.normalized * player.GetMoveSpeed() * Time.fixedDeltaTime;
             rigid.MovePosition(rigid.position + moveVector);
         }
     }

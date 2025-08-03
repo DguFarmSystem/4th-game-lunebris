@@ -13,7 +13,7 @@ namespace Player
         [SerializeField] private LayerMask enemyLayer;
 
         [Header("VFX Prefabs")]
-        [SerializeField] private GameObject skillAreaVFX; // ½ºÅ³ ¹üÀ§ È¿°ú ÇÁ¸®ÆÕ
+        [SerializeField] private GameObject skillAreaVFX; // ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         [SerializeField] private GameObject hitVFX;
         public void SelectSkill(Skill _skill)
         {
@@ -48,9 +48,10 @@ namespace Player
 
         private void Lux1(Skill _skill)
         {
-            UnityEngine.Debug.Log("½ºÅ³ »ç¿ë: " + _skill.skillName);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
 
-            float skillRadius = 5f; //½ºÅ³ ¹üÀ§
+            float skillRadius = 5f; //ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
 
             if (skillAreaVFX != null)
             {
@@ -78,46 +79,47 @@ namespace Player
                 }
             }
         }
+        
         private void Lux2(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux3(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Lux4(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris1(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris2(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris3(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
 
         private void Tenebris4(Skill _skill)
         {
-            Debug.Log("½ºÅ³ ÀÌ¸§ : " + _skill.skillName);
-            Debug.Log("½ºÅ³ µ¥¹ÌÁö : " + _skill.damage);
+            Debug.Log("Skill Name : " + _skill.skillName);
+            Debug.Log("Skill Damage : " + _skill.damage);
         }
     }
 }

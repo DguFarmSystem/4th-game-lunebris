@@ -35,11 +35,13 @@ public class GameManager : MonoBehaviour
     private ResourceManager resouce = new ResourceManager();
     private SoundManager sound = new SoundManager();
     private DataManager data = new DataManager(); 
+    private CSVReader csv = new CSVReader();
 
     public static Scene Scene { get { return Instance.scene; } }
     public static ResourceManager Resource { get { return Instance.resouce; } }
     public static SoundManager Sound { get { return Instance.sound; } }
     public static DataManager Data { get { return Instance.data; } }
+    public static CSVReader CSV { get { return Instance.csv; } }
 
     public void PauseGame()
     {
