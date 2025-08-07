@@ -5848,7 +5848,9 @@ MonoBehaviour:
   lux3_Range: 20
   lux3_Width: 3
   lux3_MinDamageMultiplier: 0.5
-  lux3_VFX_Prefab: {fileID: 0}
+  lux3_VFX_Prefab: {fileID: 6327936823221418715, guid: 26d3b940ed931d04cb54ace422daad6a, type: 3}
+  summonPrefab: {fileID: 1797647599124509145, guid: 3fecebdfcf5d2a444a3a2487aeb525eb, type: 3}
+  summonPoint: {fileID: 2034578747}
 --- !u!114 &564111711
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -28,6 +28,11 @@ namespace Player
         [SerializeField] private float lux3_MinDamageMultiplier = 0.5f; // 가장자리 최소 데미지 배율 (50%)
         [SerializeField] private GameObject lux3_VFX_Prefab; // 레이저 시각 효과 프리팹
 
+        [Header("Lux4 Skill Settings")]
+        [SerializeField] private GameObject summonPrefab;
+        [SerializeField] private Transform summonPoint;
+
+
         private void Awake()
         {
             // 필요한 컴포넌트들을 자동으로 찾아 할당합니다.
@@ -149,9 +154,29 @@ namespace Player
             }
         }
 
-        // --- 나머지 스킬 메서드 (구현 대기) ---
         private void Lux2(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
-        private void Lux4(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
+        private void Lux4(Skill _skill)
+        {
+            Debug.Log("Skill Name : " + _skill.skillName);
+
+            if (summonPrefab != null)
+            {
+                Vector3 direction = playerAttack.GetLookDirection();
+                if (direction == Vector3.zero)
+                {
+                    direction = player.transform.forward;
+                }
+
+                Vector3 spawnPosition = player.transform.position + direction.normalized * 3f;
+
+                Debug.Log("빛의 정령을 소환합니다!");
+                Instantiate(summonPrefab, spawnPosition, Quaternion.identity);
+            }
+            else
+            {
+                Debug.LogError("Lux4: 소환수 프리팹이 할당되지 않았습니다!");
+            }
+        }
         private void Tenebris1(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
         private void Tenebris2(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
         private void Tenebris3(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
