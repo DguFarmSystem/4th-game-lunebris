@@ -20,10 +20,13 @@ public class MapController : MonoBehaviour
     private bool isWhite = false;
     private static readonly IReadOnlyList<string> attribute = new List<string> { "lux", "tenebris" };
 
+    [Header("변환 시간")]
     [SerializeField] private float convertDuration = 1f;
 
+    [Header("변환 쿨타임")]
     [SerializeField] private float convertCoolTime = 3f;
 
+    [Header("속성 최대 유지 가능 시간")]
     [SerializeField] private float eroisnTime = 30f;
 
     [SerializeField] private GameObject[] luxSkillInterfaces;
@@ -32,11 +35,16 @@ public class MapController : MonoBehaviour
 
     [SerializeField] private Player.SkillCaster passiveCaster;
 
+    [Header("플레이어 스킨 변경 변수")]
+    [SerializeField] private Material[] materials;
+    [SerializeField] private SkinnedMeshRenderer skin;
+
     private bool canConvert = true;
 
     private void Awake()
     {
         material.color = black;
+        skin.material = materials[1];
         UpdateSkillInterface();
     }
 
@@ -70,6 +78,7 @@ public class MapController : MonoBehaviour
                 StartCoroutine(ConvertMapCoroutine(white, black));  // W2B
                 isWhite = false;
                 UpdateSkillInterface();
+                skin.material = materials[1]; // black skin
                 Debug.Log(GetCurrentAttribute());
             }
             else
@@ -78,6 +87,7 @@ public class MapController : MonoBehaviour
                 StartCoroutine(ConvertMapCoroutine(black, white));  // B2W
                 isWhite = true;
                 UpdateSkillInterface();
+                skin.material = materials[0]; // white skin
                 Debug.Log(GetCurrentAttribute());
             }
         }
