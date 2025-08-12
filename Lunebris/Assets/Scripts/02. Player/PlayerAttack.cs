@@ -17,6 +17,11 @@ namespace Player
         private Vector3 direction;
         private int baseAttackPrefabID = 0;
 
+        public Vector3 GetLookDirection()
+        {
+            return direction;
+        }
+
         private void Start()
         {
             player = GetComponent<Player>();

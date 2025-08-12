@@ -51,9 +51,9 @@ namespace Player
 
         public PlayerSkill()
         {
-            skillDict[SkillType.Lux1] = new Skill(0, "Lux1", 2f, 5f);
+            skillDict[SkillType.Lux1] = new Skill(0, "Lux1", 2f, 0f);
             skillDict[SkillType.Lux2] = new Skill(1, "Lux2", 2f, 5f);
-            skillDict[SkillType.Lux3] = new Skill(2, "Lux3", 2f, 5f);
+            skillDict[SkillType.Lux3] = new Skill(2, "Lux3", 2f, 0f);
             skillDict[SkillType.Lux4] = new Skill(3, "Lux4", 2f, 5f);
             skillDict[SkillType.Tenebris1] = new Skill(4, "Tenebris1", 2f, 5f);
             skillDict[SkillType.Tenebris2] = new Skill(5, "Tenebris2", 2f, 5f);
