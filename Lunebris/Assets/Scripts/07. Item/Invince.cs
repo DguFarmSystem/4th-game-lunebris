@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Invince : Item
-{   
+{
     private void Awake()
     {
         itemID = 2;
         itemName = "Invince";
     }
     
-    public override void DestroyAfterTime()//½Ã°£ Áö³­ ÈÄ ÆÄ±«
+    public override void DestroyAfterTime()//ì‹œê°„ ì§€ë‚œ í›„ íŒŒê´´
     {
         Invoke("DestroyObject", 30.0f);
     }
@@ -19,15 +19,18 @@ public class Invince : Item
     {
         if (other.CompareTag("Player"))
         {
-            bool wasPickedUp = Inventory.instance.Add(this);
-            if (wasPickedUp)
+            Player.Player player = other.GetComponent<Player.Player>();
+            if (player != null)
             {
-                gameObject.SetActive(false);
+                player.GiveInvincibilityItem();
             }
+
+            CancelInvoke(nameof(DestroyObject));
+            gameObject.SetActive(false);
         }
     }
 
-    public override void ApplyEffect()//È¿°ú Àû¿ë
+    public override void ApplyEffect()//íš¨ê³¼ ì ìš©
     {
 
     }

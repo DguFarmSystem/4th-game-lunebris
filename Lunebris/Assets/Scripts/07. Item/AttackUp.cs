@@ -13,7 +13,7 @@ public class AttackUp : Item
         itemName = "AttackUp";
     }
 
-    public override void DestroyAfterTime()//½Ã°£ Áö³­ ÈÄ ÆÄ±«
+    public override void DestroyAfterTime()//ì‹œê°„ ì§€ë‚œ í›„ íŒŒê´´
     {
         Invoke("DestroyObject", 30.0f);
     }
@@ -25,17 +25,18 @@ public class AttackUp : Item
             bool wasPickedUp = Inventory.instance.Add(this);
             if (wasPickedUp)
             {
+                CancelInvoke("DestroyObject");
                 gameObject.SetActive(false);
             }
         }
     }
 
-    public override void ApplyEffect()//È¿°ú Àû¿ë
+    public override void ApplyEffect()//íš¨ê³¼ ì ìš©
     {
         Player.Player player = GameObject.FindWithTag("Player").GetComponent<Player.Player>();
         player.GetPlayerStat().AddBonus(StatType.AttackDamage, bonusAmount);
-        Debug.Log("°ø°İ·Â Áõ°¡, ÇöÀç °ø°İ·Â: " + player.GetPlayerStat().Get(StatType.AttackDamage));
-        Destroy(gameObject); // ¾ÆÀÌÅÛ ¿ÀºêÁ§Æ® Á¦°Å
+        Debug.Log("ê³µê²©ë ¥ ì¦ê°€, í˜„ì¬ ê³µê²©ë ¥: " + player.GetPlayerStat().Get(StatType.AttackDamage));
+        Destroy(gameObject); // ì•„ì´í…œ ì˜¤ë¸Œì íŠ¸ ì œê±°
     }
 
     public void DestroyObject()

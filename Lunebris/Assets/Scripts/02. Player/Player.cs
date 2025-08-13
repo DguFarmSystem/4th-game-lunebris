@@ -106,6 +106,60 @@ namespace Player
         private int currentXP;
         private int maxXP;
 
+
+
+
+
+
+
+        private bool hasInvincibilityItem = false;
+        private float invincibilityCooldown = 15f;
+        [SerializeField] private float invincibilityDuration = 3f;
+        private float lastInvincibilityUseTime = -999f;
+        private bool isInvincible = false;
+
+        public void SetInvincibilityDuration(float duration)
+        {
+            invincibilityDuration = duration;
+        }
+        public void GiveInvincibilityItem(float customDuration = -1f)
+        {
+            hasInvincibilityItem = true;
+            if (customDuration > 0)
+                SetInvincibilityDuration(customDuration);
+
+            Debug.Log($"무적 아이템을 획득했습니다! 지속 시간: {invincibilityDuration}초");
+        }
+
+        private void ActivateTimedInvincibility()
+        {
+            isInvincible = true;
+            lastInvincibilityUseTime = Time.time;
+            Debug.Log("무적 상태 시작");
+
+            Invoke(nameof(ResetInvincibility), invincibilityDuration);
+        }
+
+        private void ResetInvincibility()
+        {
+            isInvincible = false;
+            Debug.Log("무적 상태 종료");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private void Awake()
         {
             stat = new PlayerStat();
@@ -189,8 +243,23 @@ namespace Player
 
         public void DecreaseHP(float _value)
         {
-            currentHP -= _value;
-            UpdateHP();
+            if (isInvincible)
+            {
+                Debug.Log("무적 상태");
+                return;
+            }
+            if (hasInvincibilityItem)
+            {
+                float timeSinceLastUse = Time.time - lastInvincibilityUseTime;
+                if (timeSinceLastUse >= invincibilityCooldown)
+                {
+                    ActivateTimedInvincibility();
+                    return;
+                }
+
+                currentHP -= _value;
+                UpdateHP();
+            }
         }
 
         private void UpdateHP()

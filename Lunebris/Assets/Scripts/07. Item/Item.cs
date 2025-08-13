@@ -10,8 +10,8 @@ public abstract class Item : MonoBehaviour
     public Sprite icon;
     public string itemName;
 
-    public abstract void DestroyAfterTime(); //½Ã°£ Áö³­ ÈÄ ÆÄ±«
-    public abstract void ApplyEffect(); //¾ÆÀÌÅÛ ½ÇÇà
+    public abstract void DestroyAfterTime(); //ì‹œê°„ ì§€ë‚œ í›„ íŒŒê´´
+    public abstract void ApplyEffect(); //ì•„ì´í…œ ì‹¤í–‰
 
     private void Start()
     {
