@@ -23,7 +23,6 @@ public class Reborn : Item
             bool wasPickedUp = Inventory.instance.Add(this);
             if (wasPickedUp)
             {
-                CancelInvoke("DestroyObject");
                 gameObject.SetActive(false);
             }
         }
