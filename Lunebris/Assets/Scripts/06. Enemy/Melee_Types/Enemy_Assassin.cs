@@ -21,7 +21,7 @@ public class Enemy_Assassin : Enemy_Base
     {
         // 어새신 기본 설정
         enemyType = EnemyType.MeleeAssassin;
-        elementType = ElementType.Dark;
+        elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Physical;
         enemyName = "Simple Assassin";
 

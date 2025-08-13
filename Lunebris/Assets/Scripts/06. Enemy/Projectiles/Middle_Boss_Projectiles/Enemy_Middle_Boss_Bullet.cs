@@ -12,7 +12,7 @@ public class Enemy_Middle_Boss_Bullet : MonoBehaviour
     [Header("투사체 설정")]
     [SerializeField] private float damage = 20f;
     [SerializeField] private DamageType damageType = DamageType.Magical;
-    [SerializeField] private ElementType elementType = ElementType.Dark;
+    [SerializeField] private ElementType elementType = ElementType.Tenebris;
     [SerializeField] private float lifeTime = 1f;
 
     [Header("시각적 효과")]
@@ -33,7 +33,7 @@ public class Enemy_Middle_Boss_Bullet : MonoBehaviour
     /// <summary>
     /// 투사체 초기화 (보스에서 호출)
     /// </summary>
-    public void Initialize(float bulletDamage, DamageType bulletDamageType, ElementType bulletElement = ElementType.Dark)
+    public void Initialize(float bulletDamage, DamageType bulletDamageType, ElementType bulletElement = ElementType.Tenebris)
     {
         damage = bulletDamage;
         damageType = bulletDamageType;

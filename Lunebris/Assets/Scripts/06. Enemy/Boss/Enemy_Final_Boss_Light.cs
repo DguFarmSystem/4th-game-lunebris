@@ -32,7 +32,7 @@ public class Enemy_Final_Boss_Light : Enemy_Base
     protected override void Awake()
     {
         enemyType = EnemyType.MiddleBoss;
-        elementType = ElementType.Light;
+        elementType = ElementType.Lux;
         primaryDamageType = DamageType.Magical;
         enemyName = "Light Sovereign";
 

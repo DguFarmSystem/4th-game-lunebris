@@ -36,6 +36,8 @@ public abstract class Enemy_Base : MonoBehaviour
     protected Renderer enemyRenderer;
     protected Color originalColor;
 
+    protected EnemyKillDetector killDetector;
+
     #region Unity Lifecycle
 
     protected virtual void Awake()
@@ -60,6 +62,8 @@ public abstract class Enemy_Base : MonoBehaviour
             enemyRenderer.material = new Material(enemyRenderer.material);
             originalColor = enemyRenderer.material.color;
         }
+
+        killDetector = FindObjectOfType<EnemyKillDetector>();
     }
 
     protected virtual void Start()
@@ -259,6 +263,8 @@ public abstract class Enemy_Base : MonoBehaviour
 
         // 오브젝트 비활성화 또는 파괴
         gameObject.SetActive(false);
+
+        killDetector.IncreaseTenePower();
     }
 
     protected virtual void GiveExperience()

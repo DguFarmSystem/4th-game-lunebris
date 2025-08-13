@@ -70,7 +70,7 @@ public class Enemy_Middle_Boss : Enemy_Base
     {
         // 중간보스 기본 설정
         enemyType = EnemyType.MiddleBoss;
-        elementType = ElementType.Dark;
+        elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Magical;
         enemyName = "Shadow Guardian";
 

@@ -3855,7 +3855,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 32e6135e7a04dd2478477896500d3e0d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6283,6 +6283,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5923659549173704284, guid: bde11fa3ce97bcf489cee3f41ee7c2fd, type: 3}
   m_PrefabInstance: {fileID: 1060617811}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &597662188
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 597662189}
+  - component: {fileID: 597662190}
+  m_Layer: 0
+  m_Name: Kill Detector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &597662189
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597662188}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &597662190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597662188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7635b3c62bdf96a49beaafe2071b24ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &603864158
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7246,7 +7290,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabs:
   - {fileID: 5413666472578828671, guid: f437e013be0fce44b856b85a964eef73, type: 3}
-  - {fileID: 5033370213045980155, guid: d5f87bb6b80801348b98102703ff1d02, type: 3}
+  - {fileID: 7055654612612256485, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
 --- !u!4 &758172768 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9010164920852831586, guid: a9b90e62ec1de4149b1ff1f2ddecdae5, type: 3}
@@ -13248,11 +13292,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 1832757079}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
+  player: {fileID: 0}
+  playerAttack: {fileID: 0}
   skillAreaVFX: {fileID: 0}
   hitVFX: {fileID: 0}
+  lux1_Radius: 5
+  lux3_Range: 20
+  lux3_Width: 3
+  lux3_MinDamageMultiplier: 0.5
+  lux3_VFX_Prefab: {fileID: 0}
+  summonPrefab: {fileID: 0}
+  summonPoint: {fileID: 0}
 --- !u!114 &1322269881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24289,3 +24339,4 @@ SceneRoots:
   - {fileID: 268003531}
   - {fileID: 751122658}
   - {fileID: 1611882116}
+  - {fileID: 597662189}

@@ -88,28 +88,28 @@ namespace Player
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                if(map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux1);
+                if(map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux1);
                 else skill = playerSkill.Get(SkillType.Tenebris1);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux2);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux2);
                 else skill = playerSkill.Get(SkillType.Tenebris2);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux3);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux3);
                 else skill = playerSkill.Get(SkillType.Tenebris3);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha4))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux4);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux4);
                 else skill = playerSkill.Get(SkillType.Tenebris4);
 
                 caster[skill.id].UseSkill(skill);

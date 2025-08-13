@@ -78,7 +78,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     protected override void Awake()
     {
         enemyType = EnemyType.FinalBoss;
-        elementType = ElementType.Dark;
+        elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Magical;
         enemyName = "Dark Sovereign";
 

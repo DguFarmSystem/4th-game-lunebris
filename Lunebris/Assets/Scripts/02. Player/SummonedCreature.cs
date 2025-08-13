@@ -194,7 +194,7 @@ public class SummonedCreature : MonoBehaviour
         if (currentTarget != null && !targetEnemyScript.IsDead() && Vector3.Distance(transform.position, currentTarget.position) <= attackRange)
         {
             transform.LookAt(currentTarget);
-            targetEnemyScript.TakeDamage(attackDamage, Enemy.DamageType.Magical, Enemy.ElementType.Light);
+            targetEnemyScript.TakeDamage(attackDamage, Enemy.DamageType.Magical, ElementType.Lux);
 
             if (attackEffectPrefab != null)
             {

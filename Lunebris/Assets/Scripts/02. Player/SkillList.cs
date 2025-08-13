@@ -78,7 +78,7 @@ namespace Player
                     if (enemy != null && !enemy.IsDead())
                     {
                         float totalSkillDamage = _skill.damage + player.GetPlayerStat().Get(StatType.SkillDamage);
-                        enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Light);
+                        enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Lux);
 
                         if (hitVFX != null)
                         {
@@ -122,7 +122,7 @@ namespace Player
                         float baseSkillDamage = _skill.damage + player.GetPlayerStat().Get(StatType.SkillDamage);
                         float finalDamage = baseSkillDamage * damageMultiplier;
 
-                        enemy.TakeDamage(finalDamage, DamageType.Magical, ElementType.Light);
+                        enemy.TakeDamage(finalDamage, DamageType.Magical, ElementType.Lux);
 
                         Debug.Log($"{enemy.name}에게 중심에서 {distanceFromCenter:F2}m 떨어져 {finalDamage:F1}의 데미지를 입혔습니다 (배율: {damageMultiplier:P0}).");
 
