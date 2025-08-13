@@ -90,8 +90,8 @@ public abstract class Enemy_Base : MonoBehaviour
             hpCanvas.gameObject.SetActive(false); // 기본적으로 숨김
         }
 
-        Debug.Log($"{enemyName} ({enemyType}, {elementType}, {primaryDamageType}) 초기화 완료!");
-        LogEnemyStats();
+        //bug.Log($"{enemyName} ({enemyType}, {elementType}, {primaryDamageType}) 초기화 완료!");
+        //LogEnemyStats();
     }
 
     protected virtual void LogEnemyStats()

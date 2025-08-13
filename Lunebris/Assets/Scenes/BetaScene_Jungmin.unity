@@ -1009,6 +1009,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 1335036281}
+  coolTMP: {fileID: 0}
 --- !u!4 &90408680 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1661171974301024865, guid: 432cada2389dee84395dec9fa4e7b086, type: 3}
@@ -1186,6 +1187,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 5318105}
+  coolTMP: {fileID: 0}
 --- !u!1001 &128063285
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1456,8 +1458,8 @@ GameObject:
   - component: {fileID: 164098276}
   - component: {fileID: 164098275}
   - component: {fileID: 164098274}
-  - component: {fileID: 164098273}
   - component: {fileID: 164098277}
+  - component: {fileID: 164098278}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -1480,21 +1482,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1829109496}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &164098273
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 164098270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71b20d13a7783bf4eb728f6876ffe1ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemID: 0
-  icon: {fileID: 0}
-  itemName: 
 --- !u!136 &164098274
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1595,6 +1582,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &164098278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164098270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2f54c4151df1de4eb7a2f573c8b8ccf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemID: 0
+  icon: {fileID: 0}
+  itemName: 
 --- !u!1001 &167712825
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2325,6 +2327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 648344840}
+  coolTMP: {fileID: 0}
 --- !u!1 &268003530
 GameObject:
   m_ObjectHideFlags: 0
@@ -5222,6 +5225,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 847eeb5ba31648149b2f63795685327a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  map: {fileID: 0}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  skillAreaVFX: {fileID: 0}
+  hitVFX: {fileID: 0}
 --- !u!114 &564111711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6581,8 +6590,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabs:
-  - {fileID: 5413666472578828671, guid: f437e013be0fce44b856b85a964eef73, type: 3}
-  - {fileID: 6795978976793460924, guid: 08107577c9d57714d9281938de651af6, type: 3}
+  - {fileID: 7055654612612256485, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
+  - {fileID: 5033370213045980155, guid: d5f87bb6b80801348b98102703ff1d02, type: 3}
 --- !u!4 &758172768 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9010164920852831586, guid: a9b90e62ec1de4149b1ff1f2ddecdae5, type: 3}
@@ -7973,6 +7982,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 1573031233}
+  coolTMP: {fileID: 0}
 --- !u!1 &914596643
 GameObject:
   m_ObjectHideFlags: 0
@@ -8321,6 +8331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 501410921}
+  coolTMP: {fileID: 0}
 --- !u!1 &946748974
 GameObject:
   m_ObjectHideFlags: 0
@@ -14349,6 +14360,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 1377988448}
+  coolTMP: {fileID: 0}
 --- !u!1001 &1503530922
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15111,6 +15123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 789469312}
+  coolTMP: {fileID: 0}
 --- !u!1001 &1597334810
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16009,6 +16022,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maskImage: {fileID: 41144888}
+  coolTMP: {fileID: 0}
 --- !u!1001 &1693851609
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17063,7 +17077,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1829109496}
   m_Layer: 0
-  m_Name: Reborn Item
+  m_Name: Invince Item
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17226,6 +17240,7 @@ MonoBehaviour:
   - {fileID: 223081419}
   - {fileID: 1674420051}
   - {fileID: 1431081558}
+  passiveCaster: {fileID: 0}
 --- !u!1001 &1840581956
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17636,8 +17651,8 @@ GameObject:
   - component: {fileID: 1879284915}
   - component: {fileID: 1879284914}
   - component: {fileID: 1879284913}
-  - component: {fileID: 1879284912}
   - component: {fileID: 1879284916}
+  - component: {fileID: 1879284917}
   m_Layer: 0
   m_Name: Cylinder (2)
   m_TagString: Untagged
@@ -17660,21 +17675,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1829109496}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1879284912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1879284909}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71b20d13a7783bf4eb728f6876ffe1ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemID: 0
-  icon: {fileID: 0}
-  itemName: 
 --- !u!136 &1879284913
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -17775,6 +17775,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1879284917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879284909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2f54c4151df1de4eb7a2f573c8b8ccf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemID: 0
+  icon: {fileID: 0}
+  itemName: 
 --- !u!1001 &1879586702
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18785,8 +18800,8 @@ GameObject:
   - component: {fileID: 1963777349}
   - component: {fileID: 1963777348}
   - component: {fileID: 1963777347}
-  - component: {fileID: 1963777346}
   - component: {fileID: 1963777350}
+  - component: {fileID: 1963777351}
   m_Layer: 0
   m_Name: Cylinder (1)
   m_TagString: Untagged
@@ -18809,21 +18824,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1829109496}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1963777346
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963777343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71b20d13a7783bf4eb728f6876ffe1ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemID: 0
-  icon: {fileID: 0}
-  itemName: 
 --- !u!136 &1963777347
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -18924,6 +18924,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1963777351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963777343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2f54c4151df1de4eb7a2f573c8b8ccf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemID: 0
+  icon: {fileID: 0}
+  itemName: 
 --- !u!1001 &1973438669
 PrefabInstance:
   m_ObjectHideFlags: 0

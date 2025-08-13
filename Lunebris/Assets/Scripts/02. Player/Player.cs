@@ -106,7 +106,73 @@ namespace Player
         private int currentXP;
         private int maxXP;
 
-        private void Awake()
+
+
+
+
+
+
+
+        private bool hasInvincibilityItem = false;
+        private float invincibilityCooldown = 15f;
+        private float invincibilityDuration = 3f;
+        private float lastInvincibilityUseTime = -999f;
+        private bool isInvincible = false;
+
+        public void GiveInvincibilityItem()
+        {
+            hasInvincibilityItem = true;
+            Debug.Log("무적 아이템을 획득했습니다!");
+        }
+
+        private void ActivateTimedInvincibility()
+        {
+            isInvincible = true;
+            lastInvincibilityUseTime = Time.time;
+            Debug.Log("무적 상태 시작");
+
+            Invoke(nameof(ResetInvincibility), invincibilityDuration);
+        }
+
+
+        /*public void ActivateTimedInvincibility()
+        {
+            float timeSinceLastUse = Time.time - lastInvincibilityUseTime;
+
+            if (timeSinceLastUse >= invincibilityCooldown)
+            {
+                isInvincible = true;
+                lastInvincibilityUseTime = Time.time;
+                Debug.Log("무적 상태 시작");
+
+                Invoke(nameof(ResetInvincibility), invincibilityDuration);
+            }
+            else
+            {
+                Debug.Log($"쿨타임 남음: {invincibilityCooldown - timeSinceLastUse:F1}초");
+            }
+        }*/
+
+        private void ResetInvincibility()
+        {
+            isInvincible = false;
+            Debug.Log("무적 상태 종료");
+        }
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+private void Awake()
         {
             stat = new PlayerStat();
             csvReader = new CSVReader();
@@ -143,6 +209,7 @@ namespace Player
 
         private void Update()
         {
+            /*
             // Test Code
             if (Input.GetKeyDown(KeyCode.Space))
                 IncreaseXP(50);
@@ -158,6 +225,7 @@ namespace Player
                 Debug.Log("마저: " + stat.Get(StatType.MagicDefensivePower));
                 Debug.Log("쿨감: " + stat.Get(StatType.CoolDown));
             }
+            */
 
             UpdateHP();
         }
@@ -189,8 +257,23 @@ namespace Player
 
         public void DecreaseHP(float _value)
         {
-            currentHP -= _value;
-            UpdateHP();
+            if (isInvincible)
+            {
+                Debug.Log("무적 상태");
+                return;
+            }
+            if (hasInvincibilityItem)
+            {
+                float timeSinceLastUse = Time.time - lastInvincibilityUseTime;
+                if (timeSinceLastUse >= invincibilityCooldown)
+                {
+                    ActivateTimedInvincibility();
+                    return;
+                }
+
+                currentHP -= _value;
+                UpdateHP();
+            }
         }
 
         private void UpdateHP()
