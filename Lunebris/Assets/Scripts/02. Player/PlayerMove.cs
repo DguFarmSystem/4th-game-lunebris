@@ -11,12 +11,14 @@ namespace Player
         private Player player;
         private Rigidbody rigid;
         private Vector3 inputVector;
+        private Animator animator;
 
         private void Start()
         {
             player = GetComponent<Player>();
-            speed = player.GetPlayerStat().Get(StatType.MoveSpeed);
+            speed = player.GetMoveSpeed();
             rigid = GetComponent<Rigidbody>();
+            animator = GetComponent<Animator>();
         }
 
         private void Update()
@@ -38,6 +40,10 @@ namespace Player
         private void Move()
         {
             Vector3 moveVector = inputVector.normalized * player.GetMoveSpeed() * Time.fixedDeltaTime;
+
+            if (moveVector != Vector3.zero) animator.SetBool("IsWalk", true);
+            else animator.SetBool("IsWalk", false);
+
             rigid.MovePosition(rigid.position + moveVector);
         }
     }

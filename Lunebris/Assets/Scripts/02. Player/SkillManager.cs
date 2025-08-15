@@ -51,9 +51,9 @@ namespace Player
 
         public PlayerSkill()
         {
-            skillDict[SkillType.Lux1] = new Skill(0, "Lux1", 2f, 5f);
+            skillDict[SkillType.Lux1] = new Skill(0, "Lux1", 2f, 0f);
             skillDict[SkillType.Lux2] = new Skill(1, "Lux2", 2f, 5f);
-            skillDict[SkillType.Lux3] = new Skill(2, "Lux3", 2f, 5f);
+            skillDict[SkillType.Lux3] = new Skill(2, "Lux3", 2f, 0f);
             skillDict[SkillType.Lux4] = new Skill(3, "Lux4", 2f, 5f);
             skillDict[SkillType.Tenebris1] = new Skill(4, "Tenebris1", 2f, 5f);
             skillDict[SkillType.Tenebris2] = new Skill(5, "Tenebris2", 2f, 5f);
@@ -88,28 +88,28 @@ namespace Player
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                if(map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux1);
+                if(map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux1);
                 else skill = playerSkill.Get(SkillType.Tenebris1);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux2);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux2);
                 else skill = playerSkill.Get(SkillType.Tenebris2);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux3);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux3);
                 else skill = playerSkill.Get(SkillType.Tenebris3);
 
                 caster[skill.id].UseSkill(skill);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha4))
             {
-                if (map.GetCurrentAttribute() == "lux") skill = playerSkill.Get(SkillType.Lux4);
+                if (map.GetCurrentAttribute() == ElementType.Lux) skill = playerSkill.Get(SkillType.Lux4);
                 else skill = playerSkill.Get(SkillType.Tenebris4);
 
                 caster[skill.id].UseSkill(skill);

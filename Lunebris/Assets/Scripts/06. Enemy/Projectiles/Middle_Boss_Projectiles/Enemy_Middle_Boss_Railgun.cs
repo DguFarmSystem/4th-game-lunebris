@@ -20,7 +20,7 @@ public class Enemy_Middle_Boss_Railgun : MonoBehaviour
 
     [Header("µ¥¹ÌÁö ¼Ó¼º")]
     [SerializeField] private DamageType damageType = DamageType.Magical;
-    [SerializeField] private ElementType elementType = ElementType.Dark;
+    [SerializeField] private ElementType elementType = ElementType.Tenebris;
 
     [Header("ÄÄÆ÷³ÍÆ®")]
     [SerializeField] private LineRenderer railgunBeam;        // Áß¾Ó ºö

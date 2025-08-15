@@ -25,6 +25,8 @@ namespace Player
         MaxHp
     }
 
+
+
     /// <summary>
     /// Define Base Stat Class
     /// </summary>
@@ -58,7 +60,7 @@ namespace Player
         public PlayerStat()
         {
             stats[StatType.MoveSpeed] = new Stat(5f);
-            stats[StatType.AttackDamage] = new Stat(10f);
+            stats[StatType.AttackDamage] = new Stat(100f);
             stats[StatType.AttackSpeed] = new Stat(0.5f);
             stats[StatType.SkillDamage] = new Stat(15f);
             stats[StatType.CoolDown] = new Stat(0f);

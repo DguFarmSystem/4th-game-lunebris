@@ -17,13 +17,15 @@ public class MapController : MonoBehaviour
     private Color black = new Color(0.179f, 0.179f, 0.179f);
     private Color white = new Color(0.9f, 0.9f, 0.9f);
 
-    private bool isWhite = false;
-    private static readonly IReadOnlyList<string> attribute = new List<string> { "lux", "tenebris" };
+    [SerializeField] private ElementType currentType;
 
+    [Header("변환 시간")]
     [SerializeField] private float convertDuration = 1f;
 
+    [Header("변환 쿨타임")]
     [SerializeField] private float convertCoolTime = 3f;
 
+    [Header("속성 최대 유지 가능 시간")]
     [SerializeField] private float eroisnTime = 30f;
 
     [SerializeField] private GameObject[] luxSkillInterfaces;
@@ -32,12 +34,19 @@ public class MapController : MonoBehaviour
 
     [SerializeField] private Player.SkillCaster passiveCaster;
 
+    [Header("플레이어 스킨 변경 변수")]
+    [SerializeField] private Material[] materials;
+    [SerializeField] private SkinnedMeshRenderer skin;
+
     private bool canConvert = true;
 
     private void Awake()
     {
+        // 어둠으로 초기화
         material.color = black;
+        skin.material = materials[1];
         UpdateSkillInterface();
+        currentType = ElementType.Tenebris;
     }
 
     private void Update()
@@ -47,7 +56,7 @@ public class MapController : MonoBehaviour
 
     private void UpdateBalanceSilder()
     {
-        if(GetCurrentAttribute() == "lux")
+        if(GetCurrentAttribute() == ElementType.Lux)
         {
             balanceSlider.value -= 1 / eroisnTime * Time.deltaTime;
         }
@@ -64,20 +73,22 @@ public class MapController : MonoBehaviour
     {
         if (canConvert)
         {
-            if (isWhite)
+            if (currentType == ElementType.Lux)
             {
                 canConvert = false;
                 StartCoroutine(ConvertMapCoroutine(white, black));  // W2B
-                isWhite = false;
+                currentType = ElementType.Lux;
                 UpdateSkillInterface();
+                skin.material = materials[1]; // black skin
                 Debug.Log(GetCurrentAttribute());
             }
             else
             {
                 canConvert = false;
                 StartCoroutine(ConvertMapCoroutine(black, white));  // B2W
-                isWhite = true;
+                currentType = ElementType.Tenebris;
                 UpdateSkillInterface();
+                skin.material = materials[0]; // white skin
                 Debug.Log(GetCurrentAttribute());
             }
         }
@@ -100,17 +111,17 @@ public class MapController : MonoBehaviour
         canConvert = true;
     }
     
-    public string GetCurrentAttribute()
+    public ElementType GetCurrentAttribute()
     {
-        if (isWhite) return attribute[0];
-        else return attribute[1];
+        if (currentType == ElementType.Lux) return ElementType.Lux;
+        else return ElementType.Tenebris;
     }
 
     private void UpdateSkillInterface()
     {
         int index = 0;
 
-        if (isWhite)
+        if (currentType == ElementType.Lux)
         {
             foreach(GameObject tenebris in tenebrisSkillInterfaces)
             {

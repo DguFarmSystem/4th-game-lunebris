@@ -16,10 +16,17 @@ namespace Player
         private Player player;
         private Vector3 direction;
         private int baseAttackPrefabID = 0;
+        private Animator animator;
+
+        public Vector3 GetLookDirection()
+        {
+            return direction;
+        }
 
         private void Start()
         {
             player = GetComponent<Player>();
+            animator = GetComponent<Animator>();
 
             StartCoroutine(AttackCoroutine());
         }
@@ -65,6 +72,9 @@ namespace Player
             {
                 // Attack Speed = 1 / AttackSpeed_Stat
                 yield return new WaitForSeconds(1f / player.GetPlayerStat().Get(StatType.AttackSpeed));
+
+                animator.SetTrigger("Attack");
+                yield return new WaitForSeconds(0.3f);
 
                 BaseAttack baseAttack = pool.Get(baseAttackPrefabID).GetComponent<BaseAttack>();
                 baseAttack.transform.position = shooter.position;

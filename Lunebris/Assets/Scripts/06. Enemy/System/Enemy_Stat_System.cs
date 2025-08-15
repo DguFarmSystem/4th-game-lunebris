@@ -36,16 +36,6 @@ namespace Enemy
     }
 
     /// <summary>
-    /// 속성 타입 정의
-    /// </summary>
-    public enum ElementType
-    {
-        Light,  // 빛
-        Dark,   // 어둠
-        Neutral // 무속성
-    }
-
-    /// <summary>
     /// 데미지 타입 정의
     /// </summary>
     public enum DamageType
@@ -250,11 +240,11 @@ namespace Enemy
         private static float CalculateElementalMultiplier(ElementType attackerElement, ElementType defenderElement)
         {
             // 빛 vs 어둠 상성
-            if (attackerElement == ElementType.Light && defenderElement == ElementType.Dark)
+            if (attackerElement == ElementType.Lux && defenderElement == ElementType.Tenebris)
             {
                 return 1.5f; // 빛이 어둠에게 1.5배 데미지
             }
-            else if (attackerElement == ElementType.Dark && defenderElement == ElementType.Light)
+            else if (attackerElement == ElementType.Tenebris && defenderElement == ElementType.Lux)
             {
                 return 1.5f; // 어둠이 빛에게 1.5배 데미지
             }

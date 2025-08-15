@@ -14,7 +14,7 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
     [SerializeField] private float chargingTime = 0.5f;
     [SerializeField] private float beamDuration = 1f;
     [SerializeField] private DamageType damageType = DamageType.Magical;
-    [SerializeField] private ElementType elementType = ElementType.Light;
+    [SerializeField] private ElementType elementType = ElementType.Lux;
     [SerializeField] private bool canPenetrate = false;
 
     [Header("5갈래 설정")]

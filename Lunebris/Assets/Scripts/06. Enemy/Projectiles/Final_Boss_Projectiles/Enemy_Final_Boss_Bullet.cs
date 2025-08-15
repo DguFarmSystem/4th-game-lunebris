@@ -11,7 +11,7 @@ public class Enemy_Final_Boss_Bullet : MonoBehaviour
     [Header("탄막 설정")]
     [SerializeField] private float damage = 40f;
     [SerializeField] private DamageType damageType = DamageType.Magical;
-    [SerializeField] private ElementType elementType = ElementType.Dark;
+    [SerializeField] private ElementType elementType = ElementType.Tenebris;
     [SerializeField] private float lifeTime = 5f;
 
     [Header("시각 효과")]
