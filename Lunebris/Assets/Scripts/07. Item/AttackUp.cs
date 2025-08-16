@@ -11,6 +11,7 @@ public class AttackUp : Item
     {
         itemID = 1;
         itemName = "AttackUp";
+        applyCondition = false;
     }
 
     public override void DestroyAfterTime()//시간 지난 후 파괴

@@ -258,9 +258,19 @@ namespace Player
                     ActivateTimedInvincibility();
                     return;
                 }
+            }
 
-                currentHP -= _value;
-                UpdateHP();
+            currentHP -= _value;
+            UpdateHP();
+
+            if (currentHP <= 0)
+            {
+                if (Inventory.instance.HasItem("Reborn"))
+                {
+                    Item rebornItem = Inventory.instance.GetItem("Reborn");
+                    rebornItem.ApplyEffect();
+                    Inventory.instance.Remove(rebornItem);
+                }
             }
         }
 
@@ -385,6 +395,9 @@ namespace Player
 
             levelTMP.text = "Lv." + level.ToString();
         }
+
+        public float CurrentHP => currentHP;
+
         #endregion
     }
 }

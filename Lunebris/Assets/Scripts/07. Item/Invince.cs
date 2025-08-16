@@ -8,6 +8,7 @@ public class Invince : Item
     {
         itemID = 2;
         itemName = "Invince";
+        applyCondition = true;
     }
     
     public override void DestroyAfterTime()//시간 지난 후 파괴
@@ -25,8 +26,12 @@ public class Invince : Item
                 player.GiveInvincibilityItem();
             }
 
-            CancelInvoke(nameof(DestroyObject));
-            gameObject.SetActive(false);
+            bool wasPickedUp = Inventory.instance.Add(this);
+            if (wasPickedUp)
+            {
+                CancelInvoke("DestroyObject");
+                gameObject.SetActive(false);
+            }
         }
     }
 

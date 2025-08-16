@@ -36,7 +36,10 @@ public class Inventory : MonoBehaviour
         if (index < items.Count)
         {
             Item item = items[index];
-            UseItem(item);
+            if (!item.applyCondition)
+                UseItem(item);
+            else
+                Debug.Log("사용할 수 없는 아이템 입니다.");
         }
         else
         {
@@ -81,5 +84,15 @@ public class Inventory : MonoBehaviour
             Remove(item);            // 인벤토리에서 제거
             Debug.Log(item.itemName + " 아이템을 사용했습니다.");
         }
+    }
+
+    public bool HasItem(string itemName)
+    {
+        return items.Exists(item => item.itemName == itemName);
+    }
+
+    public Item GetItem(string itemName)
+    {
+        return items.Find(item => item.itemName == itemName);
     }
 }
