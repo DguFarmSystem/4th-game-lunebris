@@ -7,7 +7,7 @@ using Enemy;
 public class Enemy_Ranged_Bullet : MonoBehaviour
 {
     [Header("기본 설정")]
-    [SerializeField] private float speed = 8f;
+    [SerializeField] private float speed = 10f;
     [SerializeField] private float damage = 25f;
     [SerializeField] private float lifeTime = 3f;
 

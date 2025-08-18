@@ -1,193 +1,332 @@
 using UnityEngine;
 
 /// <summary>
-/// 중간보스 이동 처리 스크립트
-/// 단순하게 플레이어를 추적하면서 공격 중에는 정지
+/// 중간보스 이동 제어 (뱀서류 - 부드러운 추적)
 /// </summary>
 [DisallowMultipleComponent]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Enemy_Middle_Boss))]
 public class Enemy_Middle_Boss_Move : MonoBehaviour
 {
     [Header("이동 설정")]
-    [SerializeField] private float rotationSpeed = 4f; // 회전 속도
-    [SerializeField] private float stoppingDistance = 2f; // 정지 거리
-    [SerializeField] private float circleRadius = 5f; // 원형 이동 반지름
+    [SerializeField] private float smoothMoveSpeed = 2f; // 부드러운 이동 속도
+    [SerializeField] private float rotationSpeed = 3f; // 회전 속도
+    [SerializeField] private float stopDistance = 1.5f; // 플레이어와의 최소 거리
+    [SerializeField] private float acceleration = 5f; // 가속도
+    [SerializeField] private float deceleration = 8f; // 감속도
 
-    private Transform target;
-    private Rigidbody rigid;
+    [Header("뱀서류 특성")]
+    [SerializeField] private bool useSmoothMovement = true; // 부드러운 이동 사용
+    [SerializeField] private float pathSmoothness = 0.8f; // 경로 부드러움 (0~1)
+    [SerializeField] private float minMoveThreshold = 0.1f; // 최소 이동 임계값
+
+    // 컴포넌트 참조
     private Enemy_Middle_Boss bossScript;
+    private Rigidbody bossRigidbody;
+    private Transform playerTransform;
+
+    // 이동 상태
+    private Vector3 currentVelocity = Vector3.zero;
+    private Vector3 targetDirection = Vector3.zero;
+    private Vector3 smoothDirection = Vector3.zero;
+    private bool isMoving = false;
+    private float currentSpeed = 0f;
+
+    // 디버그
+    [Header("디버그")]
+    [SerializeField] private bool showDebugInfo = false;
+
+    public bool IsMoving => isMoving;
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        // 컴포넌트 참조
+        bossScript = GetComponent<Enemy_Middle_Boss>();
+        bossRigidbody = GetComponent<Rigidbody>();
+
+        // 플레이어 찾기
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+        }
+
+        // Rigidbody 설정
+        if (bossRigidbody != null)
+        {
+            bossRigidbody.freezeRotation = true; // 회전은 스크립트로 제어
+            bossRigidbody.drag = 2f; // 적절한 저항력
+        }
+    }
 
     private void Start()
     {
-        // 타겟 찾기 (플레이어)
-        target = GameObject.FindGameObjectWithTag("Player")?.transform;
-        if (target == null)
-        {
-            target = GameObject.Find("Player")?.transform;
-        }
-
-        rigid = GetComponent<Rigidbody>();
-        bossScript = GetComponent<Enemy_Middle_Boss>();
-
+        // 초기화 검증
         if (bossScript == null)
         {
-            Debug.LogError("Enemy_Boss 스크립트를 찾을 수 없습니다!");
+            Debug.LogError($"{name}: Enemy_Middle_Boss 컴포넌트를 찾을 수 없습니다!");
+            enabled = false;
+            return;
         }
+
+        if (bossRigidbody == null)
+        {
+            Debug.LogWarning($"{name}: Rigidbody가 없어서 Transform 기반 이동을 사용합니다.");
+        }
+
+        if (playerTransform == null)
+        {
+            Debug.LogWarning($"{name}: 플레이어를 찾을 수 없습니다!");
+        }
+
+        Debug.Log($"{name}: 중간보스 이동 시스템 초기화 완료!");
     }
 
     private void FixedUpdate()
     {
+        UpdateMovement();
+    }
+
+    #endregion
+
+    #region 이동 제어
+
+    private void UpdateMovement()
+    {
         // 기본 조건 체크
-        if (bossScript == null || target == null || bossScript.IsDead())
+        if (!CanMove())
         {
             StopMovement();
             return;
         }
 
-        // 보스 상태에 따른 이동 처리
-        if (ShouldMove())
+        // 플레이어 방향 계산
+        CalculateTargetDirection();
+
+        // 이동 실행
+        if (useSmoothMovement)
         {
-            HandleNormalMovement();
+            PerformSmoothMovement();
         }
         else
         {
-            StopMovement();
+            PerformDirectMovement();
         }
 
-        // 항상 플레이어를 바라보기
-        LookAtTarget();
+        // 회전 처리
+        HandleRotation();
+
+        // 이동 상태 업데이트
+        UpdateMovingState();
+
+        // 디버그 정보
+        if (showDebugInfo)
+        {
+            ShowDebugInfo();
+        }
     }
 
-    #region 이동 조건 체크
-
-    /// <summary>
-    /// 이동 가능 여부 판단
-    /// </summary>
-    private bool ShouldMove()
+    private bool CanMove()
     {
-        // 그랩 투사체 발사 중이면 이동 불가
-        if (bossScript.IsGrabbing)
-        {
-            return false;
-        }
+        // 보스 스크립트가 없으면 이동 불가
+        if (bossScript == null) return false;
 
-        // 총알 발사 중이면 이동 불가
-        if (bossScript.IsShooting)
-        {
-            return false;
-        }
+        // 특수 공격 중이면 이동 불가
+        if (bossScript.IsPerformingSpecialAttack()) return false;
 
-        // 플레이어를 끌어당기는 중이면 이동 불가
-        if (bossScript.IsPlayerBeingPulled)
-        {
-            return false;
-        }
+        // 플레이어가 없으면 이동 불가
+        if (playerTransform == null) return false;
 
-        // 장판 생성 중이면 이동 불가
-        if (bossScript.IsCreatingFloorHazard)
-        {
-            return false;
-        }
+        // 보스가 죽었으면 이동 불가
+        if (bossScript.IsDead()) return false;
 
         return true;
     }
 
-    #endregion
-
-    #region 일반 이동
-
-    /// <summary>
-    /// 일반 추적 이동 (중간보스 스타일)
-    /// </summary>
-    private void HandleNormalMovement()
+    private void CalculateTargetDirection()
     {
-        float distanceToPlayer = Vector3.Distance(transform.position, target.position);
+        if (playerTransform == null) return;
 
-        // 중간보스는 단순하게 행동
-        if (distanceToPlayer > stoppingDistance)
+        // 플레이어와의 거리 계산
+        Vector3 directionToPlayer = (playerTransform.position - transform.position);
+        directionToPlayer.y = 0; // Y축 무시
+        float distanceToPlayer = directionToPlayer.magnitude;
+
+        // 너무 가까우면 이동하지 않음
+        if (distanceToPlayer <= stopDistance)
         {
-            // 플레이어에게 접근
-            MoveTowardsPlayer();
+            targetDirection = Vector3.zero;
+            return;
+        }
+
+        // 정규화된 방향 벡터
+        targetDirection = directionToPlayer.normalized;
+    }
+
+    private void PerformSmoothMovement()
+    {
+        // 부드러운 방향 전환
+        smoothDirection = Vector3.Slerp(smoothDirection, targetDirection,
+            Time.fixedDeltaTime * pathSmoothness * 10f);
+
+        // 속도 계산
+        float targetSpeed = targetDirection.magnitude > minMoveThreshold ? smoothMoveSpeed : 0f;
+
+        if (targetSpeed > currentSpeed)
+        {
+            // 가속
+            currentSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed,
+                acceleration * Time.fixedDeltaTime);
         }
         else
         {
-            // 가까이 있을 때는 천천히 원형 이동
-            CircleAroundPlayer();
+            // 감속
+            currentSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed,
+                deceleration * Time.fixedDeltaTime);
         }
+
+        // 최종 속도 벡터
+        Vector3 velocity = smoothDirection * currentSpeed;
+
+        // 이동 적용
+        ApplyMovement(velocity);
     }
 
-    /// <summary>
-    /// 플레이어에게 접근
-    /// </summary>
-    private void MoveTowardsPlayer()
+    private void PerformDirectMovement()
     {
-        Vector3 direction = (target.position - transform.position).normalized;
-        direction.y = 0; // Y축 이동 제거
+        // 직접적인 이동
+        float targetSpeed = targetDirection.magnitude > minMoveThreshold ? smoothMoveSpeed : 0f;
+        Vector3 velocity = targetDirection * targetSpeed;
 
-        float moveSpeed = bossScript.GetEnemyStats().Get(Enemy.EnemyStatType.MoveSpeed);
-        Vector3 moveVector = direction * moveSpeed * Time.fixedDeltaTime;
-
-        Vector3 newPosition = rigid.position + moveVector;
-        newPosition.y = rigid.position.y; // Y축 위치 고정
-        rigid.MovePosition(newPosition);
+        currentSpeed = targetSpeed;
+        ApplyMovement(velocity);
     }
 
-    /// <summary>
-    /// 플레이어 주변을 원형으로 이동 (중간보스 스타일)
-    /// </summary>
-    private void CircleAroundPlayer()
+    private void ApplyMovement(Vector3 velocity)
     {
-        Vector3 toPlayer = target.position - transform.position;
-        toPlayer.y = 0;
-
-        // 플레이어 중심으로 원형 이동 (중간보스는 느리게)
-        Vector3 circleDirection = new Vector3(-toPlayer.z, 0, toPlayer.x).normalized;
-
-        // 가끔 방향 변환 (1% 확률)
-        if (Random.Range(0, 100) < 1)
+        if (bossRigidbody != null)
         {
-            circleDirection = -circleDirection;
+            // Rigidbody 기반 이동
+            Vector3 newVelocity = velocity;
+            newVelocity.y = bossRigidbody.velocity.y; // Y축 속도는 유지 (중력)
+            bossRigidbody.velocity = newVelocity;
         }
-
-        float moveSpeed = bossScript.GetEnemyStats().Get(Enemy.EnemyStatType.MoveSpeed) * 0.7f; // 원형 이동은 느리게
-        Vector3 moveVector = circleDirection * moveSpeed * Time.fixedDeltaTime;
-
-        Vector3 newPosition = rigid.position + moveVector;
-        newPosition.y = rigid.position.y; // Y축 위치 고정
-        rigid.MovePosition(newPosition);
-    }
-
-    #endregion
-
-    #region 회전 처리
-
-    /// <summary>
-    /// 플레이어를 향해 회전
-    /// </summary>
-    private void LookAtTarget()
-    {
-        Vector3 direction = (target.position - transform.position).normalized;
-        direction.y = 0; // Y축 회전 제거
-
-        if (direction != Vector3.zero)
+        else
         {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+            // Transform 기반 이동
+            transform.position += velocity * Time.fixedDeltaTime;
+        }
+
+        currentVelocity = velocity;
+    }
+
+    private void HandleRotation()
+    {
+        // 이동 중일 때만 회전
+        if (currentSpeed > minMoveThreshold && smoothDirection.magnitude > 0.1f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(smoothDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation,
+                Time.fixedDeltaTime * rotationSpeed);
         }
     }
 
-    #endregion
+    private void UpdateMovingState()
+    {
+        // 이동 상태 업데이트
+        isMoving = currentSpeed > minMoveThreshold;
+    }
 
-    #region 유틸리티
-
-    /// <summary>
-    /// 이동 정지
-    /// </summary>
     private void StopMovement()
     {
-        if (rigid != null)
+        // 이동 정지
+        targetDirection = Vector3.zero;
+        smoothDirection = Vector3.zero;
+
+        // 부드러운 감속
+        currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, deceleration * Time.fixedDeltaTime);
+
+        if (bossRigidbody != null)
         {
-            rigid.velocity = Vector3.zero;
+            Vector3 velocity = bossRigidbody.velocity;
+            velocity.x = 0f;
+            velocity.z = 0f;
+            bossRigidbody.velocity = velocity;
+        }
+
+        currentVelocity = Vector3.zero;
+        isMoving = false;
+    }
+
+    #endregion
+
+    #region 공개 메서드
+
+    /// <summary>
+    /// 강제로 이동 정지
+    /// </summary>
+    public void ForceStop()
+    {
+        StopMovement();
+    }
+
+    /// <summary>
+    /// 이동 속도 임시 변경
+    /// </summary>
+    public void SetTemporarySpeed(float newSpeed, float duration = -1f)
+    {
+        smoothMoveSpeed = newSpeed;
+
+        if (duration > 0f)
+        {
+            Invoke(nameof(ResetSpeed), duration);
+        }
+    }
+
+    /// <summary>
+    /// 이동 속도 원래대로 복구
+    /// </summary>
+    public void ResetSpeed()
+    {
+        smoothMoveSpeed = 2f; // 기본값으로 복구
+    }
+
+    /// <summary>
+    /// 특정 위치로 강제 이동 (짧은 시간)
+    /// </summary>
+    public void MoveToPosition(Vector3 targetPos, float duration = 1f)
+    {
+        StartCoroutine(MoveToPositionCoroutine(targetPos, duration));
+    }
+
+    #endregion
+
+    #region 코루틴
+
+    private System.Collections.IEnumerator MoveToPositionCoroutine(Vector3 targetPos, float duration)
+    {
+        Vector3 startPos = transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // 부드러운 보간
+            Vector3 currentPos = Vector3.Lerp(startPos, targetPos, Mathf.SmoothStep(0f, 1f, t));
+
+            if (bossRigidbody != null)
+            {
+                bossRigidbody.MovePosition(currentPos);
+            }
+            else
+            {
+                transform.position = currentPos;
+            }
+
+            yield return null;
         }
     }
 
@@ -195,21 +334,36 @@ public class Enemy_Middle_Boss_Move : MonoBehaviour
 
     #region 디버그
 
-    private void OnDrawGizmos()
+    private void ShowDebugInfo()
     {
-        if (target != null)
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        Debug.Log($"[{name}] 이동상태: {isMoving}, 속도: {currentSpeed:F2}, " +
+                 $"플레이어 거리: {distanceToPlayer:F2}, 특수공격중: {bossScript.IsPerformingSpecialAttack()}");
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!Application.isPlaying) return;
+
+        // 정지 거리 표시
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, stopDistance);
+
+        // 현재 이동 방향 표시
+        if (isMoving)
         {
-            // 플레이어와의 거리 시각화
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, target.position);
-
-            // 정지 거리 시각화
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, stoppingDistance);
+            Gizmos.DrawRay(transform.position, smoothDirection * 3f);
+        }
 
-            // 원형 이동 반지름 시각화
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(transform.position, circleRadius);
+        // 플레이어로의 직선 표시
+        if (playerTransform != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, playerTransform.position);
         }
     }
 

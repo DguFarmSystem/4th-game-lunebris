@@ -4,67 +4,108 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// 중간보스 몬스터 
+/// 중간보스 몬스터 (뱀서류용 - 단순화)
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Middle_Boss : Enemy_Base
 {
     [Header("그랩 공격 설정")]
-    [SerializeField] private float grabRange = 12f; // 그랩 투사체 발사 거리
-    [SerializeField] private float grabDamage = 60f; // 그랩 데미지
-    [SerializeField] private float grabCooldown = 6f; // 그랩 쿨다운
-    [SerializeField] private float grabDuration = 1.5f; // 그랩 지속시간
-    [SerializeField] private float pullForce = 8f; // 끌어당기는 힘
-    [SerializeField] private float grabProjectileSpeed = 15f; // 그랩 투사체 속도
-    [SerializeField] private Transform grabFirePoint; // 그랩 투사체 발사점
+    [SerializeField] private float grabRange = 12f;
+    [SerializeField] private float grabDamage = 60f;
+    [SerializeField] private float grabCooldown = 6f;
+    [SerializeField] private float grabDuration = 1.5f;
+    [SerializeField] private float pullForce = 8f;
+    [SerializeField] private float grabProjectileSpeed = 15f;
+    [SerializeField] private Transform grabFirePoint;
 
     [Header("총알 공격 설정")]
-    [SerializeField] private GameObject bulletPrefab; // 총알 프리팹
-    [SerializeField] private Transform firePoint; // 총알 발사점
-    [SerializeField] private float bulletSpeed = 10f; // 총알 속도
-    [SerializeField] private int bulletCount = 6; // 총알 개수 (중간보스용으로 적게)
-    [SerializeField] private float bulletCooldown = 4f; // 총알 쿨다운
-    [SerializeField] private float bulletRange = 8f; // 총알 사용 거리
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private float bulletSpeed = 10f;
+    [SerializeField] private int bulletCount = 6;
+    [SerializeField] private float bulletCooldown = 4f;
+    [SerializeField] private float bulletRange = 8f;
+    [SerializeField] private float dashDistance = 4f;
+    [SerializeField] private float dashSpeed = 1f;
+
+    [Header("근거리 공격 설정")]
+    [SerializeField] private float meleeRange = 4f;
+    [SerializeField] private float meleeDamage = 80f;
+    [SerializeField] private float meleeCooldown = 3f;
+    [SerializeField] private float meleeRadius = 3f;
+    [SerializeField] private float meleeKnockbackForce = 10f;
+    [SerializeField] private float meleeAttackDuration = 1f;
 
     [Header("장판 공격 설정")]
-    [SerializeField] private GameObject floorHazardPrefab; // 장판 프리팹
-    [SerializeField] private float floorHazardDamage = 40f; // 장판 데미지
-    [SerializeField] private float floorHazardDuration = 4f; // 장판 지속시간
-    [SerializeField] private float floorHazardCooldown = 8f; // 장판 쿨다운
-    [SerializeField] private float floorHazardRadius = 3f; // 장판 반지름
-    [SerializeField] private int maxFloorHazards = 6; // 최대 동시 장판 개수
-    [SerializeField] private float floorHazardRange = 15f; // 장판 생성 가능 거리
-    [SerializeField] private int hazardsPerCast = 3; // 한 번에 생성할 장판 개수
-    [SerializeField] private float minDistanceFromPlayer = 2f; // 플레이어로부터 최소 거리
-    [SerializeField] private float minDistanceBetweenHazards = 4f; // 장판 간 최소 거리
+    [SerializeField] private GameObject floorHazardPrefab;
+    [SerializeField] private GameObject floorHazardOrbPrefab;
+    [SerializeField] private float floorHazardDamage = 40f;
+    [SerializeField] private float floorHazardDuration = 4f;
+    [SerializeField] private float floorHazardCooldown = 8f;
+    [SerializeField] private float floorHazardRadius = 3f;
+    [SerializeField] private int maxFloorHazards = 6;
+    [SerializeField] private float floorHazardRange = 15f;
+    [SerializeField] private int hazardsPerCast = 3;
+    [SerializeField] private float minDistanceFromPlayer = 2f;
+    [SerializeField] private float minDistanceBetweenHazards = 4f;
+    [SerializeField] private float orbSpeed = 12f;
+    [SerializeField] private float orbArcHeight = 5f;
 
     [Header("이펙트 및 프리팹")]
-    [SerializeField] private GameObject grabProjectilePrefab; // 그랩 투사체 프리팹
+    [SerializeField] private GameObject grabProjectilePrefab;
+    [SerializeField] private GameObject meleeEffectPrefab;
+
+    [Header("공격 간격 제어")]
+    [SerializeField] private float attackCooldownTime = 1f; // 공격 간 대기 시간 
+    [SerializeField] private float maxChaseDistance = 20f; // 최대 추적 거리
 
     // 보스 상태
-    private bool isGrabbing = false; // 투사체 발사 중
-    private bool isShooting = false; // 총알 발사 중
-    private bool isCreatingFloorHazard = false; // 장판 생성 중
+    private bool isGrabbing = false;
+    private bool isShooting = false;
+    private bool isCreatingFloorHazard = false;
+    private bool isDashing = false;
+    private bool isMeleeAttacking = false;
 
-    // 공격 타이밍
+    // 공격 상태 관리
+    private bool isAnyAttackInProgress = false; // 모든 공격 통합 플래그
     private float lastGrabTime;
     private float lastBulletTime;
     private float lastFloorHazardTime;
+    private float lastMeleeTime;
+    private float lastAnyAttackTime; // 마지막 공격 시간 (모든 공격 통합)
 
     // 현재 그랩된 플레이어 정보
     private Transform grabbedPlayer = null;
-    private bool isPlayerBeingPulled = false; // 플레이어 끌어당기는 중
+    private bool isPlayerBeingPulled = false;
     private float pullStartTime;
     private float currentPullDuration;
 
     // 현재 활성화된 장판 개수 추적
     private int currentFloorHazardCount = 0;
 
+    // 이동 스크립트 참조
+    private Enemy_Middle_Boss_Move moveScript;
+
+    // 애니메이터 파라미터 이름들
+    private readonly string ANIM_GRAB_TRIGGER = "startGrab";
+    private readonly string ANIM_IS_GRABBING = "isGrabbing";
+    private readonly string ANIM_BULLET_TRIGGER = "startBullet";
+    private readonly string ANIM_IS_SHOOTING = "isShooting";
+    private readonly string ANIM_FLOOR_HAZARD_TRIGGER = "startFloorHazard";
+    private readonly string ANIM_IS_CREATING_FLOOR_HAZARD = "isCreatingFloorHazard";
+    private readonly string ANIM_IS_PULLING_PLAYER = "isPullingPlayer";
+    private readonly string ANIM_DASH_TRIGGER = "startDash";
+    private readonly string ANIM_IS_DASHING = "isDashing";
+    private readonly string ANIM_ATTACK_TRIGGER = "attack";
+    private readonly string ANIM_IS_ATTACKING = "isAttacking";
+
     // Move 스크립트에서 참조할 수 있는 프로퍼티들
-    public bool IsGrabbing => isGrabbing; // 투사체 발사 중
+    public bool IsGrabbing => isGrabbing;
     public bool IsShooting => isShooting;
-    public bool IsPlayerBeingPulled => isPlayerBeingPulled; // 플레이어 끌어당기는 중
-    public bool IsCreatingFloorHazard => isCreatingFloorHazard; // 장판 생성 중
+    public bool IsPlayerBeingPulled => isPlayerBeingPulled;
+    public bool IsCreatingFloorHazard => isCreatingFloorHazard;
+    public bool IsDashing => isDashing;
+    public bool IsMeleeAttacking => isMeleeAttacking;
 
     protected override void Awake()
     {
@@ -81,11 +122,12 @@ public class Enemy_Middle_Boss : Enemy_Base
     {
         base.InitializeEnemy();
 
-        // 총알 발사점이 없으면 자신의 위치 사용
+        // 이동 스크립트 참조
+        moveScript = GetComponent<Enemy_Middle_Boss_Move>();
+
+        // 발사점이 없으면 자신의 위치 사용
         if (firePoint == null)
             firePoint = transform;
-
-        // 그랩 발사점이 없으면 자신의 위치 사용
         if (grabFirePoint == null)
             grabFirePoint = transform;
 
@@ -101,60 +143,228 @@ public class Enemy_Middle_Boss : Enemy_Base
             return;
         }
 
-        // 총알 발사 중이면 이동 제한
-        if (isShooting || isCreatingFloorHazard)
+        // 아무 공격이라도 진행 중이면 리턴
+        if (isAnyAttackInProgress)
         {
             return;
         }
 
+        // 플레이어가 없으면 리턴
         if (playerTransform == null) return;
 
         float distanceToPlayer = GetDistanceToPlayer();
 
-        // 거리에 따른 공격 패턴 선택 (중간보스는 단순)
-        if (distanceToPlayer >= grabRange * 0.8f && CanUseGrab())
+        // 너무 멀면 추적만 하고 공격하지 않음
+        if (distanceToPlayer > maxChaseDistance)
         {
-            // 원거리에서 그랩 투사체 발사
+            return;
+        }
+
+        // 공격 쿨다운 체크 - 모든 공격에 공통 적용
+        float timeSinceLastAttack = Time.time - lastAnyAttackTime;
+        if (timeSinceLastAttack < attackCooldownTime)
+        {
+            return;
+        }
+
+        // 거리에 따른 공격 패턴 선택 (근거리 공격은 조건을 더 까다롭게)
+        if (distanceToPlayer <= meleeRange && CanUseMelee() && Time.time - lastMeleeTime >= meleeCooldown * 3f)
+        {
+            // 근거리 공격 (더 긴 쿨다운 적용)
+            Debug.Log($"{enemyName}: 근거리 공격 시전! 거리: {distanceToPlayer:F1}m");
+            StartCoroutine(PerformMeleeAttack());
+        }
+        else if (distanceToPlayer >= grabRange * 0.8f && CanUseGrab())
+        {
+            Debug.Log($"{enemyName}: 그랩 공격 시전! 거리: {distanceToPlayer:F1}m");
             StartCoroutine(PerformGrabAttack());
         }
         else if (distanceToPlayer <= floorHazardRange && CanUseFloorHazard())
         {
-            // 장판 공격 우선 사용 (더 위험한 공격)
+            Debug.Log($"{enemyName}: 장판 공격 시전! 거리: {distanceToPlayer:F1}m");
             StartCoroutine(PerformFloorHazardAttack());
         }
         else if (distanceToPlayer <= bulletRange && CanUseBullets())
         {
-            // 근거리에서 총알 공격
+            Debug.Log($"{enemyName}: 총알 공격 시전! 거리: {distanceToPlayer:F1}m");
             StartCoroutine(PerformBulletAttack());
         }
+
+        // 애니메이션 상태 업데이트
+        UpdateAnimationStates();
     }
 
     protected override void UpdateMovement()
     {
-        // 이동은 Enemy_Boss_Move에서 처리
+        // Enemy_Middle_Boss_Move가 처리
     }
 
     protected override void PerformAttack()
     {
-        // 기본 공격은 사용하지 않음
+        // 사용 안 함
     }
+
+    #region 애니메이션 제어
+
+    private void UpdateAnimationStates()
+    {
+        if (characterAnimator == null) return;
+
+        characterAnimator.SetBool(ANIM_IS_GRABBING, isGrabbing);
+        characterAnimator.SetBool(ANIM_IS_SHOOTING, isShooting);
+        characterAnimator.SetBool(ANIM_IS_CREATING_FLOOR_HAZARD, isCreatingFloorHazard);
+        characterAnimator.SetBool(ANIM_IS_PULLING_PLAYER, isPlayerBeingPulled);
+        characterAnimator.SetBool(ANIM_IS_DASHING, isDashing);
+        characterAnimator.SetBool(ANIM_IS_ATTACKING, isMeleeAttacking);
+
+        // 이동 애니메이션
+        bool isMoving = moveScript != null ? moveScript.IsMoving : false;
+        bool shouldBeMoving = isMoving && !IsPerformingSpecialAttack();
+        float currentMoveSpeed = shouldBeMoving ? enemyStats.Get(EnemyStatType.MoveSpeed) : 0f;
+
+        characterAnimator.SetBool(ANIM_IS_MOVING, shouldBeMoving);
+        characterAnimator.SetFloat(ANIM_MOVE_SPEED, currentMoveSpeed);
+    }
+
+    private void PlayMeleeAnimation()
+    {
+        if (characterAnimator == null) return;
+        characterAnimator.SetTrigger(ANIM_ATTACK_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_ATTACKING, true);
+    }
+
+    private void PlayGrabAnimation()
+    {
+        if (characterAnimator == null) return;
+        characterAnimator.SetTrigger(ANIM_GRAB_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_GRABBING, true);
+    }
+
+    private void PlayBulletAnimation()
+    {
+        if (characterAnimator == null) return;
+        characterAnimator.SetTrigger(ANIM_BULLET_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_SHOOTING, true);
+    }
+
+    private void PlayFloorHazardAnimation()
+    {
+        if (characterAnimator == null) return;
+        characterAnimator.SetTrigger(ANIM_FLOOR_HAZARD_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_CREATING_FLOOR_HAZARD, true);
+    }
+
+    private void PlayDashAnimation()
+    {
+        if (characterAnimator == null) return;
+        characterAnimator.SetTrigger(ANIM_DASH_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_DASHING, true);
+    }
+
+    #endregion
+
+    #region 근거리 공격
+
+    private bool CanUseMelee()
+    {
+        return Time.time - lastMeleeTime >= meleeCooldown && !isAnyAttackInProgress;
+    }
+
+    private IEnumerator PerformMeleeAttack()
+    {
+        // 이미 공격 중이면 중단
+        if (isAnyAttackInProgress)
+        {
+            Debug.Log($"{enemyName}: 이미 공격 중이므로 근거리 공격 취소!");
+            yield break;
+        }
+
+        isAnyAttackInProgress = true; // 공격 시작
+        isMeleeAttacking = true;
+        lastMeleeTime = Time.time;
+
+        Debug.Log($"{enemyName}: 근거리 공격 시작!");
+
+        PlayMeleeAnimation();
+        yield return new WaitForSeconds(0.5f);
+        ExecuteMeleeAttack();
+        yield return new WaitForSeconds(meleeAttackDuration - 0.5f);
+
+        isMeleeAttacking = false;
+        isAnyAttackInProgress = false; // 공격 완전 종료
+        lastAnyAttackTime = Time.time; // 공격이 완전히 끝날 때 설정
+
+        Debug.Log($"{enemyName}: 근거리 공격 완료! 다음 공격까지 {attackCooldownTime}초 대기");
+    }
+
+    private void ExecuteMeleeAttack()
+    {
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (distanceToPlayer <= meleeRadius)
+        {
+            if (playerScript != null)
+            {
+                float totalDamage = DamageCalculator.CalculateDamageToPlayer(
+                    enemyStats,
+                    elementType,
+                    DamageType.Physical,
+                    playerScript.GetPlayerStat(),
+                    ElementType.Neutral
+                ) + meleeDamage;
+
+                playerScript.DecreaseHP(totalDamage);
+            }
+
+            ApplyKnockbackToPlayer();
+        }
+
+        if (meleeEffectPrefab != null)
+        {
+            Vector3 effectPosition = transform.position + transform.forward * (meleeRadius * 0.5f);
+            GameObject effect = Instantiate(meleeEffectPrefab, effectPosition, transform.rotation);
+            Destroy(effect, 2f);
+        }
+    }
+
+    private void ApplyKnockbackToPlayer()
+    {
+        if (playerTransform == null) return;
+
+        Vector3 knockbackDirection = (playerTransform.position - transform.position).normalized;
+        knockbackDirection.y = 0;
+
+        Rigidbody playerRb = playerTransform.GetComponent<Rigidbody>();
+        if (playerRb != null)
+        {
+            Vector3 knockbackForce = knockbackDirection * meleeKnockbackForce;
+            knockbackForce.y = 2f;
+            playerRb.AddForce(knockbackForce, ForceMode.Impulse);
+        }
+    }
+
+    #endregion
 
     #region 그랩 투사체 공격
 
     private bool CanUseGrab()
     {
-        return Time.time - lastGrabTime >= grabCooldown && !isGrabbing && !isShooting && !isPlayerBeingPulled && !isCreatingFloorHazard;
+        return Time.time - lastGrabTime >= grabCooldown && !isAnyAttackInProgress;
     }
 
     private IEnumerator PerformGrabAttack()
     {
+        if (isAnyAttackInProgress) yield break;
+
+        isAnyAttackInProgress = true;
         isGrabbing = true;
         lastGrabTime = Time.time;
 
-        // 그랩 투사체 발사 준비 (짧은 준비 시간)
+        PlayGrabAnimation();
         yield return new WaitForSeconds(0.3f);
 
-        // 플레이어 방향으로 그랩 투사체 발사
         if (playerTransform != null)
         {
             FireGrabProjectile();
@@ -162,54 +372,42 @@ public class Enemy_Middle_Boss : Enemy_Base
 
         yield return new WaitForSeconds(0.2f);
         isGrabbing = false;
+        isAnyAttackInProgress = false;
+        lastAnyAttackTime = Time.time;
+        Debug.Log($"{enemyName}: 그랩 공격 완료! 다음 공격까지 {attackCooldownTime}초 대기");
     }
 
     private void FireGrabProjectile()
     {
-        if (grabProjectilePrefab == null)
-        {
-            return;
-        }
+        if (grabProjectilePrefab == null || playerTransform == null) return;
 
-        if (playerTransform == null) return;
-
-        // 플레이어 방향으로 투사체 발사
         Vector3 direction = (playerTransform.position - grabFirePoint.position).normalized;
-        direction.y = 0; // Y축 무시
+        direction.y = 0;
 
-        // 그랩 투사체 생성
         GameObject grabProjectile = Instantiate(grabProjectilePrefab, grabFirePoint.position, Quaternion.LookRotation(direction));
 
-        // 투사체에 속도 적용
         Rigidbody projectileRb = grabProjectile.GetComponent<Rigidbody>();
         if (projectileRb != null)
         {
             projectileRb.velocity = direction * grabProjectileSpeed;
         }
 
-        // 투사체 초기화
         Enemy_Middle_Boss_Grab grabScript = grabProjectile.GetComponent<Enemy_Middle_Boss_Grab>();
         if (grabScript != null)
         {
             grabScript.Initialize(this, pullForce, grabDuration, grabDamage);
         }
-
     }
 
-    /// <summary>
-    /// 그랩 투사체가 플레이어에게 맞았을 때 호출되는 콜백
-    /// </summary>
     public void OnGrabProjectileHit(Transform player, float force, float duration)
     {
-        if (isPlayerBeingPulled) return; // 이미 끌어당기고 있으면 무시
+        if (isPlayerBeingPulled) return;
 
         grabbedPlayer = player;
         isPlayerBeingPulled = true;
         pullStartTime = Time.time;
         currentPullDuration = duration;
 
-
-        // 끌어당기기 코루틴 시작
         StartCoroutine(PullPlayerCoroutine(force, duration));
     }
 
@@ -219,14 +417,12 @@ public class Enemy_Middle_Boss : Enemy_Base
 
         while (elapsed < duration && isPlayerBeingPulled && grabbedPlayer != null)
         {
-            // 보스 쪽으로 플레이어를 끌어당기기 (Y축 고정)
             Vector3 directionToBoss = (transform.position - grabbedPlayer.position).normalized;
-            directionToBoss.y = 0; // Y축 방향 제거
+            directionToBoss.y = 0;
 
             Vector3 pullPosition = grabbedPlayer.position + directionToBoss * force * Time.deltaTime;
-            pullPosition.y = grabbedPlayer.position.y; // Y축 위치 고정
+            pullPosition.y = grabbedPlayer.position.y;
 
-            // 보스에게 너무 가까이 가지 않도록 제한 (최소 2m 거리 유지)
             float distanceToBoss = Vector3.Distance(new Vector3(pullPosition.x, 0, pullPosition.z),
                                                   new Vector3(transform.position.x, 0, transform.position.z));
             if (distanceToBoss > 2f)
@@ -234,8 +430,7 @@ public class Enemy_Middle_Boss : Enemy_Base
                 grabbedPlayer.position = pullPosition;
             }
 
-            // 0.5초마다 추가 데미지
-            if (elapsed % 0.5f < Time.deltaTime && elapsed > 0.1f) // 첫 데미지는 투사체에서 주니까 제외
+            if (elapsed % 0.5f < Time.deltaTime && elapsed > 0.1f)
             {
                 DealDamageToPlayer(DamageType.Magical);
             }
@@ -244,14 +439,12 @@ public class Enemy_Middle_Boss : Enemy_Base
             yield return null;
         }
 
-        // 끌어당기기 종료
         isPlayerBeingPulled = false;
         grabbedPlayer = null;
     }
 
     private void UpdatePullBehavior()
     {
-        // 끌어당기기 중에는 움직이지 않음
         if (isPlayerBeingPulled && Time.time - pullStartTime >= currentPullDuration)
         {
             isPlayerBeingPulled = false;
@@ -265,30 +458,34 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     private bool CanUseBullets()
     {
-        return Time.time - lastBulletTime >= bulletCooldown && !isGrabbing && !isShooting && !isPlayerBeingPulled && !isCreatingFloorHazard;
+        return Time.time - lastBulletTime >= bulletCooldown && !isAnyAttackInProgress;
     }
 
     private IEnumerator PerformBulletAttack()
     {
+        if (isAnyAttackInProgress) yield break;
+
+        isAnyAttackInProgress = true;
         isShooting = true;
         lastBulletTime = Time.time;
 
-        // 시전 시간
-        yield return new WaitForSeconds(0.5f);
+        PlayDashAnimation();
+        yield return StartCoroutine(PerformDash());
 
-        // 총알 발사
+        PlayBulletAnimation();
+        yield return new WaitForSeconds(0.3f);
         FireBulletsInCircle();
-
         yield return new WaitForSeconds(0.5f);
+
         isShooting = false;
+        isAnyAttackInProgress = false;
+        lastAnyAttackTime = Time.time;
+        Debug.Log($"{enemyName}: 총알 공격 완료! 다음 공격까지 {attackCooldownTime}초 대기");
     }
 
     private void FireBulletsInCircle()
     {
-        if (bulletPrefab == null)
-        {
-            return;
-        }
+        if (bulletPrefab == null) return;
 
         float angleStep = 360f / bulletCount;
 
@@ -301,17 +498,14 @@ public class Enemy_Middle_Boss : Enemy_Base
                 Mathf.Sin(angle * Mathf.Deg2Rad)
             );
 
-            // 총알 생성
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.LookRotation(direction));
 
-            // 총알에 속도 적용
             Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
             if (bulletRb != null)
             {
                 bulletRb.velocity = direction * bulletSpeed;
             }
 
-            // 총알 데미지 설정
             Enemy_Middle_Boss_Bullet bulletScript = bullet.GetComponent<Enemy_Middle_Boss_Bullet>();
             if (bulletScript != null)
             {
@@ -319,10 +513,60 @@ public class Enemy_Middle_Boss : Enemy_Base
                 bulletScript.Initialize(bulletDamage, DamageType.Magical);
             }
 
-            // 5초 후 총알 삭제
             Destroy(bullet, 5f);
         }
+    }
 
+    #endregion
+
+    #region 대시 시스템
+
+    private IEnumerator PerformDash()
+    {
+        if (playerTransform == null)
+        {
+            isDashing = false;
+            yield break;
+        }
+
+        isDashing = true;
+
+        Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
+        Vector3 dashDirection = directionToPlayer;
+
+        // 간단한 장애물 체크
+        if (Physics.Raycast(transform.position, dashDirection, dashDistance))
+        {
+            dashDirection = -dashDirection;
+            if (Physics.Raycast(transform.position, dashDirection, dashDistance))
+            {
+                isDashing = false;
+                yield break;
+            }
+        }
+
+        // 대시 실행
+        float dashDuration = 1f;
+        float elapsed = 0f;
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = startPosition + dashDirection * dashDistance;
+        targetPosition.y = startPosition.y;
+
+        while (elapsed < dashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / dashDuration;
+            float easedT = Mathf.Sin(t * Mathf.PI * 0.5f);
+
+            Vector3 currentPosition = Vector3.Lerp(startPosition, targetPosition, easedT);
+            transform.position = currentPosition;
+
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+        isDashing = false;
+        yield return new WaitForSeconds(0.1f);
     }
 
     #endregion
@@ -332,130 +576,127 @@ public class Enemy_Middle_Boss : Enemy_Base
     private bool CanUseFloorHazard()
     {
         return Time.time - lastFloorHazardTime >= floorHazardCooldown &&
-               !isGrabbing && !isShooting && !isPlayerBeingPulled && !isCreatingFloorHazard &&
-               currentFloorHazardCount + hazardsPerCast <= maxFloorHazards; // 한 번에 생성할 개수를 고려
+               !isAnyAttackInProgress &&
+               currentFloorHazardCount + hazardsPerCast <= maxFloorHazards;
     }
 
     private IEnumerator PerformFloorHazardAttack()
     {
+        if (isAnyAttackInProgress) yield break;
+
+        isAnyAttackInProgress = true;
         isCreatingFloorHazard = true;
         lastFloorHazardTime = Time.time;
 
-        // 장판 생성 시전 시간 (여러 개 생성하므로 조금 더 길게)
-        yield return new WaitForSeconds(1.2f);
+        PlayFloorHazardAnimation();
+        yield return new WaitForSeconds(0.8f);
 
-        // 플레이어 위치 주변에 여러 장판 랜덤 생성
         if (playerTransform != null)
         {
-            CreateFloorHazard();
+            ThrowFloorHazardOrbs();
         }
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.5f);
         isCreatingFloorHazard = false;
+        isAnyAttackInProgress = false;
+        lastAnyAttackTime = Time.time;
+        Debug.Log($"{enemyName}: 장판 공격 완료! 다음 공격까지 {attackCooldownTime}초 대기");
     }
 
-    private void CreateFloorHazard()
+    private void ThrowFloorHazardOrbs()
     {
-        if (floorHazardPrefab == null || playerTransform == null)
+        if (floorHazardOrbPrefab == null || playerTransform == null) return;
+
+        int orbsToThrow = Mathf.Min(hazardsPerCast, maxFloorHazards - currentFloorHazardCount);
+        if (orbsToThrow <= 0) return;
+
+        List<Vector3> targetPositions = new List<Vector3>();
+
+        for (int i = 0; i < orbsToThrow; i++)
         {
-            return;
-        }
+            Vector3 targetPosition = FindValidHazardPosition(targetPositions);
 
-        // 현재 생성 가능한 장판 개수 계산
-        int hazardsToCreate = Mathf.Min(hazardsPerCast, maxFloorHazards - currentFloorHazardCount);
-
-        if (hazardsToCreate <= 0) return;
-
-        List<Vector3> createdPositions = new List<Vector3>();
-
-        for (int i = 0; i < hazardsToCreate; i++)
-        {
-            Vector3 hazardPosition = FindValidHazardPosition(createdPositions);
-
-            if (hazardPosition != Vector3.zero) // 유효한 위치를 찾았다면
+            if (targetPosition != Vector3.zero)
             {
-                // 장판 생성
-                GameObject floorHazard = Instantiate(floorHazardPrefab, hazardPosition, Quaternion.identity);
-
-                // 장판 초기화
-                Enemy_Middle_Boss_FloorHazard hazardScript = floorHazard.GetComponent<Enemy_Middle_Boss_FloorHazard>();
-                if (hazardScript != null)
-                {
-                    hazardScript.Initialize(floorHazardDamage, floorHazardDuration, floorHazardRadius, this);
-                }
-
-                // 현재 장판 개수 증가
-                currentFloorHazardCount++;
-
-                // 생성된 위치 기록
-                createdPositions.Add(hazardPosition);
-
-                // 지속시간 후 자동 삭제
-                StartCoroutine(DestroyFloorHazardAfterDuration(floorHazard, floorHazardDuration));
+                targetPositions.Add(targetPosition);
+                StartCoroutine(ThrowSingleOrb(targetPosition, i * 0.2f));
             }
         }
     }
 
-    /// <summary>
-    /// 유효한 장판 생성 위치 찾기
-    /// </summary>
+    private IEnumerator ThrowSingleOrb(Vector3 targetPosition, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        Vector3 startPosition = firePoint.position + Vector3.up * 1f;
+        GameObject orb = Instantiate(floorHazardOrbPrefab, startPosition, Quaternion.identity);
+
+        Enemy_Middle_Boss_FloorHazardOrb orbScript = orb.GetComponent<Enemy_Middle_Boss_FloorHazardOrb>();
+        if (orbScript != null)
+        {
+            orbScript.Initialize(
+                this,
+                targetPosition,
+                orbSpeed,
+                orbArcHeight,
+                floorHazardPrefab,
+                floorHazardDamage,
+                floorHazardDuration,
+                floorHazardRadius
+            );
+        }
+        else
+        {
+            Destroy(orb);
+        }
+    }
+
+    public void OnOrbLanded(Vector3 position, GameObject hazardPrefab, float damage, float duration, float radius)
+    {
+        GameObject floorHazard = Instantiate(hazardPrefab, position, Quaternion.identity);
+
+        Enemy_Middle_Boss_FloorHazard hazardScript = floorHazard.GetComponent<Enemy_Middle_Boss_FloorHazard>();
+        if (hazardScript != null)
+        {
+            hazardScript.Initialize(damage, duration, radius, this);
+        }
+
+        currentFloorHazardCount++;
+        StartCoroutine(DestroyFloorHazardAfterDuration(floorHazard, duration));
+    }
+
     private Vector3 FindValidHazardPosition(List<Vector3> existingPositions)
     {
-        const int maxAttempts = 20; // 최대 시도 횟수
+        const int maxAttempts = 10; // 시도 횟수 줄임
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            // 플레이어 중심으로 원형 범위 내에서 랜덤 위치 생성
             Vector2 randomCircle = Random.insideUnitCircle * floorHazardRange;
             Vector3 candidatePosition = playerTransform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
-            candidatePosition.y = 0; // Y축은 지면에 고정
+            candidatePosition.y = 0;
 
-            // 유효성 검사
             if (IsValidHazardPosition(candidatePosition, existingPositions))
             {
                 return candidatePosition;
             }
         }
 
-        // 유효한 위치를 찾지 못한 경우
-        Debug.LogWarning("유효한 장판 위치를 찾지 못했습니다.");
         return Vector3.zero;
     }
 
-    /// <summary>
-    /// 장판 위치가 유효한지 검사
-    /// </summary>
     private bool IsValidHazardPosition(Vector3 position, List<Vector3> existingPositions)
     {
-        // 1. 플레이어로부터 최소 거리 체크
         float distanceToPlayer = Vector3.Distance(position, playerTransform.position);
-        if (distanceToPlayer < minDistanceFromPlayer)
-        {
-            return false;
-        }
+        if (distanceToPlayer < minDistanceFromPlayer) return false;
 
-        // 2. 보스로부터 너무 가깝지 않게 (최소 1m)
         float distanceToBoss = Vector3.Distance(position, transform.position);
-        if (distanceToBoss < 1f)
-        {
-            return false;
-        }
+        if (distanceToBoss < 1f) return false;
 
-        // 3. 이미 생성된 장판들과의 거리 체크
         foreach (Vector3 existingPos in existingPositions)
         {
             float distance = Vector3.Distance(position, existingPos);
-            if (distance < minDistanceBetweenHazards)
-            {
-                return false;
-            }
+            if (distance < minDistanceBetweenHazards) return false;
         }
-
-        // 4. 맵 경계 체크 (옵션: 필요시 활성화)
-        // if (!IsWithinMapBounds(position))
-        // {
-        //     return false;
-        // }
 
         return true;
     }
@@ -471,9 +712,6 @@ public class Enemy_Middle_Boss : Enemy_Base
         }
     }
 
-    /// <summary>
-    /// 장판이 파괴될 때 호출되는 콜백 (외부에서 호출 가능)
-    /// </summary>
     public void OnFloorHazardDestroyed()
     {
         currentFloorHazardCount = Mathf.Max(0, currentFloorHazardCount - 1);
@@ -485,12 +723,14 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     protected override void Die()
     {
-
         // 모든 상태 초기화
+        isAnyAttackInProgress = false;
         isGrabbing = false;
         isShooting = false;
         isPlayerBeingPulled = false;
         isCreatingFloorHazard = false;
+        isDashing = false;
+        isMeleeAttacking = false;
         grabbedPlayer = null;
         currentFloorHazardCount = 0;
 
@@ -499,14 +739,14 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     protected override int GetExperienceReward()
     {
-        return 300; // 중간보스니까 경험치도 적당히
+        return 300;
     }
 
     #endregion
 
     #region 퍼블릭 접근자
 
-    public bool IsPerformingSpecialAttack() => isGrabbing || isShooting || isPlayerBeingPulled || isCreatingFloorHazard;
+    public bool IsPerformingSpecialAttack() => isAnyAttackInProgress || isPlayerBeingPulled;
 
     #endregion
 }

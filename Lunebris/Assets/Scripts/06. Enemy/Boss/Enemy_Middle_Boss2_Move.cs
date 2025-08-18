@@ -15,6 +15,10 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
     private Rigidbody rigid;
     private Enemy_Middle_Boss2 bossScript;
     private bool isDashingMovement = false;
+    private bool isMoving = false; // 애니메이션용 이동 상태
+
+    // 공개 프로퍼티
+    public bool IsMoving => isMoving;
 
     private void Start()
     {
@@ -35,6 +39,8 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
             rigid.drag = 5f;
             rigid.angularDrag = 5f;
         }
+
+        Debug.Log($"{name}: 중간보스2 이동 시스템 초기화 완료!");
     }
 
     private void FixedUpdate()
@@ -66,7 +72,9 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
 
     private bool ShouldMove()
     {
-        return !bossScript.IsDashWarning && !bossScript.IsShooting;
+        return !bossScript.IsDashWarning &&
+               !bossScript.IsShooting &&
+               !bossScript.IsRailgunActive; // 레일건 사용 중에도 이동 제한
     }
 
     private void HandleNormalMovement()
@@ -76,10 +84,12 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
         if (distanceToPlayer > stoppingDistance)
         {
             MoveTowardsPlayer();
+            isMoving = true;
         }
         else
         {
             CircleAroundPlayer();
+            isMoving = true;
         }
     }
 
@@ -101,6 +111,7 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
 
         Vector3 circleDirection = new Vector3(-toPlayer.z, 0, toPlayer.x).normalized;
 
+        // 랜덤하게 방향 전환
         if (Random.Range(0, 100) < 2)
         {
             circleDirection = -circleDirection;
@@ -128,6 +139,7 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
 
         rigid.MovePosition(rigid.position + moveVector);
 
+        // 대시 중에는 이동 방향으로 즉시 회전
         if (dashDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(dashDirection);
@@ -136,6 +148,9 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
             eulerAngles.z = 0;
             transform.rotation = Quaternion.Euler(eulerAngles);
         }
+
+        // 대시 중에는 이동 상태가 아님 (대시 애니메이션이 따로 있음)
+        isMoving = false;
     }
 
     private void LookAtTarget()
@@ -169,7 +184,61 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
         {
             isDashingMovement = false;
         }
+
+        isMoving = false;
     }
+
+    #region 공개 메서드
+
+    /// <summary>
+    /// 강제로 이동 정지
+    /// </summary>
+    public void ForceStop()
+    {
+        StopMovement();
+    }
+
+    /// <summary>
+    /// 특정 위치로 강제 이동 (짧은 시간)
+    /// </summary>
+    public void MoveToPosition(Vector3 targetPos, float duration = 1f)
+    {
+        StartCoroutine(MoveToPositionCoroutine(targetPos, duration));
+    }
+
+    #endregion
+
+    #region 코루틴
+
+    private System.Collections.IEnumerator MoveToPositionCoroutine(Vector3 targetPos, float duration)
+    {
+        Vector3 startPos = transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // 부드러운 보간
+            Vector3 currentPos = Vector3.Lerp(startPos, targetPos, Mathf.SmoothStep(0f, 1f, t));
+
+            if (rigid != null)
+            {
+                rigid.MovePosition(currentPos);
+            }
+            else
+            {
+                transform.position = currentPos;
+            }
+
+            yield return null;
+        }
+    }
+
+    #endregion
+
+    #region 충돌 처리
 
     private void OnTriggerEnter(Collider other)
     {
@@ -205,4 +274,30 @@ public class Enemy_Middle_Boss2_Move : MonoBehaviour
 
         return false;
     }
+
+    #endregion
+
+    #region 디버그
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!Application.isPlaying || target == null) return;
+
+        // 정지 거리 표시
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, stoppingDistance);
+
+        // 플레이어로의 직선 표시
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(transform.position, target.position);
+
+        // 이동 상태 표시
+        if (isMoving)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.5f);
+        }
+    }
+
+    #endregion
 }

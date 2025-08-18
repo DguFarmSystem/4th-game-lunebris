@@ -136,7 +136,7 @@ namespace Enemy
                     stats[EnemyStatType.PhysicalDamage] = new EnemyStat(40f);
                     stats[EnemyStatType.MagicalDamage] = new EnemyStat(40f);
                     stats[EnemyStatType.AttackSpeed] = new EnemyStat(0.6f);
-                    stats[EnemyStatType.MoveSpeed] = new EnemyStat(1.2f);
+                    stats[EnemyStatType.MoveSpeed] = new EnemyStat(2f);
                     stats[EnemyStatType.PhysicalDefense] = new EnemyStat(20f);
                     stats[EnemyStatType.MagicalDefense] = new EnemyStat(20f);
                     stats[EnemyStatType.AttackRange] = new EnemyStat(6f);
@@ -217,8 +217,9 @@ namespace Enemy
             ElementType enemyElement)
         {
             // 1. 플레이어 기본 데미지
-            float baseDamage = playerStats.Get(Player.StatType.AttackDamage);
-
+            float baseDamage = damageType == DamageType.Physical
+            ? playerStats.Get(Player.StatType.AttackDamage)
+            : playerStats.Get(Player.StatType.SkillDamage);
             // 2. 몬스터 방어력
             float enemyDefense = damageType == DamageType.Physical
                 ? enemyStats.Get(EnemyStatType.PhysicalDefense)

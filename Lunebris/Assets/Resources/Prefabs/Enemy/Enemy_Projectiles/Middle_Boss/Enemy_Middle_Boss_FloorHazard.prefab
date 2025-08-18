@@ -123,7 +123,7 @@ MonoBehaviour:
   playerLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  warningEffect: {fileID: 0}
+  warningEffect: {fileID: 5739375317480962743, guid: dec84c43254ed0445802b6c1a095ad46, type: 3}
   hazardEffect: {fileID: 0}
   warningSound: {fileID: 0}
   activateSound: {fileID: 0}
