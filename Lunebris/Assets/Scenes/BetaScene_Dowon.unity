@@ -13618,12 +13618,18 @@ MonoBehaviour:
   skillAreaVFX: {fileID: 6327936823221418715, guid: 846a395c2c0560245879d1a87352e061, type: 3}
   hitVFX: {fileID: 6327936823221418715, guid: 26d3b940ed931d04cb54ace422daad6a, type: 3}
   lux1_Radius: 5
+  lux2_ShieldAmount: 100
+  lux2_ShieldVFX_Prefab: {fileID: 6943035370167284729, guid: 24ac194330015a14fb99c9f0f634e7c4, type: 3}
   lux3_Range: 20
   lux3_Width: 3
   lux3_MinDamageMultiplier: 0.5
   lux3_VFX_Prefab: {fileID: 0}
-  summonPrefab: {fileID: 0}
-  summonPoint: {fileID: 0}
+  summonPrefab: {fileID: 1797647599124509145, guid: 3fecebdfcf5d2a444a3a2487aeb525eb, type: 3}
+  summonPoint: {fileID: 980428829064399764}
+  tenebris1_Radius: 7
+  tenebris1_Duration: 2
+  tenebris1_MaxTargets: 3
+  tenebris1_TickRate: 0.2
 --- !u!114 &1322269881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24628,6 +24634,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hpSlider: {fileID: 1074190438}
   hpTMP: {fileID: 580850649}
+  shieldSlider: {fileID: 0}
+  shieldTMP: {fileID: 0}
   xpSlider: {fileID: 932262771}
   xpTMP: {fileID: 1380443165}
   levelTMP: {fileID: 801740838}
