@@ -115,6 +115,40 @@ namespace Player
         private int currentXP;
         private int maxXP;
 
+        private bool hasInvincibilityItem = false;
+        private float invincibilityCooldown = 15f;
+        [SerializeField] private float invincibilityDuration = 3f;
+        private float lastInvincibilityUseTime = -999f;
+        private bool isInvincible = false;
+
+        public void SetInvincibilityDuration(float duration)
+        {
+            invincibilityDuration = duration;
+        }
+        public void GiveInvincibilityItem(float customDuration = -1f)
+        {
+            hasInvincibilityItem = true;
+            if (customDuration > 0)
+                SetInvincibilityDuration(customDuration);
+
+            Debug.Log($"무적 아이템을 획득했습니다! 지속 시간: {invincibilityDuration}초");
+        }
+
+        private void ActivateTimedInvincibility()
+        {
+            isInvincible = true;
+            lastInvincibilityUseTime = Time.time;
+            Debug.Log("무적 상태 시작");
+
+            Invoke(nameof(ResetInvincibility), invincibilityDuration);
+        }
+
+        private void ResetInvincibility()
+        {
+            isInvincible = false;
+            Debug.Log("무적 상태 종료");
+        }
+
         //쉴드 관련 변수 추가
         private float currentShield;
         private float maxShield = 100f;
@@ -205,8 +239,37 @@ namespace Player
             currentHP = Mathf.Clamp(currentHP, 0, stat.Get(StatType.MaxHp));
             UpdateHP();
         }
+        
         public void DecreaseHP(float _value)
         {
+            if (isInvincible)
+            {
+                Debug.Log("무적 상태");
+                return;
+            }
+            if (hasInvincibilityItem)
+            {
+                float timeSinceLastUse = Time.time - lastInvincibilityUseTime;
+                if (timeSinceLastUse >= invincibilityCooldown)
+                {
+                    ActivateTimedInvincibility();
+                    return;
+                }
+            }
+
+            currentHP -= _value;
+            UpdateHP();
+
+            if (currentHP <= 0)
+            {
+                if (Inventory.instance.HasItem("Reborn"))
+                {
+                    Item rebornItem = Inventory.instance.GetItem("Reborn");
+                    rebornItem.ApplyEffect();
+                    Inventory.instance.Remove(rebornItem);
+                }
+            }
+            
             float damage = _value;
 
             if (currentShield >= damage)
@@ -357,6 +420,9 @@ namespace Player
             levelTMP.text = "Lv." + level.ToString();
         }
 
+
+        public float CurrentHP => currentHP;
+
         public void AddShield(float _value, GameObject shieldVFXPrefab)
         {
             if (currentShield <= 0)
@@ -378,6 +444,7 @@ namespace Player
             Debug.Log($"쉴드 {_value} 획득! [현재 쉴드: {currentShield}]");
             UpdateShieldUI();
         }
+        
         private void UpdateShieldUI()
         {
             if (shieldSlider == null) return;

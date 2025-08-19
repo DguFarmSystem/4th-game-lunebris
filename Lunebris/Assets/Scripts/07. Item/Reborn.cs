@@ -9,9 +9,10 @@ public class Reborn : Item
     {
         itemID = 3;
         itemName = "Reborn";
+        applyCondition = true;
     }
 
-    public override void DestroyAfterTime()//½Ã°£ Áö³­ ÈÄ ÆÄ±«
+    public override void DestroyAfterTime()//ì‹œê°„ ì§€ë‚œ í›„ íŒŒê´´
     {
         Invoke("DestroyObject", 30.0f);
     }
@@ -23,18 +24,39 @@ public class Reborn : Item
             bool wasPickedUp = Inventory.instance.Add(this);
             if (wasPickedUp)
             {
+                CancelInvoke("DestroyObject");
                 gameObject.SetActive(false);
             }
         }
     }
 
-    public override void ApplyEffect()//È¿°ú Àû¿ë
+    public override void ApplyEffect()//íš¨ê³¼ ì ìš©
     {
         Player.Player player = GameObject.FindWithTag("Player").GetComponent<Player.Player>();
             
-            Debug.Log("ºÎÈ°ÇÔ");
-            Destroy(gameObject); // ¾ÆÀÌÅÛ ¿ÀºêÁ§Æ® Á¦°Å
+            Debug.Log("ë¶€í™œ~~");
+
+            player.StartCoroutine(HealOverTime(player, player.GetMaxHp(), 2f));
+            Destroy(gameObject); // ì•„ì´í…œ ì˜¤ë¸Œì íŠ¸ ì œê±°
          
+    }
+
+    private IEnumerator HealOverTime(Player.Player player, float targetHP, float duration)
+    {
+        float startHP = player.CurrentHP;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float newHP = Mathf.RoundToInt(Mathf.Lerp(startHP, targetHP, t));
+            player.IncreaseHP(newHP - player.CurrentHP); // ì°¨ì•¡ë§Œí¼ ì¦ê°€
+
+            yield return null;
+        }
+
+        player.IncreaseHP(targetHP - player.CurrentHP);
     }
 
     public void DestroyObject()

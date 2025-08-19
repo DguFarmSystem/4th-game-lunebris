@@ -36,11 +36,14 @@ public class Inventory : MonoBehaviour
         if (index < items.Count)
         {
             Item item = items[index];
-            UseItem(item);
+            if (!item.applyCondition)
+                UseItem(item);
+            else
+                Debug.Log("ì‚¬ìš©í•  ìˆ˜ ì—†ëŠ” ì•„ì´í…œ ì…ë‹ˆë‹¤.");
         }
         else
         {
-            Debug.Log("ÇØ´ç ½½·Ô¿¡ ¾ÆÀÌÅÛÀÌ ¾ø½À´Ï´Ù.");
+            Debug.Log("í•´ë‹¹ ìŠ¬ë¡¯ì— ì•„ì´í…œì´ ì—†ìŠµë‹ˆë‹¤.");
         }
     }
 
@@ -48,8 +51,8 @@ public class Inventory : MonoBehaviour
     public delegate void OnItemChanged();
     public OnItemChanged onItemChangedCallback;
 
-    public int space = 8;  // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ½½·ÔÀÇ ¼ö
-    public List<Item> items = new List<Item>();  // ÀÎº¥Åä¸®¿¡ ÇöÀç ÀÖ´Â ¾ÆÀÌÅÛ ¸®½ºÆ®
+    public int space = 8;  // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ìŠ¬ë¡¯ì˜ ìˆ˜
+    public List<Item> items = new List<Item>();  // ì¸ë²¤í† ë¦¬ì— í˜„ì¬ ìˆëŠ” ì•„ì´í…œ ë¦¬ìŠ¤íŠ¸
 
     public bool Add(Item item)
     {
@@ -77,9 +80,19 @@ public class Inventory : MonoBehaviour
     {
         if (items.Contains(item))
         {
-            item.ApplyEffect();      // È¿°ú Àû¿ë
-            Remove(item);            // ÀÎº¥Åä¸®¿¡¼­ Á¦°Å
-            Debug.Log(item.itemName + " ¾ÆÀÌÅÛÀ» »ç¿ëÇß½À´Ï´Ù.");
+            item.ApplyEffect();      // íš¨ê³¼ ì ìš©
+            Remove(item);            // ì¸ë²¤í† ë¦¬ì—ì„œ ì œê±°
+            Debug.Log(item.itemName + " ì•„ì´í…œì„ ì‚¬ìš©í–ˆìŠµë‹ˆë‹¤.");
         }
+    }
+
+    public bool HasItem(string itemName)
+    {
+        return items.Exists(item => item.itemName == itemName);
+    }
+
+    public Item GetItem(string itemName)
+    {
+        return items.Find(item => item.itemName == itemName);
     }
 }
