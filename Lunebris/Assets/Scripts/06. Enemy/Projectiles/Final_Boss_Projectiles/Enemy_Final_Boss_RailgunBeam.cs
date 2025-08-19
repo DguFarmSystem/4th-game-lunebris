@@ -3,7 +3,7 @@ using Enemy;
 using System.Collections;
 
 /// <summary>
-/// 라이트오브에서 발사하는 5갈래 레일건 빔 (중간보스 스타일)
+/// 라이트왕국에서 발사하는 5갈래 레일건 빔 (중간보스 스타일)
 /// </summary>
 public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
 {
@@ -56,7 +56,7 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
         allBeams[3] = leftBeam2;
         allBeams[4] = rightBeam2;
 
-        // 자동 생성 및 설정
+        // 모든 빔 초기화
         SetupAllBeams();
 
         // AudioSource 설정
@@ -79,11 +79,8 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
         {
             if (allBeams[i] == null)
             {
-                // 새로운 LineRenderer 생성
-                GameObject beamObj = new GameObject($"Beam_{i}");
-                beamObj.transform.SetParent(transform);
-                beamObj.transform.localPosition = Vector3.zero;
-                allBeams[i] = beamObj.AddComponent<LineRenderer>();
+                Debug.LogWarning($"Beam {i}가 할당되지 않았습니다! 프리팹을 확인해주세요.");
+                continue;
             }
 
             SetupSingleBeam(allBeams[i], i);
@@ -123,12 +120,6 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
         );
         beam.colorGradient = gradient;
 
-        // 머티리얼 설정
-        if (beam.material == null)
-        {
-            beam.material = new Material(Shader.Find("Sprites/Default"));
-        }
-
         // 빔 스타일링
         beam.textureMode = LineTextureMode.Stretch;
         beam.alignment = LineAlignment.View;
@@ -150,7 +141,7 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
     {
         isFiring = true;
 
-        // 1. 차징 단계
+        // 1. 차지 단계
         yield return StartCoroutine(ChargingPhase());
 
         // 2. 발사 단계
@@ -163,23 +154,23 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
 
     private IEnumerator ChargingPhase()
     {
-        Debug.Log("5갈래 레일건 차징 시작!");
+        Debug.Log("5갈래 레일건 차지 시작!");
 
-        // 차징 파티클 시작
+        // 차지 파티클 시작
         if (chargingParticle != null)
         {
             chargingParticle.transform.position = transform.position;
             chargingParticle.Play();
         }
 
-        // 차징 중 빔들을 점진적으로 표시
+        // 차지 중 빔들을 점진적으로 표시
         float elapsed = 0f;
         while (elapsed < chargingTime)
         {
             elapsed += Time.deltaTime;
             float progress = elapsed / chargingTime;
 
-            // 차징 중 얇은 빔들을 점진적으로 표시
+            // 차지 중 얇은 빔들을 점진적으로 표시
             for (int i = 0; i < allBeams.Length; i++)
             {
                 if (allBeams[i] != null)
@@ -202,7 +193,7 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
             yield return null;
         }
 
-        // 차징 완료 - 파티클 정지
+        // 차지 완료 - 파티클 정지
         if (chargingParticle != null)
         {
             chargingParticle.Stop();
@@ -277,12 +268,6 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
             beam.endWidth = finalWidth * 0.5f;
             beam.SetPosition(0, startPos);
             beam.SetPosition(1, endPos);
-
-            // 충격 이펙트 생성
-            if (hitPlayer || Vector3.Distance(startPos, endPos) < maxRange)
-            {
-                CreateImpactEffect(endPos, beamIndex);
-            }
         }
     }
 
@@ -322,27 +307,6 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
 
         player.DecreaseHP(calculatedDamage);
         Debug.Log($"플레이어가 레일건 빔 {beamIndex}에 맞음! 데미지: {calculatedDamage:F1}");
-    }
-
-    private void CreateImpactEffect(Vector3 position, int beamIndex)
-    {
-        // 빔별로 다른 크기의 충격 이펙트
-        float effectSize = beamIndex == 0 ? 2f : 1.5f - (beamIndex * 0.2f);
-
-        GameObject impact = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        impact.name = $"RailgunImpact_{beamIndex}";
-        impact.transform.position = position;
-        impact.transform.localScale = Vector3.one * effectSize;
-
-        Renderer renderer = impact.GetComponent<Renderer>();
-        Material material = new Material(Shader.Find("Standard"));
-        material.color = Color.cyan;
-        material.EnableKeyword("_EMISSION");
-        material.SetColor("_EmissionColor", Color.cyan * (3f - beamIndex * 0.5f));
-        renderer.material = material;
-
-        DestroyImmediate(impact.GetComponent<Collider>());
-        Destroy(impact, 1f);
     }
 
     private void PlayFireSound()

@@ -15,10 +15,11 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
     [SerializeField] private float activeDuration = 2f;
 
     [Header("이펙트")]
-    [SerializeField] private GameObject warningEffect;
+    [SerializeField] private GameObject warningEffect;   // 프리팹
     [SerializeField] private GameObject pillarEffect;
     [SerializeField] private Light pillarLight;
 
+    private GameObject instantiatedWarningEffect;
     private float damage;
     private bool isActive = false;
     private AudioSource audioSource;
@@ -26,11 +27,9 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
 
     private void Awake()
     {
-        // 컴포넌트 초기화
         audioSource = GetComponent<AudioSource>();
         damageCollider = GetComponent<CapsuleCollider>();
 
-        // 콜라이더 초기 설정
         if (damageCollider == null)
             damageCollider = gameObject.AddComponent<CapsuleCollider>();
 
@@ -40,9 +39,19 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
         damageCollider.center = new Vector3(0, pillarHeight * 0.5f, 0);
         damageCollider.enabled = false;
 
-        // 조명 설정
         if (pillarLight == null)
-            pillarLight = gameObject.AddComponent<Light>();
+        {
+            pillarLight = GetComponent<Light>();
+            if (pillarLight == null)
+                pillarLight = gameObject.AddComponent<Light>();
+        }
+
+        SetupPillarLight();
+    }
+
+    private void SetupPillarLight()
+    {
+        if (pillarLight == null) return;
 
         pillarLight.type = LightType.Point;
         pillarLight.color = Color.white;
@@ -53,64 +62,73 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
     public void StartLightPillar(float pillarDamage, float duration = 3.5f)
     {
         damage = pillarDamage;
-        warningDuration = duration * 0.4f; // 40%는 경고 시간
-        activeDuration = duration * 0.6f;  // 60%는 활성화 시간
+        warningDuration = duration * 0.4f;
+        activeDuration = duration * 0.6f;
 
         StartCoroutine(PillarSequence());
     }
 
     private IEnumerator PillarSequence()
     {
-        // 1단계: 경고
-        if (warningEffect != null)
-            warningEffect.SetActive(true);
+        yield return StartCoroutine(WarningPhase());
+        yield return StartCoroutine(ActivePhase());
+        Cleanup();
+        Destroy(gameObject);
+    }
 
-        // 경고 깜빡임 효과
-        StartCoroutine(BlinkWarning());
+    private IEnumerator WarningPhase()
+    {
+        Debug.Log("빛 기둥 경고 시작!");
+
+        if (warningEffect != null)
+        {
+            instantiatedWarningEffect = Instantiate(
+                warningEffect,
+                transform.position + Vector3.down * 0.1f,  // 바닥에 살짝 위치
+                Quaternion.identity,
+                transform // 부모를 이 오브젝트로 설정
+            );
+            instantiatedWarningEffect.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Warning Effect가 할당되지 않았습니다!");
+        }
 
         yield return new WaitForSeconds(warningDuration);
 
-        // 2단계: 활성화
-        if (warningEffect != null)
-            warningEffect.SetActive(false);
+        if (instantiatedWarningEffect != null)
+        {
+            Destroy(instantiatedWarningEffect);
+        }
+    }
+
+    private IEnumerator ActivePhase()
+    {
+        Debug.Log("빛 기둥 활성화!");
 
         if (pillarEffect != null)
+        {
             pillarEffect.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Pillar Effect가 할당되지 않았습니다!");
+        }
 
-        // 데미지 콜라이더 활성화
         damageCollider.enabled = true;
         isActive = true;
 
-        // 조명 강화
         if (pillarLight != null)
         {
             pillarLight.intensity = 10f;
+            pillarLight.color = Color.white;
         }
 
         yield return new WaitForSeconds(activeDuration);
 
-        // 3단계: 종료 및 소멸
         isActive = false;
-        Destroy(gameObject);
-    }
-
-    private IEnumerator BlinkWarning()
-    {
-        float blinkTime = 0f;
-
-        while (blinkTime < warningDuration)
-        {
-            if (pillarLight != null)
-            {
-                // 빨간색으로 깜빡임
-                bool visible = Mathf.Sin(Time.time * 10f) > 0;
-                pillarLight.intensity = visible ? 3f : 0f;
-                pillarLight.color = Color.red;
-            }
-
-            blinkTime += Time.deltaTime;
-            yield return null;
-        }
+        damageCollider.enabled = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -121,21 +139,84 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
             if (playerComponent != null)
             {
                 playerComponent.DecreaseHP(damage);
+                Debug.Log($"플레이어가 빛 기둥에 맞음! 데미지: {damage}");
             }
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        // 지속 데미지는 Enemy_Temp_Damage_Projectile에서 처리
         if (isActive && other.CompareTag("Player"))
         {
-            Enemy_Temp_Damage_Projectile damageScript = GetComponent<Enemy_Temp_Damage_Projectile>();
-            if (damageScript == null)
-            {
-                damageScript = gameObject.AddComponent<Enemy_Temp_Damage_Projectile>();
-                damageScript.Initialize(damage * 0.3f, "빛 기둥", true); // 초당 30% 데미지
-            }
+            // 지속 데미지 로직은 필요시 구현
         }
     }
+
+    private void Cleanup()
+    {
+        if (instantiatedWarningEffect != null)
+            Destroy(instantiatedWarningEffect);
+
+        if (pillarEffect != null)
+            pillarEffect.SetActive(false);
+
+        if (pillarLight != null)
+            pillarLight.intensity = 0f;
+
+        isActive = false;
+        damageCollider.enabled = false;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 position = transform.position;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(position + Vector3.up * pillarHeight * 0.5f, pillarRadius);
+
+        Gizmos.color = Color.yellow;
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * 45f * Mathf.Deg2Rad;
+            Vector3 edgePoint = position + new Vector3(
+                Mathf.Cos(angle) * pillarRadius,
+                0,
+                Mathf.Sin(angle) * pillarRadius
+            );
+            Gizmos.DrawLine(edgePoint, edgePoint + Vector3.up * pillarHeight);
+        }
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(position + Vector3.up * 0.1f, pillarRadius);
+
+        for (int i = 0; i < 16; i++)
+        {
+            float angle1 = i * 22.5f * Mathf.Deg2Rad;
+            float angle2 = (i + 1) * 22.5f * Mathf.Deg2Rad;
+            Vector3 point1 = position + new Vector3(Mathf.Cos(angle1) * pillarRadius, 0.1f, Mathf.Sin(angle1) * pillarRadius);
+            Vector3 point2 = position + new Vector3(Mathf.Cos(angle2) * pillarRadius, 0.1f, Mathf.Sin(angle2) * pillarRadius);
+            Gizmos.DrawLine(point1, point2);
+        }
+    }
+
+    public void SetPillarSize(float radius, float height)
+    {
+        pillarRadius = radius;
+        pillarHeight = height;
+
+        if (damageCollider != null)
+        {
+            damageCollider.radius = radius;
+            damageCollider.height = height;
+            damageCollider.center = new Vector3(0, height * 0.5f, 0);
+        }
+
+        if (pillarLight != null)
+        {
+            pillarLight.range = radius * 2f;
+        }
+    }
+
+    public bool IsWarning => Time.time < warningDuration && !isActive;
+    public bool IsActiveState => isActive;
 }

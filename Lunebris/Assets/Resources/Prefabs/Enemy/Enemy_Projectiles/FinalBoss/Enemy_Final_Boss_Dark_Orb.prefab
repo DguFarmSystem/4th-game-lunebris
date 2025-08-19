@@ -20,7 +20,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7843228476363867423
 Transform:
   m_ObjectHideFlags: 0
@@ -64,7 +64,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 1016179ef43fed44797c96055d8aae30, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,7 +125,7 @@ MonoBehaviour:
   minDistanceToPlayer: 6
   maxDistanceToPlayer: 15
   randomMoveInterval: 2
-  darkBulletPrefab: {fileID: 5444615153167439068, guid: 6ca5e60b5516dcc41b9139b8196d4746, type: 3}
+  darkBulletPrefab: {fileID: 6747778053060186250, guid: 6ca5e60b5516dcc41b9139b8196d4746, type: 3}
   darkBulletDamage: 40
   darkBulletCount: 12
   darkBulletSpeed: 8

@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// 탄막 패턴 종류
+/// 탄환 패턴 종류
 /// </summary>
 public enum BulletPattern
 {
@@ -17,12 +17,12 @@ public enum BulletPattern
 }
 
 /// <summary>
-/// 최종보스 - 어둠 모드 (끌어당김 탄환, 어둠 바닥, 보스 탄환) - 중간보스 패턴 적용
+/// 최종보스 - 어둠 모드 (끌어당기기 탄환, 어둠 바닥, 보스 탄환) - 중간보스 패턴 적용
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Final_Boss_Dark : Enemy_Base
 {
-    [Header("끌어당김 탄환")]
+    [Header("끌어당기기 탄환")]
     [SerializeField] private GameObject pullBulletPrefab;
     [SerializeField] private float pullBulletSpeed = 10f;
     [SerializeField] private int pullBulletSpawnCount = 16;
@@ -43,7 +43,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     [SerializeField] private float bossBulletRange = 15f;
     [SerializeField] private float bossBulletSpeed = 12f;
 
-    [Header("탄막 패턴 설정")]
+    [Header("탄환 패턴 설정")]
     [SerializeField] private BulletPattern[] bulletPatterns;
     [SerializeField] private float patternSwitchChance = 0.3f; // 30% 확률로 패턴 변경
 
@@ -66,7 +66,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     private GameObject activeDarkFloorHazard;
     private Coroutine pullBulletSpawnRoutine;
 
-    // 탄막 패턴 관리
+    // 탄환 패턴 관리
     private BulletPattern currentBulletPattern = BulletPattern.Straight;
     private int consecutiveAttacks = 0;
 
@@ -104,7 +104,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         // 어둠 바닥 해저드 생성
         CreateDarkFloorHazard();
 
-        // 주기적인 끌어당김 탄환 시스템 시작
+        // 주기적인 끌어당기기 탄환 시스템 시작
         pullBulletSpawnRoutine = StartCoroutine(SpawnPullBulletsPeriodically());
 
         // 연속 공격 루틴 시작
@@ -120,7 +120,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         // 공격 우선순위 (거리별로 중간보스 패턴 적용)
         if (distanceToPlayer >= pullBulletRange * 0.8f && CanUsePullBullets())
         {
-            // 원거리에서 끌어당김 탄환 사용
+            // 원거리에서 끌어당기기 탄환 사용
             StartCoroutine(CreatePullBulletsAttack());
         }
         else if (distanceToPlayer <= bossBulletRange && CanUseBossBullets())
@@ -172,7 +172,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region 탄환 생성 헬퍼 메서드
+    #region 탄환 생성 핵심 메서드
 
     private void CreateBossBullet(Vector3 direction, float speed)
     {
@@ -187,7 +187,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         }
         else
         {
-            CreateTempBossBullet(direction, speed);
+            Debug.LogWarning("bossBulletPrefab이 설정되지 않았습니다!");
         }
     }
 
@@ -216,65 +216,13 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         }
         else
         {
-            CreateTempHomingBullet(initialDirection);
+            Debug.LogWarning("bossBulletPrefab이 설정되지 않았습니다!");
         }
-    }
-
-    private void CreateTempBossBullet(Vector3 dir, float speed)
-    {
-        GameObject bullet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        bullet.name = "TempBossBullet";
-        bullet.transform.position = transform.position;
-        bullet.transform.localScale = Vector3.one * 0.6f;
-
-        var renderer = bullet.GetComponent<Renderer>();
-        var mat = new Material(Shader.Find("Standard"))
-        {
-            color = new Color(0.3f, 0f, 0.5f)
-        };
-        mat.EnableKeyword("_EMISSION");
-        mat.SetColor("_EmissionColor", Color.magenta);
-        renderer.material = mat;
-
-        Rigidbody rb = bullet.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.velocity = dir * speed;
-
-        bullet.GetComponent<Collider>().isTrigger = true;
-        bullet.AddComponent<Enemy_Temp_Damage_Projectile>().Initialize(bossBulletDamage, "보스 탄환");
-
-        Destroy(bullet, 5f);
-    }
-
-    private void CreateTempHomingBullet(Vector3 initialDirection)
-    {
-        GameObject bullet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        bullet.name = "TempHomingBullet";
-        bullet.transform.position = transform.position;
-        bullet.transform.localScale = Vector3.one * 0.8f;
-
-        var renderer = bullet.GetComponent<Renderer>();
-        var mat = new Material(Shader.Find("Standard"))
-        {
-            color = Color.red
-        };
-        mat.EnableKeyword("_EMISSION");
-        mat.SetColor("_EmissionColor", Color.red * 3f);
-        renderer.material = mat;
-
-        Rigidbody rb = bullet.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.velocity = initialDirection * bossBulletSpeed * 0.8f;
-
-        bullet.GetComponent<Collider>().isTrigger = true;
-        bullet.AddComponent<Enemy_Temp_Damage_Projectile>().Initialize(bossBulletDamage * 1.5f, "유도 탄환");
-
-        Destroy(bullet, 8f);
     }
 
     #endregion
 
-    #region 주기적 끌어당김 탄환 시스템
+    #region 주기적 끌어당기기 탄환 시스템
 
     private IEnumerator SpawnPullBulletsPeriodically()
     {
@@ -311,7 +259,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region 끌어당김 탄환 공격
+    #region 끌어당기기 탄환 공격
 
     private bool CanUsePullBullets()
     {
@@ -324,7 +272,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isCreatingPullBullets = true;
         lastPullBulletTime = Time.time;
 
-        // 차징 이펙트
+        // 차지 이펙트
         GameObject chargeEffect = null;
         if (pullBulletChargeEffect != null)
         {
@@ -499,11 +447,11 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             }
 
             consecutiveAttacks = 0;
-            Debug.Log($"다크 보스 탄막 패턴 변경: {currentBulletPattern}");
+            Debug.Log($"다크 보스 탄환 패턴 변경: {currentBulletPattern}");
         }
     }
 
-    #region 다양한 탄막 패턴들
+    #region 다양한 탄환 패턴들
 
     private IEnumerator StraightBulletAttack()
     {

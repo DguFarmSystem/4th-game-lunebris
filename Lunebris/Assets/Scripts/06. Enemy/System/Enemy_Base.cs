@@ -23,6 +23,11 @@ public abstract class Enemy_Base : MonoBehaviour
     [SerializeField] protected AudioClip deathSound;
     [SerializeField] protected GameObject damageEffect; // 피격 이펙트
 
+    [Header("애니메이션 설정")]
+    [SerializeField] protected Animator characterAnimator; // 자식 캐릭터의 Animator
+    [SerializeField] protected bool usePhysicsMovement = true; // Rigidbody 사용 여부
+    [SerializeField] protected float enemyRotationSpeed = 5f; // 회전 속도
+
     // 스탯 시스템
     protected EnemyStatSystem enemyStats;
     protected float currentHp;
@@ -35,6 +40,18 @@ public abstract class Enemy_Base : MonoBehaviour
     // 피격 색상 효과
     protected Renderer enemyRenderer;
     protected Color originalColor;
+
+    // 물리 및 애니메이션 관련
+    protected Rigidbody enemyRigidbody;
+    protected Collider enemyCollider;
+
+    // 애니메이션 파라미터 이름들
+    protected readonly string ANIM_IS_MOVING = "isMoving";
+    protected readonly string ANIM_MOVE_SPEED = "moveSpeed";
+    protected readonly string ANIM_ATTACK_TRIGGER = "attack";
+    protected readonly string ANIM_DIE_TRIGGER = "die";
+    protected readonly string ANIM_IS_DEAD = "isDead";
+    protected readonly string ANIM_HIT_TRIGGER = "hit";
 
     protected EnemyKillDetector killDetector;
 
@@ -54,8 +71,23 @@ public abstract class Enemy_Base : MonoBehaviour
             playerScript = playerObj.GetComponent<Player.Player>();
         }
 
-        // 렌더러 컴포넌트 (피격 효과용)
+        // 컴포넌트 참조들
+        enemyRigidbody = GetComponent<Rigidbody>();
+        enemyCollider = GetComponent<Collider>();
+
+        // 자식에서 Animator 찾기
+        if (characterAnimator == null)
+        {
+            characterAnimator = GetComponentInChildren<Animator>();
+        }
+
+        // 렌더러 컴포넌트 (피격 효과용) - 자식에서도 찾기
         enemyRenderer = GetComponent<Renderer>();
+        if (enemyRenderer == null)
+        {
+            enemyRenderer = GetComponentInChildren<Renderer>();
+        }
+
         if (enemyRenderer != null)
         {
             // 머티리얼 복사해서 원본 보호
@@ -64,6 +96,18 @@ public abstract class Enemy_Base : MonoBehaviour
         }
 
         killDetector = FindObjectOfType<EnemyKillDetector>();
+
+        // 경고 메시지들
+        if (characterAnimator == null)
+        {
+            Debug.LogWarning($"{name}: Animator를 찾을 수 없습니다. 애니메이션이 재생되지 않습니다.");
+        }
+
+        if (usePhysicsMovement && enemyRigidbody == null)
+        {
+            Debug.LogWarning($"{name}: Rigidbody가 없어서 Transform 기반 이동을 사용합니다.");
+            usePhysicsMovement = false;
+        }
     }
 
     protected virtual void Start()
@@ -92,6 +136,12 @@ public abstract class Enemy_Base : MonoBehaviour
             // World Space Canvas는 카메라 없이도 작동
             hpCanvas.worldCamera = null;
             hpCanvas.gameObject.SetActive(false); // 기본적으로 숨김
+        }
+
+        // Rigidbody 설정
+        if (usePhysicsMovement && enemyRigidbody != null)
+        {
+            enemyRigidbody.freezeRotation = true; // Y축 회전만 허용하도록 설정할 수도 있음
         }
 
         Debug.Log($"{enemyName} ({enemyType}, {elementType}, {primaryDamageType}) 초기화 완료!");
@@ -124,9 +174,100 @@ public abstract class Enemy_Base : MonoBehaviour
     protected abstract void PerformAttack();
 
     /// <summary>
-    /// 몬스터별 이동 패턴
+    /// 몬스터별 이동 패턴 (기본 구현 제공)
     /// </summary>
-    protected abstract void UpdateMovement();
+    protected virtual void UpdateMovement()
+    {
+        if (playerTransform == null || isDead) return;
+
+        Vector3 direction = (playerTransform.position - transform.position).normalized;
+        float moveSpeed = enemyStats.Get(EnemyStatType.MoveSpeed);
+
+        // 실제 이동 처리
+        bool isMoving = direction.magnitude > 0.1f;
+
+        if (isMoving)
+        {
+            if (usePhysicsMovement && enemyRigidbody != null)
+            {
+                // Rigidbody를 사용한 물리 기반 이동
+                Vector3 velocity = direction * moveSpeed;
+                velocity.y = enemyRigidbody.velocity.y; // Y축 속도는 유지 (중력)
+                enemyRigidbody.velocity = velocity;
+            }
+            else
+            {
+                // Transform 기반 이동
+                transform.position += direction * moveSpeed * Time.deltaTime;
+            }
+
+            // 방향 전환
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation,
+                    Time.deltaTime * enemyRotationSpeed);
+            }
+        }
+        else if (usePhysicsMovement && enemyRigidbody != null)
+        {
+            // 이동하지 않을 때는 수평 속도를 0으로
+            Vector3 velocity = enemyRigidbody.velocity;
+            velocity.x = 0;
+            velocity.z = 0;
+            enemyRigidbody.velocity = velocity;
+        }
+
+        // 애니메이션 업데이트
+        UpdateMovementAnimation(isMoving, moveSpeed);
+    }
+
+    #endregion
+
+    #region 애니메이션 관리
+
+    protected virtual void UpdateMovementAnimation(bool isMoving, float moveSpeed)
+    {
+        if (characterAnimator == null) return;
+
+        // 이동 애니메이션 제어
+        characterAnimator.SetBool(ANIM_IS_MOVING, isMoving);
+        characterAnimator.SetFloat(ANIM_MOVE_SPEED, isMoving ? moveSpeed : 0f);
+    }
+
+    protected virtual void PlayAttackAnimation()
+    {
+        if (characterAnimator == null) return;
+
+        characterAnimator.SetTrigger(ANIM_ATTACK_TRIGGER);
+    }
+
+    protected virtual void PlayHitAnimation()
+    {
+        if (characterAnimator == null) return;
+
+        characterAnimator.SetTrigger(ANIM_HIT_TRIGGER);
+    }
+
+    protected virtual void PlayDeathAnimation()
+    {
+        if (characterAnimator == null) return;
+
+        characterAnimator.SetTrigger(ANIM_DIE_TRIGGER);
+        characterAnimator.SetBool(ANIM_IS_DEAD, true);
+
+        // 물리 효과 비활성화
+        if (enemyRigidbody != null)
+        {
+            enemyRigidbody.isKinematic = true;
+        }
+
+        // 콜라이더 비활성화 (공격 받지 않도록)
+        if (enemyCollider != null)
+        {
+            enemyCollider.enabled = false;
+        }
+    }
 
     #endregion
 
@@ -153,7 +294,7 @@ public abstract class Enemy_Base : MonoBehaviour
         {
             actualDamage = DamageCalculator.CalculateDamageToEnemy(
                 playerScript.GetPlayerStat(),
-                ElementType.Neutral, // 플레이어 속성 (추후 확장 가능)
+                attackerElement,
                 damageType,
                 enemyStats,
                 elementType
@@ -183,6 +324,9 @@ public abstract class Enemy_Base : MonoBehaviour
 
     protected virtual void OnDamaged()
     {
+        // 피격 애니메이션 재생
+        PlayHitAnimation();
+
         // 피격 색상 효과
         StartCoroutine(DamageColorEffect());
 
@@ -254,17 +398,50 @@ public abstract class Enemy_Base : MonoBehaviour
         if (isDead) return;
 
         isDead = true;
-        
+
+        // 죽음 애니메이션 재생
+        PlayDeathAnimation();
+
         // 경험치 지급
         GiveExperience();
 
         // 사망 효과
         PlayDeathEffects();
 
-        // 오브젝트 비활성화 또는 파괴
-        gameObject.SetActive(false);
+        // 일정 시간 후 비활성화 (애니메이션이 끝날 때까지 기다림)
+        StartCoroutine(DeactivateAfterDeathAnimation());
+
+        if (killDetector != null)
+        {
+            killDetector.IncreaseTenePower();
+        }
+    }
+
+    protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
+    {
+        // 죽음 애니메이션 길이만큼 대기
+        float deathAnimationLength = 2f; // 기본값
+
+        if (characterAnimator != null && characterAnimator.runtimeAnimatorController != null)
+        {
+            // 실제 애니메이션 길이 가져오기
+            AnimationClip[] clips = characterAnimator.runtimeAnimatorController.animationClips;
+            foreach (var clip in clips)
+            {
+                if (clip.name.ToLower().Contains("death") || clip.name.ToLower().Contains("die"))
+                {
+                    deathAnimationLength = clip.length;
+                    break;
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(deathAnimationLength);
 
         killDetector.UpdateKillPower(GetElementType());
+        // 오브젝트 비활성화
+        gameObject.SetActive(false);
+        
     }
 
     protected virtual void GiveExperience()
@@ -283,7 +460,7 @@ public abstract class Enemy_Base : MonoBehaviour
             EnemyType.MeleeTanker => 15,
             EnemyType.MeleeAssassin => 20,
             EnemyType.RangedAD => 18,
-            EnemyType.RangedAP => 25, 
+            EnemyType.RangedAP => 25,
             EnemyType.MiddleBoss => 100,
             EnemyType.FinalBoss => 500,
             _ => 10
@@ -301,6 +478,9 @@ public abstract class Enemy_Base : MonoBehaviour
     {
         if (playerScript == null) return;
 
+        // 공격 애니메이션 재생
+        PlayAttackAnimation();
+
         // 데미지 계산
         float damage = DamageCalculator.CalculateDamageToPlayer(
             enemyStats,
@@ -312,7 +492,6 @@ public abstract class Enemy_Base : MonoBehaviour
 
         // 플레이어에게 데미지 적용
         playerScript.DecreaseHP(damage);
-
     }
 
     #endregion
@@ -430,6 +609,14 @@ public abstract class Enemy_Base : MonoBehaviour
         return primaryDamageType == DamageType.Physical
             ? enemyStats.Get(EnemyStatType.PhysicalDamage)
             : enemyStats.Get(EnemyStatType.MagicalDamage);
+    }
+
+    /// <summary>
+    /// 외부에서 적을 강제로 죽일 때 사용하는 public 메서드
+    /// </summary>
+    public void Death()
+    {
+        Die();
     }
 
     #endregion
