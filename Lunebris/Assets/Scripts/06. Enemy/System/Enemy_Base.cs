@@ -264,7 +264,7 @@ public abstract class Enemy_Base : MonoBehaviour
         // 오브젝트 비활성화 또는 파괴
         gameObject.SetActive(false);
 
-        killDetector.IncreaseTenePower();
+        killDetector.UpdateKillPower(GetElementType());
     }
 
     protected virtual void GiveExperience()
