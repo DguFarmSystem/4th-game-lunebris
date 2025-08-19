@@ -2,21 +2,43 @@ using UnityEngine;
 using Enemy;
 
 /// <summary>
-/// 단순화된 근접 탱커 - 기본 스탯만 사용하는 적
+/// 완성된 근접 탱커 - 애니메이션 연동 및 투사체 공격 포함
 /// 높은 체력과 방어력을 가진 내구형 적
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Tanker : Enemy_Base
 {
     [Header("기본 공격 설정")]
-    [SerializeField] private float attackDuration = 0.5f; // 공격 지속시간
+    [SerializeField] private float attackDuration = 0.5f;
+    [SerializeField] private float meleeAttackCooldown = 2f; // 근접 공격 쿨다운
+
+    [Header("투사체 공격 설정")]
+    [SerializeField] private GameObject slowProjectilePrefab;
+    [SerializeField] private Transform projectileSpawnPoint;
+    [SerializeField] private float projectileAttackRange = 10f;
+    [SerializeField] private float projectileAttackCooldown = 8f;
+    [SerializeField] private float projectileDelay = 0.5f; // 애니메이션 후 실제 발사까지의 딜레이
+
+    [Header("디버깅")]
+    [SerializeField] private bool enableDebugLogs = true;
 
     // 상태 관리
     private bool isAttacking = false;
-    private float lastAttackTime;
+    private bool isProjectileAttacking = false;
+    private float lastMeleeAttackTime;
+    private float lastProjectileTime;
+
+    // 컴포넌트 참조
+    private Enemy_Tanker_Move moveScript;
+
+    // 공격 관련 상태
+    private bool waitingToFireProjectile = false;
 
     // Move 스크립트에서 참조할 수 있는 프로퍼티들
     public bool IsAttacking => isAttacking;
+    public bool IsProjectileAttacking => isProjectileAttacking;
+
+    #region Unity Lifecycle
 
     protected override void Awake()
     {
@@ -24,82 +46,412 @@ public class Enemy_Tanker : Enemy_Base
         enemyType = EnemyType.MeleeTanker;
         elementType = ElementType.Neutral;
         primaryDamageType = DamageType.Physical;
-        enemyName = "Simple Tanker";
+        enemyName = "Dwarf Tanker";
 
         base.Awake();
+
+        // Move 스크립트 참조
+        moveScript = GetComponent<Enemy_Tanker_Move>();
+        if (moveScript == null)
+        {
+            Debug.LogWarning($"{name}: Enemy_Tanker_Move 컴포넌트를 찾을 수 없습니다!");
+        }
     }
 
     protected override void InitializeEnemy()
     {
         // 공격 지속시간을 공격속도에 따라 조정
-        attackDuration = 1f / enemyStats.Get(EnemyStatType.AttackSpeed) * 0.5f;
+        if (enemyStats != null)
+        {
+            attackDuration = 1f / enemyStats.Get(EnemyStatType.AttackSpeed) * 0.5f;
+        }
+
+        // 투사체 발사 위치가 없으면 자동으로 생성
+        if (projectileSpawnPoint == null)
+        {
+            GameObject spawnPoint = new GameObject("ProjectileSpawnPoint");
+            spawnPoint.transform.SetParent(transform);
+            spawnPoint.transform.localPosition = Vector3.up * 1.5f;
+            projectileSpawnPoint = spawnPoint.transform;
+            DebugLog("투사체 발사 위치 자동 생성됨");
+        }
 
         base.InitializeEnemy();
     }
+
+    #endregion
+
+    #region 행동 패턴
 
     protected override void UpdateBehavior()
     {
         // 공격 중인지 체크
         if (isAttacking)
         {
-            if (Time.time - lastAttackTime >= attackDuration)
+            if (Time.time - lastMeleeAttackTime >= attackDuration)
             {
-                isAttacking = false;
-                Debug.Log($"{enemyName}: 공격 완료");
+                EndMeleeAttack();
             }
             return; // 공격 중이면 다른 행동 하지 않음
         }
 
         if (playerTransform == null) return;
 
-        // 공격 범위 내면 공격
+        float distanceToPlayer = GetDistanceToPlayer();
+        DebugLog($"플레이어와의 거리: {distanceToPlayer:F1}m");
+
+        // 1. 근접 공격 범위 내면 근접 공격
         if (IsPlayerInAttackRange())
         {
-            TryAttack();
+            TryMeleeAttack();
+        }
+        // 2. 투사체 공격 범위 내면 투사체 공격 시도
+        else if (distanceToPlayer <= projectileAttackRange && CanUseProjectileAttack())
+        {
+            TryProjectileAttack();
+        }
+        // 3. 감지 범위 내면 이동
+        else if (IsPlayerInDetectionRange())
+        {
+            // 이동은 Enemy_Tanker_Move에서 처리
         }
     }
 
     protected override void UpdateMovement()
     {
-        // 이동은 Enemy_Tanker_Move에서 처리하므로 비워둠
+        // Enemy_Tanker_Move 스크립트가 이동을 처리
+        // 여기서는 공격 상태만 체크
+        return;
     }
 
     protected override void PerformAttack()
     {
         if (playerScript == null) return;
 
-        // 강력한 물리 공격 (탱커는 데미지가 높음)
+        // 강력한 물리 공격
         DealDamageToPlayer(DamageType.Physical);
-        Debug.Log($"{enemyName}: 강력한 물리 공격!");
+        DebugLog($"근접 공격 실행! 데미지 타입: {DamageType.Physical}");
     }
 
-    private void TryAttack()
+    #endregion
+
+    #region 근접 공격 시스템
+
+    /// <summary>
+    /// 근접 공격 시도
+    /// </summary>
+    private void TryMeleeAttack()
     {
-        float attackSpeed = enemyStats.Get(EnemyStatType.AttackSpeed);
-        float attackCooldown = 1f / attackSpeed;
-
-        if (Time.time - lastAttackTime >= attackCooldown)
+        if (Time.time - lastMeleeAttackTime >= meleeAttackCooldown)
         {
-            isAttacking = true;
-            PerformAttack();
-            lastAttackTime = Time.time;
-
-            // 일정 시간 후 공격 상태 해제
-            Invoke(nameof(EndAttack), attackDuration);
+            StartMeleeAttack();
         }
     }
 
-    private void EndAttack()
+    private void StartMeleeAttack()
+    {
+        isAttacking = true;
+        lastMeleeAttackTime = Time.time;
+
+        // 근접 공격 애니메이션 실행
+        if (moveScript != null)
+        {
+            moveScript.PlayAttackAnimation();
+        }
+
+        DebugLog("근접 공격 시작!");
+
+        // 애니메이션 약간 후에 실제 데미지 적용
+        Invoke(nameof(ExecuteMeleeAttack), 0.3f);
+    }
+
+    private void ExecuteMeleeAttack()
+    {
+        if (IsPlayerInAttackRange()) // 여전히 범위 내에 있는지 확인
+        {
+            PerformAttack();
+        }
+    }
+
+    private void EndMeleeAttack()
     {
         isAttacking = false;
+        DebugLog("근접 공격 완료");
     }
 
+    #endregion
 
+    #region 투사체 공격 시스템
 
+    /// <summary>
+    /// 투사체 공격 시도
+    /// </summary>
+    private void TryProjectileAttack()
+    {
+        if (slowProjectilePrefab == null)
+        {
+            DebugLog("투사체 프리팹이 없어서 즉시 원거리 공격 실행", true);
+            ExecuteInstantRangedAttack();
+            return;
+        }
 
+        StartProjectileAttack();
+    }
 
+    private void StartProjectileAttack()
+    {
+        isProjectileAttacking = true;
+        lastProjectileTime = Time.time;
+
+        // 투사체 공격 애니메이션 실행
+        if (moveScript != null)
+        {
+            moveScript.PlayProjectileAttackAnimation();
+        }
+
+        DebugLog("투사체 공격 애니메이션 시작!");
+
+        // 애니메이션 후에 실제 투사체 발사
+        waitingToFireProjectile = true;
+        Invoke(nameof(FireProjectile), projectileDelay);
+        Invoke(nameof(EndProjectileAttack), 1.5f);
+    }
+
+    private void FireProjectile()
+    {
+        if (!waitingToFireProjectile) return;
+
+        waitingToFireProjectile = false;
+
+        // 플레이어 방향 계산
+        Vector3 direction = (playerTransform.position - projectileSpawnPoint.position).normalized;
+        direction.y = 0f; // 수평으로만 발사
+
+        // 투사체 생성 및 발사
+        GameObject projectile = Instantiate(slowProjectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(direction));
+
+        // 투사체 스크립트가 있다면 발사
+        var projectileScript = projectile.GetComponent<Enemy_Tanker_SlowProjectile>();
+        if (projectileScript != null)
+        {
+            projectileScript.Launch(direction);
+        }
+        else
+        {
+            // 기본 Rigidbody 발사
+            var rb = projectile.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.velocity = direction * 5f; // 기본 속도
+            }
+        }
+
+        DebugLog("투사체 발사 완료!");
+    }
+
+    /// <summary>
+    /// 투사체 프리팹이 없을 때 즉시 원거리 공격
+    /// </summary>
+    private void ExecuteInstantRangedAttack()
+    {
+        isProjectileAttacking = true;
+        lastProjectileTime = Time.time;
+
+        // 애니메이션 실행
+        if (moveScript != null)
+        {
+            moveScript.PlayProjectileAttackAnimation();
+        }
+
+        // 레이캐스트로 즉시 공격
+        Vector3 direction = (playerTransform.position - transform.position).normalized;
+        RaycastHit hit;
+
+        if (Physics.Raycast(transform.position, direction, out hit, projectileAttackRange))
+        {
+            if (hit.collider.CompareTag("Player"))
+            {
+                Player.Player player = hit.collider.GetComponent<Player.Player>();
+                if (player != null)
+                {
+                    float rangedDamage = enemyStats.Get(EnemyStatType.MagicalDamage); // 원거리는 마법 데미지
+                    player.DecreaseHP(rangedDamage);
+                    DebugLog($"즉시 원거리 공격 적중! {rangedDamage} 마법 데미지");
+                }
+            }
+        }
+
+        Invoke(nameof(EndProjectileAttack), 1f);
+    }
+
+    private void EndProjectileAttack()
+    {
+        isProjectileAttacking = false;
+        waitingToFireProjectile = false;
+        DebugLog("투사체 공격 완료");
+    }
+
+    /// <summary>
+    /// 투사체 공격이 가능한지 확인
+    /// </summary>
+    private bool CanUseProjectileAttack()
+    {
+        return !isProjectileAttacking && (Time.time - lastProjectileTime >= projectileAttackCooldown);
+    }
+
+    #endregion
+
+    #region 애니메이션 연동
+
+    /// <summary>
+    /// 피격시 처리 오버라이드
+    /// </summary>
+    protected override void OnDamaged()
+    {
+        // Move 스크립트를 통한 피격 애니메이션
+        if (moveScript != null)
+        {
+            moveScript.PlayHitAnimation();
+        }
+
+        // 부모 클래스의 기본 피격 처리 (색상 효과, 이펙트 등)
+        base.OnDamaged();
+    }
+
+    /// <summary>
+    /// 죽음 처리 오버라이드
+    /// </summary>
+    protected override void Die()
+    {
+        DebugLog($"Enemy_Tanker.Die() 호출됨");
+
+        if (IsDead())
+        {
+            DebugLog("이미 죽은 상태");
+            return;
+        }
+
+        // Move 스크립트를 통한 죽음 애니메이션
+        if (moveScript != null)
+        {
+            moveScript.PlayDeathAnimation();
+        }
+
+        // 진행 중인 공격들 취소
+        CancelInvoke();
+        isAttacking = false;
+        isProjectileAttacking = false;
+        waitingToFireProjectile = false;
+
+        // 부모 클래스의 죽음 처리
+        base.Die();
+    }
+
+    #endregion
+
+    #region 유틸리티 메서드
+
+    /// <summary>
+    /// 경험치 보상 설정
+    /// </summary>
     protected override int GetExperienceReward()
     {
-        return 20; // 탱커는 더 많은 경험치
+        return 25; // 탱커는 더 많은 경험치 (투사체 공격 추가로 인한 증가)
     }
+
+    /// <summary>
+    /// 디버그 로그 출력
+    /// </summary>
+    private void DebugLog(string message, bool forceLog = false)
+    {
+        if (enableDebugLogs || forceLog)
+        {
+            Debug.Log($"[{enemyName}] {message}");
+        }
+    }
+
+    /// <summary>
+    /// 충돌 처리 오버라이드
+    /// </summary>
+    protected override void OnTriggerEnter(Collider other)
+    {
+        DebugLog($"충돌 감지: {other.name} (태그: {other.tag})");
+
+        if (other.CompareTag("Attack"))
+        {
+            other.gameObject.SetActive(false);
+            TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
+            DebugLog("플레이어 공격에 피격됨!");
+        }
+    }
+
+    #endregion
+
+    #region 디버그용 기즈모
+
+    private void OnDrawGizmosSelected()
+    {
+        // 투사체 공격 범위 표시
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, projectileAttackRange);
+
+        // 근접 공격 범위 표시
+        if (enemyStats != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, enemyStats.Get(EnemyStatType.AttackRange));
+        }
+
+        // 감지 범위 표시
+        if (enemyStats != null)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, enemyStats.Get(EnemyStatType.DetectionRange));
+        }
+
+        // 투사체 발사 지점 표시
+        if (projectileSpawnPoint != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(projectileSpawnPoint.position, 0.2f);
+        }
+    }
+
+    #endregion
+
+    #region 공개 메서드 (외부 호출용)
+
+    /// <summary>
+    /// 강제로 근접 공격 실행 (디버그/테스트용)
+    /// </summary>
+    public void ForceAttack()
+    {
+        if (!isAttacking)
+        {
+            StartMeleeAttack();
+        }
+    }
+
+    /// <summary>
+    /// 강제로 투사체 공격 실행 (디버그/테스트용)
+    /// </summary>
+    public void ForceProjectileAttack()
+    {
+        if (!isProjectileAttacking)
+        {
+            TryProjectileAttack();
+        }
+    }
+
+    /// <summary>
+    /// 현재 상태 정보 반환 (디버그용)
+    /// </summary>
+    public string GetStatusInfo()
+    {
+        return $"공격중: {isAttacking}, 투사체공격중: {isProjectileAttacking}, " +
+               $"근접쿨다운: {meleeAttackCooldown - (Time.time - lastMeleeAttackTime):F1}s, " +
+               $"투사체쿨다운: {projectileAttackCooldown - (Time.time - lastProjectileTime):F1}s";
+    }
+
+    #endregion
 }

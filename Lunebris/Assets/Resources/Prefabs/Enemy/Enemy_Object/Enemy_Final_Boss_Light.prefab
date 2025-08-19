@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 3899899079770035942}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 52.139267, y: 3, z: 56.46194}
+  m_LocalPosition: {x: 52.139267, y: 1, z: 56.46194}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -134,15 +134,16 @@ MonoBehaviour:
   deathEffect: {fileID: 0}
   deathSound: {fileID: 0}
   damageEffect: {fileID: 0}
-  railgunBeamPrefab: {fileID: 6505944401630606831, guid: 4a9fa4887c200864f97716aa133f382f, type: 3}
+  railgunBeamPrefab: {fileID: 4564901195515845974, guid: 4a9fa4887c200864f97716aa133f382f, type: 3}
   railgunDamage: 120
   railgunChargeTime: 2
   railgunCooldown: 4
-  swordBeamPrefab: {fileID: 4366707699226452152, guid: ecbc102024c96f9499bf8b8a5518cfdb, type: 3}
-  swordBeamDamage: 80
-  lightPillarPrefab: {fileID: 4443971174912647640, guid: 0b4501488271ee641ba5d60d85347d53, type: 3}
+  beam360Prefab: {fileID: 4366707699226452152, guid: ecbc102024c96f9499bf8b8a5518cfdb, type: 3}
+  beam360Damage: 80
+  lightPillarPrefab: {fileID: 7827210896080829787, guid: 0b4501488271ee641ba5d60d85347d53, type: 3}
   lightPillarDamage: 100
   lightPillarInterval: 2
+  warningEffectPrefab: {fileID: 1660952224400555495, guid: 9a164f1008f75e14281d641a73416354, type: 3}
 --- !u!114 &4625098660069673046
 MonoBehaviour:
   m_ObjectHideFlags: 0

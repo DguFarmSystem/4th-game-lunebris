@@ -1,43 +1,37 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using Enemy;
-using Player;
 
 /// <summary>
-/// 중간보스가 생성하는 장판 위험 지역
-/// 플레이어가 들어가면 지속 데미지를 받음
+/// 중간보스가 생성하는 장판 (바닥 위험 지역)
+/// 일정 시간동안 지속되며 플레이어에게 지속 데미지를 가함
 /// </summary>
-[DisallowMultipleComponent]
 public class Enemy_Middle_Boss_FloorHazard : MonoBehaviour
 {
     [Header("장판 설정")]
-    [SerializeField] private float damageInterval = 0.5f; // 데미지 간격
-    [SerializeField] private float warningDuration = 1f; // 경고 시간
-    [SerializeField] private LayerMask playerLayerMask = -1; // 플레이어 레이어
-
-    [Header("이펙트")]
+    [SerializeField] private float tickInterval = 0.5f; // 데미지 간격 (초)
     [SerializeField] private GameObject warningEffect; // 경고 이펙트
-    [SerializeField] private GameObject hazardEffect; // 장판 이펙트
-    [SerializeField] private AudioClip warningSound; // 경고 사운드
-    [SerializeField] private AudioClip activateSound; // 활성화 사운드
+    [SerializeField] private GameObject activeEffect; // 활성화 이펙트
+    [SerializeField] private AudioClip activationSound; // 활성화 사운드
+    [SerializeField] private AudioClip damageSound; // 데미지 사운드
 
-    // 장판 속성
+    // 장판 데이터
     private float damage;
     private float duration;
     private float radius;
-    private Enemy_Middle_Boss ownerBoss;
+    private Enemy_Middle_Boss parentBoss;
 
     // 상태 관리
-    private bool isWarning = true; // 경고 단계
-    private bool isActive = false; // 활성화 상태
-    private float startTime;
-    private SphereCollider triggerCollider;
-    private AudioSource audioSource;
+    private bool isActive = false;
+    private float activationTime;
+    private float nextDamageTime;
+    private HashSet<Collider> playersInRange = new HashSet<Collider>();
 
-    // 플레이어 추적
-    private List<Transform> playersInRange = new List<Transform>();
-    private float lastDamageTime;
+    // 컴포넌트 참조
+    private SphereCollider hazardCollider;
+
+    #region 초기화
 
     /// <summary>
     /// 장판 초기화
@@ -47,256 +41,250 @@ public class Enemy_Middle_Boss_FloorHazard : MonoBehaviour
         damage = hazardDamage;
         duration = hazardDuration;
         radius = hazardRadius;
-        ownerBoss = boss;
-        startTime = Time.time;
+        parentBoss = boss;
 
-        SetupComponents();
-        StartWarningPhase();
+        // 콜라이더 설정
+        SetupCollider();
+
+        // 초기화 후 짧은 딜레이 후 활성화
+        StartCoroutine(ActivateAfterDelay(0.5f));
+
+        Debug.Log($"장판 생성! 데미지: {damage}, 지속시간: {duration}초, 반지름: {radius}m");
     }
 
-    private void SetupComponents()
+    /// <summary>
+    /// 콜라이더 설정
+    /// </summary>
+    private void SetupCollider()
     {
-        // 트리거 콜라이더 설정
-        triggerCollider = gameObject.GetComponent<SphereCollider>();
-        if (triggerCollider == null)
+        // SphereCollider 가져오거나 추가
+        hazardCollider = GetComponent<SphereCollider>();
+        if (hazardCollider == null)
         {
-            triggerCollider = gameObject.AddComponent<SphereCollider>();
+            hazardCollider = gameObject.AddComponent<SphereCollider>();
         }
 
-        triggerCollider.isTrigger = true;
-        triggerCollider.radius = radius;
+        hazardCollider.isTrigger = true;
+        hazardCollider.radius = radius;
 
-        // 오디오 소스 설정
-        audioSource = gameObject.GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
-        audioSource.spatialBlend = 1f; // 3D 사운드
-        audioSource.maxDistance = 20f;
-        audioSource.volume = 0.7f;
-
-        // 위치 조정 (지면에 고정)
-        Vector3 pos = transform.position;
-        pos.y = 0.1f; // 지면보다 살짝 위에
-        transform.position = pos;
+        Debug.Log($"장판 콜라이더 설정 완료. 반지름: {radius}");
     }
 
-    private void StartWarningPhase()
+    #endregion
+
+    #region 활성화 시스템
+
+    /// <summary>
+    /// 딜레이 후 장판 활성화
+    /// </summary>
+    private IEnumerator ActivateAfterDelay(float delay)
     {
-        isWarning = true;
-        isActive = false;
+        // 경고 이펙트 표시
+        ShowWarningEffect();
 
-        // 경고 이펙트 활성화
-        if (warningEffect != null)
-        {
-            warningEffect.SetActive(true);
+        yield return new WaitForSeconds(delay);
 
-            // 경고 이펙트 크기 조정
-            warningEffect.transform.localScale = Vector3.one * radius * 2f;
-        }
-
-        // 위험 이펙트 비활성화
-        if (hazardEffect != null)
-        {
-            hazardEffect.SetActive(false);
-        }
-
-        // 경고 사운드 재생
-        if (warningSound != null && audioSource != null)
-        {
-            audioSource.clip = warningSound;
-            audioSource.Play();
-        }
-
-        // 경고 시간 후 활성화
-        StartCoroutine(ActivateAfterWarning());
-    }
-
-    private IEnumerator ActivateAfterWarning()
-    {
-        yield return new WaitForSeconds(warningDuration);
+        // 장판 활성화
         ActivateHazard();
     }
 
-    private void ActivateHazard()
+    /// <summary>
+    /// 경고 이펙트 표시
+    /// </summary>
+    private void ShowWarningEffect()
     {
-        isWarning = false;
-        isActive = true;
-
-        // 경고 이펙트 비활성화
         if (warningEffect != null)
         {
-            warningEffect.SetActive(false);
+            GameObject warning = Instantiate(warningEffect, transform.position, transform.rotation, transform);
+            // 경고 이펙트는 활성화되면 제거
+            Destroy(warning, 0.5f);
         }
 
-        // 위험 이펙트 활성화
-        if (hazardEffect != null)
-        {
-            hazardEffect.SetActive(true);
-
-            // 위험 이펙트 크기 조정
-            hazardEffect.transform.localScale = Vector3.one * radius * 2f;
-        }
-
-        // 활성화 사운드 재생
-        if (activateSound != null && audioSource != null)
-        {
-            audioSource.clip = activateSound;
-            audioSource.Play();
-        }
-
-        // 지속시간 후 자동 파괴
-        StartCoroutine(DestroyAfterDuration());
+        Debug.Log("장판 경고 이펙트 표시");
     }
 
+    /// <summary>
+    /// 장판 활성화
+    /// </summary>
+    private void ActivateHazard()
+    {
+        isActive = true;
+        activationTime = Time.time;
+        nextDamageTime = Time.time + tickInterval;
+
+        // 활성화 이펙트 표시
+        if (activeEffect != null)
+        {
+            GameObject effect = Instantiate(activeEffect, transform.position, transform.rotation, transform);
+            Destroy(effect, duration); // 지속시간과 함께 제거
+        }
+
+        // 활성화 사운드
+        if (activationSound != null)
+        {
+            AudioSource.PlayClipAtPoint(activationSound, transform.position);
+        }
+
+        // 지속시간 후 자동 제거
+        StartCoroutine(DestroyAfterDuration());
+
+        Debug.Log($"장판 활성화! 위치: {transform.position}");
+    }
+
+    /// <summary>
+    /// 지속시간 후 장판 제거
+    /// </summary>
     private IEnumerator DestroyAfterDuration()
     {
-        yield return new WaitForSeconds(duration - warningDuration);
-        DestroyHazard();
+        yield return new WaitForSeconds(duration);
+
+        // 보스에게 장판 제거 알림
+        if (parentBoss != null)
+        {
+            parentBoss.OnFloorHazardDestroyed();
+        }
+
+        Debug.Log("장판 지속시간 종료. 제거합니다.");
+        Destroy(gameObject);
     }
+
+    #endregion
+
+    #region Unity Lifecycle
 
     private void Update()
     {
-        // 활성화 상태에서만 데미지 처리
-        if (isActive && playersInRange.Count > 0)
+        if (!isActive) return;
+
+        // 정기적으로 범위 내 플레이어에게 데미지
+        if (Time.time >= nextDamageTime)
         {
-            ProcessDamage();
+            DealDamageToPlayersInRange();
+            nextDamageTime = Time.time + tickInterval;
         }
     }
 
-    private void ProcessDamage()
-    {
-        if (Time.time - lastDamageTime < damageInterval)
-            return;
+    #endregion
 
-        lastDamageTime = Time.time;
-
-        // 범위 내 모든 플레이어에게 데미지
-        for (int i = playersInRange.Count - 1; i >= 0; i--)
-        {
-            Transform player = playersInRange[i];
-
-            if (player == null)
-            {
-                playersInRange.RemoveAt(i);
-                continue;
-            }
-
-            // 플레이어가 정말 범위 내에 있는지 다시 확인
-            float distance = Vector3.Distance(transform.position, player.position);
-            if (distance <= radius)
-            {
-                DealDamageToPlayer(player);
-            }
-            else
-            {
-                playersInRange.RemoveAt(i);
-            }
-        }
-    }
-
-    private void DealDamageToPlayer(Transform player)
-    {
-        // 플레이어 컴포넌트 찾기
-        Player.Player playerComponent = player.GetComponent<Player.Player>();
-        if (playerComponent == null)
-        {
-            playerComponent = player.GetComponentInChildren<Player.Player>();
-        }
-
-        if (playerComponent != null)
-        {
-            // Player 클래스의 DecreaseHP 메서드 사용
-            playerComponent.DecreaseHP(damage);
-        }
-    }
-
-    #region 트리거 이벤트
+    #region 충돌 및 데미지 처리
 
     private void OnTriggerEnter(Collider other)
     {
-        // 경고 단계에서는 데미지 없음
-        if (isWarning) return;
-
-        // 플레이어 레이어 체크
-        if (IsPlayer(other.gameObject))
+        if (other.CompareTag("Player"))
         {
-            Transform playerTransform = other.transform;
-            if (!playersInRange.Contains(playerTransform))
+            playersInRange.Add(other);
+            Debug.Log($"플레이어가 장판 범위에 진입: {other.name}");
+
+            // 즉시 첫 데미지 (활성화된 상태라면)
+            if (isActive)
             {
-                playersInRange.Add(playerTransform);
+                DealDamageToPlayer(other);
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (IsPlayer(other.gameObject))
+        if (other.CompareTag("Player"))
         {
-            Transform playerTransform = other.transform;
-            playersInRange.Remove(playerTransform);
+            playersInRange.Remove(other);
+            Debug.Log($"플레이어가 장판 범위에서 벗어남: {other.name}");
         }
     }
 
-    private bool IsPlayer(GameObject obj)
+    /// <summary>
+    /// 범위 내 모든 플레이어에게 데미지
+    /// </summary>
+    private void DealDamageToPlayersInRange()
     {
-        // 레이어 마스크로 플레이어 판별
-        return ((1 << obj.layer) & playerLayerMask) != 0 ||
-               obj.CompareTag("Player") ||
-               obj.GetComponent<Player.Player>() != null;
+        // null 체크를 위해 리스트 복사
+        List<Collider> playersToRemove = new List<Collider>();
+
+        foreach (Collider player in playersInRange)
+        {
+            if (player == null)
+            {
+                playersToRemove.Add(player);
+                continue;
+            }
+
+            DealDamageToPlayer(player);
+        }
+
+        // null인 플레이어들 제거
+        foreach (Collider player in playersToRemove)
+        {
+            playersInRange.Remove(player);
+        }
+    }
+
+    /// <summary>
+    /// 개별 플레이어에게 데미지
+    /// </summary>
+    private void DealDamageToPlayer(Collider player)
+    {
+        // 플레이어의 Player 컴포넌트를 찾아서 데미지 적용
+        var playerScript = player.GetComponent<Player.Player>();
+        if (playerScript != null)
+        {
+            playerScript.DecreaseHP(damage);
+
+            // 데미지 사운드
+            if (damageSound != null)
+            {
+                AudioSource.PlayClipAtPoint(damageSound, player.transform.position, 0.5f);
+            }
+
+            Debug.Log($"장판 데미지 적용: {player.name}에게 {damage} 데미지");
+        }
     }
 
     #endregion
 
-    private void DestroyHazard()
+    #region 기즈모
+
+    private void OnDrawGizmosSelected()
     {
-        // 보스에게 장판 파괴 알림
-        if (ownerBoss != null)
-        {
-            ownerBoss.OnFloorHazardDestroyed();
-        }
-
-        // 오브젝트 파괴
-        Destroy(gameObject);
-    }
-
-    private void OnDestroy()
-    {
-        // 혹시 모를 안전장치
-        if (ownerBoss != null)
-        {
-            ownerBoss.OnFloorHazardDestroyed();
-        }
-    }
-
-    #region 디버그
-
-    private void OnDrawGizmos()
-    {
-        // 장판 범위 시각화
-        Gizmos.color = isWarning ? Color.yellow : (isActive ? Color.red : Color.gray);
+        // 장판 범위 표시
+        Gizmos.color = isActive ? Color.red : Color.yellow;
         Gizmos.DrawWireSphere(transform.position, radius);
 
         // 중심점 표시
         Gizmos.color = Color.white;
-        Gizmos.DrawSphere(transform.position, 0.1f);
+        Gizmos.DrawWireCube(transform.position, Vector3.one * 0.2f);
     }
 
-    private void OnDrawGizmosSelected()
+    #endregion
+
+    #region 공개 메서드
+
+    /// <summary>
+    /// 장판이 활성화되었는지 확인
+    /// </summary>
+    public bool IsActive => isActive;
+
+    /// <summary>
+    /// 남은 지속시간 반환
+    /// </summary>
+    public float GetRemainingDuration()
     {
-        // 선택했을 때 더 자세한 정보 표시
-        if (isActive && playersInRange.Count > 0)
+        if (!isActive) return duration;
+        return Mathf.Max(0f, duration - (Time.time - activationTime));
+    }
+
+    /// <summary>
+    /// 강제로 장판 제거 (외부에서 호출 가능)
+    /// </summary>
+    public void ForceDestroy()
+    {
+        StopAllCoroutines();
+
+        if (parentBoss != null)
         {
-            Gizmos.color = Color.cyan;
-            foreach (Transform player in playersInRange)
-            {
-                if (player != null)
-                {
-                    Gizmos.DrawLine(transform.position, player.position);
-                }
-            }
+            parentBoss.OnFloorHazardDestroyed();
         }
+
+        Destroy(gameObject);
     }
 
     #endregion

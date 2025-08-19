@@ -143,7 +143,7 @@ MonoBehaviour:
   darkFloorHazardPrefab: {fileID: 4119778992378760006, guid: c3b13bb7acf8dd043be54d122769a78b, type: 3}
   darkFloorDamage: 30
   darkFloorCooldown: 5
-  bossBulletPrefab: {fileID: 5444615153167439068, guid: 6ca5e60b5516dcc41b9139b8196d4746, type: 3}
+  bossBulletPrefab: {fileID: 6747778053060186250, guid: 6ca5e60b5516dcc41b9139b8196d4746, type: 3}
   bossBulletDamage: 50
   bossBulletCooldown: 3
   bossBulletCount: 8

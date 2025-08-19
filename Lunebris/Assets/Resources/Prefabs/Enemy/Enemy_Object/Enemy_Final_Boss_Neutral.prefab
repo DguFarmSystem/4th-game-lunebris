@@ -141,8 +141,8 @@ MonoBehaviour:
   - {x: 8, y: 1.5, z: 0}
   orbSpawnDelay: 1
   spawnOrbsOnStart: 1
-  lightModeBoss: {fileID: 3147867682017286449, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-  darkModeBoss: {fileID: 3233704907960519695, guid: d5f4cbe94249fe848ac1d46511e76ad7, type: 3}
+  lightModeBoss: {fileID: 3899899079770035942, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
+  darkModeBoss: {fileID: 6945971509939186544, guid: d5f4cbe94249fe848ac1d46511e76ad7, type: 3}
   orbHealthMultiplier: 1
   orbSpeedMultiplier: 1
   rotationSpeed: 10

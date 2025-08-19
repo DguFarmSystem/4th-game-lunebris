@@ -1,32 +1,32 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Enemy;
 using System.Collections;
 
 /// <summary>
-/// ÃÖÁ¾º¸½º - ºû ¸ğµå (·¹ÀÏ°Ç, °Ë±â, ºû ±âµÕ)
+/// ìµœì¢…ë³´ìŠ¤ - ë¹› ëª¨ë“œ (ë ˆì¼ê±´, ê²€ê¸°, ë¹› ê¸°ë‘¥)
 /// </summary>
 public class Enemy_Final_Boss_Light : Enemy_Base
 {
-    [Header("·¹ÀÏ°Ç ºö")]
+    [Header("ë ˆì¼ê±´ ë¹”")]
     [SerializeField] private GameObject railgunBeamPrefab;
     [SerializeField] private float railgunDamage = 120f;
     [SerializeField] private float railgunChargeTime = 2f;
     [SerializeField] private float railgunCooldown = 4f;
 
-    [Header("°Ë±â °ø°İ")]
-    [SerializeField] private GameObject swordBeamPrefab;
-    [SerializeField] private float swordBeamDamage = 80f;
+    [Header("360ë¹” ê³µê²©")]
+    [SerializeField] private GameObject beam360Prefab; // ì´ë¦„ ë³€ê²½: swordBeamPrefab -> beam360Prefab
+    [SerializeField] private float beam360Damage = 80f; // ì´ë¦„ ë³€ê²½: swordBeamDamage -> beam360Damage
 
-    [Header("ºû ±âµÕ")]
+    [Header("ë¹› ê¸°ë‘¥")]
     [SerializeField] private GameObject lightPillarPrefab;
     [SerializeField] private float lightPillarDamage = 100f;
     [SerializeField] private float lightPillarInterval = 6f;
-
+    [SerializeField] private GameObject warningEffectPrefab;
     private bool isPerformingAttack = false;
     private float lastRailgunTime = 0f;
     private float lastLightPillarTime = 0f;
 
-    // Move ½ºÅ©¸³Æ® È£È¯¿ë ÇÁ·ÎÆÛÆ¼
+    // Move ìŠ¤í¬ë¦½íŠ¸ í˜¸ì¶œìš© í”„ë¡œí¼í‹°
     public bool IsPerformingSpecialAttack => isPerformingAttack;
 
     protected override void Awake()
@@ -42,7 +42,7 @@ public class Enemy_Final_Boss_Light : Enemy_Base
     protected override void InitializeEnemy()
     {
         base.InitializeEnemy();
-        Debug.Log("ºû ¸ğµå º¸½º È°¼ºÈ­! ºûÀÇ ÈûÀ» »ç¿ëÇÕ´Ï´Ù.");
+        Debug.Log("ë¹› ëª¨ë“œ ë³´ìŠ¤ í™œì„±í™”! ë¹›ì˜ í˜ì„ ì‚¬ìš©í•©ë‹ˆë‹¤.");
 
         StartCoroutine(LightModeAttackRoutine());
     }
@@ -56,14 +56,14 @@ public class Enemy_Final_Boss_Light : Enemy_Base
     {
         if (isPerformingAttack) return;
 
-        // ·¹ÀÏ°Ç ºö °ø°İ
+        // ë ˆì¼ê±´ ë¹” ê³µê²©
         if (Time.time - lastRailgunTime >= railgunCooldown)
         {
             StartCoroutine(PerformRailgunBeamAttack());
             lastRailgunTime = Time.time;
         }
 
-        // ºû ±âµÕ °ø°İ
+        // ë¹› ê¸°ë‘¥ ê³µê²©
         if (Time.time - lastLightPillarTime >= lightPillarInterval)
         {
             StartCoroutine(PerformLightPillarAttack());
@@ -75,7 +75,7 @@ public class Enemy_Final_Boss_Light : Enemy_Base
     {
         while (currentHp > 0)
         {
-            yield return StartCoroutine(PerformSwordBeamAttack());
+            yield return StartCoroutine(Perform360BeamAttack()); // ì´ë¦„ ë³€ê²½
             yield return new WaitForSeconds(2f);
         }
     }
@@ -83,81 +83,64 @@ public class Enemy_Final_Boss_Light : Enemy_Base
     private IEnumerator PerformRailgunBeamAttack()
     {
         isPerformingAttack = true;
-        Debug.Log("·¹ÀÏ°Ç ºö °ø°İ!");
+        Debug.Log("ë ˆì¼ê±´ ë¹” ê³µê²©!");
 
         yield return new WaitForSeconds(railgunChargeTime);
 
-        if (playerTransform != null)
+        if (playerTransform != null && railgunBeamPrefab != null)
         {
             Vector3 direction = (playerTransform.position - transform.position).normalized;
             Vector3 spawnPosition = transform.position;
 
-            if (railgunBeamPrefab != null)
+            GameObject beam = Instantiate(railgunBeamPrefab, spawnPosition, Quaternion.LookRotation(direction));
+            Enemy_Final_Boss_RailgunBeam beamScript = beam.GetComponent<Enemy_Final_Boss_RailgunBeam>();
+            if (beamScript != null)
             {
-                GameObject beam = Instantiate(railgunBeamPrefab, spawnPosition, Quaternion.LookRotation(direction));
-                Enemy_Final_Boss_RailgunBeam beamScript = beam.GetComponent<Enemy_Final_Boss_RailgunBeam>();
-                if (beamScript != null)
-                {
-                    beamScript.Initialize(railgunDamage, direction, 30f);
-                }
+                beamScript.Initialize(railgunDamage, direction, 30f);
             }
-            else
-            {
-                CreateTempRailgunBeam(spawnPosition, direction);
-            }
+        }
+        else
+        {
+            Debug.LogWarning("railgunBeamPrefabì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!");
         }
 
         isPerformingAttack = false;
     }
 
-    private void CreateTempRailgunBeam(Vector3 position, Vector3 direction)
-    {
-        GameObject tempBeam = new GameObject("TempRailgunBeam");
-        tempBeam.transform.position = position;
-        tempBeam.transform.rotation = Quaternion.LookRotation(direction);
-
-        Enemy_Final_Boss_RailgunBeam beamScript = tempBeam.AddComponent<Enemy_Final_Boss_RailgunBeam>();
-        beamScript.Initialize(railgunDamage, direction, 30f);
-    }
-
-    private IEnumerator PerformSwordBeamAttack()
+    private IEnumerator Perform360BeamAttack() // ë©”ì†Œë“œ ì´ë¦„ ë³€ê²½: PerformSwordBeamAttack -> Perform360BeamAttack
     {
         isPerformingAttack = true;
-        Debug.Log("°Ë±â °ø°İ!");
+        Debug.Log("360ë¹” ê³µê²©!"); // ë¡œê·¸ ë©”ì‹œì§€ ë³€ê²½
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
-            if (playerTransform != null)
+            if (playerTransform != null && beam360Prefab != null) // ë³€ìˆ˜ëª… ë³€ê²½
             {
-                // ÇÃ·¹ÀÌ¾î¸¦ ÇâÇÏ´Â ¹æÇâ º¤ÅÍ °è»ê (YÃà ¹«½Ã)
+                // í”Œë ˆì´ì–´ë¥¼ í–¥í•˜ëŠ” ë°©í–¥ ë²¡í„° ê³„ì‚° (Yì¶• ë¬´ì‹œ)
                 Vector3 direction = playerTransform.position - transform.position;
                 direction.y = 0f;
                 direction.Normalize();
 
-                // °¢µµ ¿ÀÇÁ¼Â (ÁÂ¿ì ÆÛÁü)
-                float angleOffset = (i - 1) * 15f;
+                // ê°ë„ ì˜¤í”„ì…‹ (ì¢Œìš° íŒ¬ì²˜ë¦¬)
+                float angleOffset = (i - 1) * 60f;
 
-                // YÃà ±âÁØÀ¸·Î È¸Àü Àû¿ë
+                // Yì¶• ê¸°ì¤€ìœ¼ë¡œ íšŒì „ ì ìš©
                 Quaternion yRotation = Quaternion.AngleAxis(angleOffset, Vector3.up);
                 Vector3 finalDirection = yRotation * direction;
 
-                // °Ë±â ¹æÇâÀ¸·Î È¸Àü°ª »ı¼º (up ¹æÇâ °íÁ¤!)
+                // ê²€ê¸° ë°©í–¥ìœ¼ë¡œ íšŒì „ê°’ ìƒì„± (up ë°©í–¥ ê³ ì •!)
                 Quaternion rotation = Quaternion.LookRotation(finalDirection, Vector3.up);
 
-                if (swordBeamPrefab != null)
+                GameObject beam360 = Instantiate(beam360Prefab, transform.position, rotation); // ë³€ìˆ˜ëª… ë³€ê²½
+                Enemy_Final_Boss_360Beam beamScript = beam360.GetComponent<Enemy_Final_Boss_360Beam>(); // ì»´í¬ë„ŒíŠ¸ëª… ë³€ê²½
+                if (beamScript != null)
                 {
-                    GameObject swordBeam = Instantiate(swordBeamPrefab, transform.position, rotation);
-                    Enemy_Final_Boss_SwordBeam beamScript = swordBeam.GetComponent<Enemy_Final_Boss_SwordBeam>();
-                    if (beamScript != null)
-                    {
-                        beamScript.Initialize(swordBeamDamage, finalDirection * 15f);
-                    }
+                    beamScript.Initialize(beam360Damage, finalDirection * 15f); // ë³€ìˆ˜ëª… ë³€ê²½
                 }
-                else
-                {
-                    // µğ¹ö±ë¿ë ÀÓ½Ã °Ë±â »ı¼º
-                    CreateTempSwordBeam(finalDirection, i);
-                }
+            }
+            else
+            {
+                Debug.LogWarning("beam360Prefabì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!"); // ë©”ì‹œì§€ ë³€ê²½
             }
 
             yield return new WaitForSeconds(0.3f);
@@ -166,133 +149,58 @@ public class Enemy_Final_Boss_Light : Enemy_Base
         isPerformingAttack = false;
     }
 
-
-    private void CreateTempSwordBeam(Vector3 direction, int index)
-    {
-        GameObject swordBeam = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        swordBeam.name = "TempSwordBeam_" + index;
-        swordBeam.transform.position = transform.position;
-        swordBeam.transform.localScale = new Vector3(0.5f, 0.5f, 4f);
-
-        // YÃà °íÁ¤ È¸Àü Àû¿ë
-        swordBeam.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
-
-        Renderer renderer = swordBeam.GetComponent<Renderer>();
-        Material material = new Material(Shader.Find("Standard"));
-        material.color = Color.yellow;
-        material.EnableKeyword("_EMISSION");
-        material.SetColor("_EmissionColor", Color.yellow * 3f);
-        renderer.material = material;
-
-        Rigidbody rb = swordBeam.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.velocity = direction * 15f;
-
-        Collider collider = swordBeam.GetComponent<Collider>();
-        collider.isTrigger = true;
-
-        Enemy_Temp_Damage_Projectile damageScript = swordBeam.AddComponent<Enemy_Temp_Damage_Projectile>();
-        damageScript.Initialize(swordBeamDamage, "°Ë±â");
-
-        Destroy(swordBeam, 3f);
-    }
-
     private IEnumerator PerformLightPillarAttack()
     {
-        Debug.Log("ºû ±âµÕ °ø°İ!");
+        Debug.Log("ë¹› ê¸°ë‘¥ ê³µê²©!");
 
         if (playerTransform != null)
         {
             Vector3 pillarPosition = playerTransform.position;
             pillarPosition.y = 0;
 
-            // °æ°í Ç¥½Ã
-            GameObject warning = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            warning.name = "LightPillarWarning";
-            warning.transform.position = pillarPosition + Vector3.up * 0.1f;
-            warning.transform.localScale = new Vector3(4f, 0.2f, 4f);
+            float warningTime = 1.5f;
 
-            Renderer warningRenderer = warning.GetComponent<Renderer>();
-            Material warningMaterial = new Material(Shader.Find("Standard"));
-            warningMaterial.color = Color.red;
-            warningMaterial.EnableKeyword("_EMISSION");
-            warningMaterial.SetColor("_EmissionColor", Color.red * 3f);
-            warningRenderer.material = warningMaterial;
+            // 1ï¸ ê²½ê³  ì´í™íŠ¸ ë¨¼ì € ìƒì„±
+            if (warningEffectPrefab != null)
+            {
+                GameObject warning = Instantiate(
+                    warningEffectPrefab,
+                    pillarPosition + Vector3.down * 0.1f,
+                    Quaternion.identity
+                );
+                Destroy(warning, warningTime); // ì¼ì • ì‹œê°„ í›„ ìë™ ì œê±°
+            }
 
-            StartCoroutine(BlinkWarning(warning));
+            // 2ï¸ ê²½ê³  ì‹œê°„ ë™ì•ˆ ëŒ€ê¸° (ë¹› ê¸°ë‘¥ ìƒì„±ì€ ì•„ì§ ì•„ë‹˜!)
+            yield return new WaitForSeconds(warningTime);
 
-            yield return new WaitForSeconds(2f);
-
-            Destroy(warning);
-
-            // ½ÇÁ¦ ºû ±âµÕ »ı¼º
+            // 3ï¸ ê²½ê³  ëë‚œ ë’¤ ë¹›ê¸°ë‘¥ ìƒì„±
             if (lightPillarPrefab != null)
             {
                 GameObject pillar = Instantiate(lightPillarPrefab, pillarPosition, Quaternion.identity);
                 Enemy_Final_Boss_LightPillar pillarScript = pillar.GetComponent<Enemy_Final_Boss_LightPillar>();
                 if (pillarScript != null)
                 {
-                    pillarScript.StartLightPillar(lightPillarDamage, 3f);
+                    // ê²½ê³ ëŠ” ì´ë¯¸ ëë‚¬ìœ¼ë¯€ë¡œ durationì„ "ê¸°ë‘¥ í™œì„±í™” ì‹œê°„ë§Œí¼"ë§Œ ë„˜ê¸´ë‹¤
+                    pillarScript.StartLightPillar(lightPillarDamage, 2.0f); // ê²½ê³  ì—†ì´ ë°”ë¡œ í™œì„±í™”ë¨
                 }
             }
-            else
-            {
-                CreateTempLightPillar(pillarPosition);
-            }
-        }
-    }
-
-    private void CreateTempLightPillar(Vector3 position)
-    {
-        GameObject pillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        pillar.name = "TempLightPillar";
-        pillar.transform.position = position + Vector3.up * 10f;
-        pillar.transform.localScale = new Vector3(4f, 10f, 4f);
-
-        Renderer pillarRenderer = pillar.GetComponent<Renderer>();
-        Material pillarMaterial = new Material(Shader.Find("Standard"));
-        pillarMaterial.color = Color.white;
-        pillarMaterial.EnableKeyword("_EMISSION");
-        pillarMaterial.SetColor("_EmissionColor", Color.white * 4f);
-        pillarRenderer.material = pillarMaterial;
-
-        Collider pillarCollider = pillar.GetComponent<Collider>();
-        pillarCollider.isTrigger = true;
-
-        Enemy_Temp_Damage_Projectile damageScript = pillar.AddComponent<Enemy_Temp_Damage_Projectile>();
-        damageScript.Initialize(lightPillarDamage, "ºû ±âµÕ", true);
-
-        Destroy(pillar, 5f);
-    }
-
-    private IEnumerator BlinkWarning(GameObject warning)
-    {
-        Renderer renderer = warning.GetComponent<Renderer>();
-        float blinkTime = 0f;
-
-        while (warning != null && blinkTime < 2f)
-        {
-            bool visible = Mathf.Sin(Time.time * 10f) > 0;
-            renderer.enabled = visible;
-
-            blinkTime += Time.deltaTime;
-            yield return null;
         }
     }
 
     protected override void UpdateMovement()
     {
-        // º¸½º´Â ¿òÁ÷ÀÌÁö ¾ÊÀ½
+        // ë³´ìŠ¤ëŠ” ì›€ì§ì´ì§€ ì•ŠìŒ
     }
 
     protected override void PerformAttack()
     {
-        // ±âº» °ø°İÀº »ç¿ëÇÏÁö ¾ÊÀ½
+        // ê¸°ë³¸ ê³µê²©ì€ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ
     }
 
     protected override void Die()
     {
-        Debug.Log("ºûÀÇ ÈûÀÌ... »ç¶óÁø´Ù...");
+        Debug.Log("ë¹›ì˜ í˜ì´... ì‚¬ë¼ì§„ë‹¤...");
         base.Die();
     }
 
