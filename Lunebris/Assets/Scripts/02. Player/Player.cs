@@ -20,7 +20,7 @@ namespace Player
         SkillDamage,
         CoolDown,
         DefensivePower,
-        //HpRegen
+        HpRegen,
         MagicDefensivePower,
         MaxHp
     }
@@ -67,7 +67,7 @@ namespace Player
             stats[StatType.DefensivePower] = new Stat(5f);
             stats[StatType.MagicDefensivePower] = new Stat(5f);
             stats[StatType.MaxHp] = new Stat(1000f);
-            //stats[StatType.HpRegen] = new Stat(5f); //초당 5
+            stats[StatType.HpRegen] = new Stat(0f); //per second
         }
 
         public float Get(StatType type) => stats[type].Total;
@@ -175,10 +175,10 @@ namespace Player
             UpdateHP();
             UpdateShieldUI();
 
-            //StartCoroutine(HPRegenRoutine());
+            StartCoroutine(HPRegenRoutine());
         }
 
-        /*private System.Collections.IEnumerator HPRegenRoutine()
+        private System.Collections.IEnumerator HPRegenRoutine()
         {
             while (true)
             {
@@ -191,7 +191,7 @@ namespace Player
 
                 yield return null;
             }
-        }*/
+        }
 
         private void Update()
         {
