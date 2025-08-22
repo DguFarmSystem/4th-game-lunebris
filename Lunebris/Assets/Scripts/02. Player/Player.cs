@@ -456,6 +456,18 @@ namespace Player
                 shieldTMP.text = currentShield > 0 ? $"{currentShield:F0}" : "";
             }
         }
+        public void ConsumeHP(float _value)
+        {
+            // DecreaseHP와 달리 피격 판정이 아닌, 순수한 체력 소모를 처리
+            currentHP -= _value;
+            currentHP = Mathf.Max(currentHP, 0); // 체력이 0 밑으로 내려가지 않도록 보정
+            UpdateHP(); // UI 업데이트
+        }
+
+        public float GetCurrentHP()
+        {
+            return currentHP;
+        }
 
         #endregion
     }

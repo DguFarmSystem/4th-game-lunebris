@@ -57,6 +57,13 @@ namespace Player
         [SerializeField] private float tenebris3_Duration = 5f;    // 분신 지속 시간
         private GameObject activeClone; // 현재 활성화된 분신을 추적
 
+        [Header("Tenebris4 Skill Settings")]
+        [SerializeField] private GameObject tenebris4_VFX_Prefab;    // 화면 전체에 퍼지는 파동 이펙트
+        [SerializeField] private float tenebris4_HealthCostPercent = 0.2f; // 현재 체력의 20% 소모
+        [SerializeField] private float tenebris4_DamageMultiplier = 1.5f;  // 최대 체력의 150% 만큼 피해
+        [SerializeField] private float tenebris4_SafetyThreshold = 0.25f; // 체력이 25% 초과일 때만 사용 가능
+
+
 
 
         private void Awake()
@@ -443,7 +450,44 @@ namespace Player
         }
 
 
-        private void Tenebris4(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
+        private void Tenebris4(Skill _skill)
+        {
+            Debug.Log("Skill Name : " + _skill.skillName);
 
+            float currentHealth = player.GetCurrentHP();
+            float maxHealth = player.GetMaxHp();
+
+            //안전장치: 현재 체력이 설정된 기준치(25%)보다 높은지 확인
+            if (currentHealth > maxHealth * tenebris4_SafetyThreshold)
+            {
+                float healthToConsume = currentHealth * tenebris4_HealthCostPercent;
+                player.ConsumeHP(healthToConsume);
+                Debug.Log($"[Tenebris4] 스킬 발동, 체력 {healthToConsume:F0} 소모.");
+
+                Enemy_Base[] allEnemies = FindObjectsOfType<Enemy_Base>();
+
+                float damage = maxHealth * tenebris4_DamageMultiplier;
+
+                foreach (Enemy_Base enemy in allEnemies)
+                {
+                    if (enemy != null && !enemy.IsDead())
+                    {
+
+                        enemy.TakeDamage(damage, DamageType.Magical, ElementType.Tenebris);
+                    }
+                }
+
+                if (tenebris4_VFX_Prefab != null)
+                {
+                    Instantiate(tenebris4_VFX_Prefab, player.transform.position, Quaternion.identity);
+                }
+            }
+            else
+            {
+                // 체력이 부족하여 스킬 사용 실패
+                Debug.Log("[Tenebris4] 체력이 부족하여 스킬을 사용할 수 없습니다.");
+                // TODO: 여기에 "체력 부족" 알림 사운드나 UI 효과를 추가하면 더 좋습니다.
+            }
         }
+    }
     }
