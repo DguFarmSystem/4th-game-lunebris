@@ -7486,7 +7486,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabs:
   - {fileID: 5413666472578828671, guid: f437e013be0fce44b856b85a964eef73, type: 3}
-  - {fileID: 7055654612612256485, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
+  - {fileID: 5413666472578828671, guid: f437e013be0fce44b856b85a964eef73, type: 3}
 --- !u!4 &758172768 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9010164920852831586, guid: a9b90e62ec1de4149b1ff1f2ddecdae5, type: 3}
@@ -24639,6 +24639,7 @@ MonoBehaviour:
   xpSlider: {fileID: 932262771}
   xpTMP: {fileID: 1380443165}
   levelTMP: {fileID: 801740838}
+  invincibilityDuration: 3
 --- !u!54 &1882272436628528771
 Rigidbody:
   m_ObjectHideFlags: 0

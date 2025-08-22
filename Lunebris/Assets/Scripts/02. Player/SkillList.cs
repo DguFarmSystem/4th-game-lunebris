@@ -44,6 +44,19 @@ namespace Player
         [SerializeField] private int tenebris1_MaxTargets = 3; // 최대 대상 수
         [SerializeField] private float tenebris1_TickRate = 0.2f; // 데미지 및 흡혈 주기 (0.2초마다)
 
+        [Header("Tenebris2 Skill Settings")]
+        [SerializeField] private GameObject tenebris2_VFX_Prefab;  // 블랙홀 시각효과 프리팹
+        [SerializeField] private float tenebris2_Duration = 5f;      // 지속 시간
+        [SerializeField] private float tenebris2_Radius = 8f;        // 효과 반경
+        [SerializeField] private float tenebris2_PullForce = 50f;    // 끌어당기는 힘
+        [SerializeField] private float tenebris2_DamagePerTick = 1f;   // 틱당 데미지
+        [SerializeField] private float tenebris2_TickRate = 0.5f;
+
+        [Header("Tenebris3 Skill Settings")]
+        [SerializeField] private GameObject tenebris3_ClonePrefab; // 위에서 만든 분신 프리팹
+        [SerializeField] private float tenebris3_Duration = 5f;    // 분신 지속 시간
+        private GameObject activeClone; // 현재 활성화된 분신을 추적
+
 
 
         private void Awake()
@@ -162,7 +175,7 @@ namespace Player
             Debug.DrawLine(startPos, endPos, Color.yellow, 2f);               // 중심선
             Debug.DrawLine(startPos - right, endPos - right, Color.cyan, 2f); // 왼쪽 경계
             Debug.DrawLine(startPos + right, endPos + right, Color.cyan, 2f); // 오른쪽 경계
-                                                                            
+
 
             if (lux3_VFX_Prefab != null)
             {
@@ -280,8 +293,157 @@ namespace Player
 
             Debug.Log("[Tenebris1] 흡혈이 종료되었습니다.");
         }
-        private void Tenebris2(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
-        private void Tenebris3(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
+        private void Tenebris2(Skill _skill)
+        {
+            Debug.Log("Skill Name : " + _skill.skillName);
+
+            // 1. 플레이어 위치를 기준으로 수평 평면을 생성합니다.
+            Plane groundPlane = new Plane(Vector3.up, player.transform.position);
+
+            // 2. 카메라에서 마우스 위치로 광선을 쏩니다.
+            //    (이전 오류를 해결하기 위해 UnityEngine.Camera.main으로 명시합니다)
+            Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            // 3. 광선이 평면과 교차하는 지점을 계산합니다.
+            if (groundPlane.Raycast(ray, out float distance))
+            {
+                // 교차점의 월드 좌표를 얻습니다.
+                Vector3 spawnPosition = ray.GetPoint(distance);
+
+                // 코루틴을 시작하여 블랙홀 로직을 실행합니다.
+                StartCoroutine(Tenebris2_BlackHoleCoroutine(_skill, spawnPosition));
+            }
+            else
+            {
+                Debug.LogWarning("[Tenebris2] 마우스 위치를 바닥 평면에 투영할 수 없습니다.");
+            }
+        }
+
+        private IEnumerator Tenebris2_BlackHoleCoroutine(Skill _skill, Vector3 center)
+        {
+            Debug.Log($"[Tenebris2] {center} 위치에 블랙홀 생성.");
+
+            GameObject vfxInstance = null;
+            if (tenebris2_VFX_Prefab != null)
+            {
+                vfxInstance = Instantiate(tenebris2_VFX_Prefab, center, Quaternion.identity);
+                vfxInstance.transform.localScale = Vector3.one * tenebris2_Radius;
+            }
+
+            // [추가] 블랙홀의 영향을 받은 적들을 기억할 리스트
+            List<Enemy_Base> affectedEnemies = new List<Enemy_Base>();
+
+            float elapsedTime = 0f;
+            float tickTimer = 0f;
+
+            while (elapsedTime < tenebris2_Duration)
+            {
+                elapsedTime += Time.deltaTime;
+                tickTimer += Time.deltaTime;
+
+                if (tickTimer >= tenebris2_TickRate)
+                {
+                    Collider[] colliders = Physics.OverlapSphere(center, tenebris2_Radius);
+                    foreach (var col in colliders)
+                    {
+                        if (col.CompareTag("Enemy"))
+                        {
+                            Enemy_Base enemy = col.GetComponent<Enemy_Base>();
+                            if (enemy != null && !enemy.IsDead())
+                            {
+                                // 끌어당기는 로직
+                                Rigidbody enemyRb = col.GetComponent<Rigidbody>();
+                                if (enemyRb != null)
+                                {
+                                    Vector3 direction = (center - col.transform.position).normalized;
+                                    enemyRb.AddForce(direction * tenebris2_PullForce);
+                                }
+
+                                // 데미지 로직
+                                float totalSkillDamage = tenebris2_DamagePerTick + player.GetPlayerStat().Get(StatType.SkillDamage);
+                                enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Tenebris);
+                            }
+                        }
+                    }
+                    tickTimer = 0f;
+                }
+                yield return null;
+            }
+
+            // [추가] 블랙홀이 끝나면, 영향을 받았던 모든 적들의 제어권을 돌려줌
+            foreach (var enemy in affectedEnemies)
+            {
+
+            }
+
+            if (vfxInstance != null)
+            {
+                Destroy(vfxInstance);
+            }
+
+            Debug.Log("[Tenebris2] 블랙홀 소멸.");
+        }
+
+        private void Tenebris3(Skill _skill)
+        {
+            Debug.Log("Skill Name : " + _skill.skillName);
+
+            // 1. 활성화된 분신이 있는지 확인
+            if (activeClone != null)
+            {
+                Debug.Log("[Tenebris3] 분신과 위치를 교대합니다!");
+                Vector3 playerPosition = player.transform.position;
+                Vector3 clonePosition = activeClone.transform.position;
+
+                // 1. 플레이어의 PlayerMove 스크립트를 가져와 잠시 비활성화합니다.
+                PlayerMove playerMoveScript = player.GetComponent<PlayerMove>();
+                if (playerMoveScript != null)
+                {
+                    playerMoveScript.enabled = false;
+                }
+
+                // 2. 위치를 교대합니다.
+                player.transform.position = clonePosition;
+                activeClone.transform.position = playerPosition;
+
+                // 3. PlayerMove 스크립트를 즉시 다시 활성화합니다. (매우 중요!)
+                if (playerMoveScript != null)
+                {
+                    playerMoveScript.enabled = true;
+                }
+            }
+            else
+            {
+                // 분신이 없다면: 새로운 분신 소환
+                Debug.Log("[Tenebris3] 분신을 소환합니다!");
+                if (tenebris3_ClonePrefab != null)
+                {
+                    // 플레이어의 현재 위치와 방향에 분신 생성
+                    activeClone = Instantiate(tenebris3_ClonePrefab, player.transform.position, player.transform.rotation);
+                    Clone cloneScript = activeClone.GetComponent<Clone>();
+
+                    // 생성된 분신에 플레이어의 정보 전달
+                    if (cloneScript != null)
+                    {
+                        cloneScript.Initialize(playerAttack, player.GetPlayerStat(), tenebris3_Duration);
+                    }
+
+                    // 분신이 파괴되었을 때 activeClone 변수를 null로 만들기 위한 코루틴
+                    StartCoroutine(TrackCloneLifetime());
+                }
+            }
+        }
+
+        // 분신이 파괴되는 것을 감지하는 코루틴
+        private IEnumerator TrackCloneLifetime()
+        {
+            // activeClone이 null이 될 때까지 (파괴될 때까지) 기다림
+            yield return new WaitUntil(() => activeClone == null);
+            Debug.Log("[Tenebris3] 분신이 소멸한 것을 감지했습니다.");
+        }
+
+
         private void Tenebris4(Skill _skill) { Debug.Log("Skill Name : " + _skill.skillName); }
+
+        }
     }
-}
