@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Enemy;
@@ -319,6 +319,23 @@ public abstract class Enemy_Base : MonoBehaviour
         if (currentHp <= 0)
         {
             Die();
+            return;
+        }
+
+        //적 처형 아이템 유무
+        if (Inventory.instance.HasItem("InstantDeath")) // 인벤토리에 아이템이 있는지 확인
+        {
+            if (currentHp <= enemyStats.Get(EnemyStatType.MaxHp) * 0.1f)  // 10% 미만
+            {
+                Debug.Log("적이 처형당했습니다.");
+                currentHp = 0;
+
+                ShowHpBar();
+                UpdateHpUI();
+
+                Die();
+                return;
+            }
         }
     }
 
@@ -413,7 +430,7 @@ public abstract class Enemy_Base : MonoBehaviour
 
         if (killDetector != null)
         {
-            killDetector.IncreaseTenePower();
+            //killDetector.IncreaseTenePower();
         }
     }
 
