@@ -375,7 +375,7 @@ GameObject:
   - component: {fileID: 5364976881909210309}
   m_Layer: 0
   m_Name: Enemy_Ranged_Lux
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -465,7 +465,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5000001
   m_Height: 2
@@ -511,27 +511,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyType: 2
-  elementType: 1
+  elementType: 0
   primaryDamageType: 0
   enemyName: Enemy
   hpSlider: {fileID: 3571112739894640870}
   hpText: {fileID: 8119713026953468530}
   hpCanvas: {fileID: 8806030195908212401}
   damageText: {fileID: 2227847163668835840}
-  deathEffect: {fileID: 0}
+  deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
   deathSound: {fileID: 0}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
-  bulletPrefab: {fileID: 3199271071223229155, guid: 6e745beddbf77d54c9842b278bdd1f8d, type: 3}
+  ignoreEnemyCollisions: 1
+  bulletPrefab: {fileID: 3199271071223229155, guid: 87716ae45e4e1e44289c70e0ea032531, type: 3}
   firePoint: {fileID: 1977280766515709566}
   attackRange: 15
   attackCooldown: 1
   attackDuration: 1
   attackCastTime: 1
-  explosiveBulletPrefab: {fileID: 5402589949796788196, guid: 3bc8948a94c9da54fa4c41f384a435c6, type: 3}
-  subBulletPrefab: {fileID: 6918973780828715590, guid: 1db4e715c70528142a87d877a229cc7c, type: 3}
+  explosiveBulletPrefab: {fileID: 5402589949796788196, guid: d0f870afe7819e04b853cfdbfcaec6d7, type: 3}
+  subBulletPrefab: {fileID: 6918973780828715590, guid: 778001906d8d1b240aa15ef6b5a2cee5, type: 3}
   explosiveCooldown: 1
   explosiveRange: 10
   explosiveDamageMultiplier: 1.2
@@ -969,7 +970,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6952177697851423994, guid: 60b941601232deb4183f6bc430432cf5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6952177697851423994, guid: 60b941601232deb4183f6bc430432cf5, type: 3}
       propertyPath: m_LocalPosition.z

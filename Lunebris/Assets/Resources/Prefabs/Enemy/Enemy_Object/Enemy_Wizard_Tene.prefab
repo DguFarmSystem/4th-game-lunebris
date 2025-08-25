@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 4445498537898546049}
   m_Layer: 0
   m_Name: Enemy_Wizard_Tene
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 50.55, y: 1, z: 56}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2483210638315485042}
@@ -108,7 +108,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5000001
   m_Height: 2
@@ -134,13 +134,14 @@ MonoBehaviour:
   hpText: {fileID: 3401404100676393774}
   hpCanvas: {fileID: 1327629530823099953}
   damageText: {fileID: 5574272308278969738}
-  deathEffect: {fileID: 0}
+  deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
   deathSound: {fileID: 0}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
-  magicOrbPrefab: {fileID: 411572275915798111, guid: 69784a6365d5f504ca1c0a65da01dd32, type: 3}
+  ignoreEnemyCollisions: 1
+  magicOrbPrefab: {fileID: 2636176019396157844, guid: d2287e1786835ce4aa7c55002899ff59, type: 3}
   meteorPrefab: {fileID: 2636176019396157844, guid: 54d40257b9ddf77479fc65dd532b0f23, type: 3}
   castPoint: {fileID: 6053501878475390870}
   attackRange: 10

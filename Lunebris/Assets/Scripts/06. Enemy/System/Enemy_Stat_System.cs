@@ -84,7 +84,7 @@ namespace Enemy
             switch (enemyType)
             {
                 case EnemyType.MeleeTanker:
-                    stats[EnemyStatType.MaxHp] = new EnemyStat(150f);
+                    stats[EnemyStatType.MaxHp] = new EnemyStat(300f);
                     stats[EnemyStatType.PhysicalDamage] = new EnemyStat(25f);
                     stats[EnemyStatType.MagicalDamage] = new EnemyStat(0f);
                     stats[EnemyStatType.AttackSpeed] = new EnemyStat(0.8f);
@@ -96,7 +96,7 @@ namespace Enemy
                     break;
 
                 case EnemyType.MeleeAssassin:
-                    stats[EnemyStatType.MaxHp] = new EnemyStat(80f);
+                    stats[EnemyStatType.MaxHp] = new EnemyStat(200f);
                     stats[EnemyStatType.PhysicalDamage] = new EnemyStat(45f);
                     stats[EnemyStatType.MagicalDamage] = new EnemyStat(0f);
                     stats[EnemyStatType.AttackSpeed] = new EnemyStat(1.5f);
@@ -108,7 +108,7 @@ namespace Enemy
                     break;
 
                 case EnemyType.RangedAD:
-                    stats[EnemyStatType.MaxHp] = new EnemyStat(60f);
+                    stats[EnemyStatType.MaxHp] = new EnemyStat(150f);
                     stats[EnemyStatType.PhysicalDamage] = new EnemyStat(35f);
                     stats[EnemyStatType.MagicalDamage] = new EnemyStat(0f);
                     stats[EnemyStatType.AttackSpeed] = new EnemyStat(1.2f);
@@ -120,7 +120,7 @@ namespace Enemy
                     break;
 
                 case EnemyType.RangedAP:
-                    stats[EnemyStatType.MaxHp] = new EnemyStat(70f);
+                    stats[EnemyStatType.MaxHp] = new EnemyStat(170f);
                     stats[EnemyStatType.PhysicalDamage] = new EnemyStat(0f);
                     stats[EnemyStatType.MagicalDamage] = new EnemyStat(50f);
                     stats[EnemyStatType.AttackSpeed] = new EnemyStat(0.8f);

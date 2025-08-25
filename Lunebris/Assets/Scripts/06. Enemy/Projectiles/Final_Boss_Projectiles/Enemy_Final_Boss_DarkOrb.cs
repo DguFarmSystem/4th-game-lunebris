@@ -1,18 +1,18 @@
 using UnityEngine;
 using System.Collections;
+using Enemy;
 
 /// <summary>
 /// 최종보스의 어둠 구체 - 다크 불릿 공격 (프리팹 자체 관리)
 /// </summary>
-public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
+public class Enemy_Final_Boss_DarkOrb : Enemy_Base
 {
     [Header("구체 설정")]
-    [SerializeField] private float health = 100f;
-    [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float heightFixed = 2f;
     [SerializeField] private float minDistanceToPlayer = 6f;
     [SerializeField] private float maxDistanceToPlayer = 15f;
     [SerializeField] private float randomMoveInterval = 2f;
+    [SerializeField] private float orbMoveSpeed = 3f; // 구체 전용 이동속도
 
     [Header("다크 불릿 공격")]
     [SerializeField] private GameObject darkBulletPrefab;  // 자체 관리
@@ -27,24 +27,64 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
     [SerializeField] private float emissionIntensity = 0.3f;
 
     private Enemy_Final_Boss_Neutral ownerBoss;
-    private Transform player;
     private Vector3 currentTargetPosition;
     private float lastRandomMoveTime;
     private float lastBulletTime;
     private bool isFiring = false;
-    private bool isDestroyed = false;
+
+    protected override void Awake()
+    {
+        // Enemy_Base의 Awake 호출 전에 기본값 설정
+        enemyType = EnemyType.FinalBoss;
+        elementType = ElementType.Neutral; // Dark가 없으므로 Neutral 사용
+        primaryDamageType = DamageType.Magical;
+        enemyName = "어둠 구체";
+
+        base.Awake();
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        // 구체 특화 컴포넌트 설정
+        SetupOrbComponents();
+        StartBehavior();
+    }
 
     // 초기화 간소화 - 보스 참조와 기본 설정만
     public void Initialize(Enemy_Final_Boss_Neutral boss)
     {
         ownerBoss = boss;
-        SetupComponents();
-        StartBehavior();
+
+        // Enemy_Base에서 제공하는 현재 HP 설정
+        if (enemyStats != null)
+        {
+            currentHp = enemyStats.Get(EnemyStatType.MaxHp);
+            UpdateHpUI();
+        }
     }
 
     // 런타임에서 설정 변경 가능한 메서드들
-    public void SetHealth(float newHealth) => health = newHealth;
-    public void SetMoveSpeed(float newSpeed) => moveSpeed = newSpeed;
+    public void SetHealth(float newHealth)
+    {
+        if (enemyStats != null)
+        {
+            // Enemy_Base의 currentHp 직접 설정
+            currentHp = newHealth;
+            UpdateHpUI();
+        }
+    }
+
+    public void SetMoveSpeed(float newSpeed)
+    {
+        orbMoveSpeed = newSpeed; // 구체 전용 이동속도 사용
+        if (enemyStats != null)
+        {
+            enemyStats.SetBase(EnemyStatType.MoveSpeed, newSpeed);
+        }
+    }
+
     public void SetBulletSettings(float damage, int count, float speed, float cooldown)
     {
         darkBulletDamage = damage;
@@ -53,41 +93,37 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         darkBulletCooldown = cooldown;
     }
 
-    private void SetupComponents()
+    private void SetupOrbComponents()
     {
-        // 플레이어 찾기
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-
         // 초기 위치 설정
         SetRandomTargetPosition();
         transform.position = new Vector3(currentTargetPosition.x, heightFixed, currentTargetPosition.z);
 
-        // 리지드바디 설정
-        SetupRigidbody();
+        // 리지드바디 설정 (Enemy_Base의 설정 덮어쓰기)
+        SetupOrbRigidbody();
 
         // 렌더러 설정
-        SetupRenderer();
+        SetupOrbRenderer();
 
         // 조명 설정
-        SetupLight();
+        SetupOrbLight();
 
         // 콜라이더 설정
-        SetupCollider();
+        SetupOrbCollider();
     }
 
-    private void SetupRigidbody()
+    private void SetupOrbRigidbody()
     {
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb == null)
-            rb = gameObject.AddComponent<Rigidbody>();
+        if (enemyRigidbody == null)
+            enemyRigidbody = gameObject.AddComponent<Rigidbody>();
 
-        rb.useGravity = false;
-        rb.constraints = RigidbodyConstraints.FreezeRotationX |
+        enemyRigidbody.useGravity = false;
+        enemyRigidbody.constraints = RigidbodyConstraints.FreezeRotationX |
                         RigidbodyConstraints.FreezeRotationZ |
                         RigidbodyConstraints.FreezePositionY;
     }
 
-    private void SetupRenderer()
+    private void SetupOrbRenderer()
     {
         Renderer renderer = GetComponent<Renderer>();
         if (renderer == null)
@@ -98,6 +134,7 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
             sphere.transform.localPosition = Vector3.zero;
             sphere.transform.localScale = Vector3.one * 2f;
             renderer = sphere.GetComponent<Renderer>();
+            enemyRenderer = renderer; // Enemy_Base의 렌더러 참조 업데이트
         }
 
         // 머티리얼 설정
@@ -113,9 +150,11 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
             material.SetColor("_EmissionColor", orbColor * emissionIntensity);
             renderer.material = material;
         }
+
+        originalColor = renderer.material.color;
     }
 
-    private void SetupLight()
+    private void SetupOrbLight()
     {
         Light orbLight = GetComponent<Light>();
         if (orbLight == null)
@@ -127,14 +166,15 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         orbLight.range = 10f;
     }
 
-    private void SetupCollider()
+    private void SetupOrbCollider()
     {
         SphereCollider collider = GetComponent<SphereCollider>();
         if (collider == null)
             collider = gameObject.AddComponent<SphereCollider>();
 
-        collider.radius = 1.5f; // 기존 2f에서 3f로 증가
+        collider.radius = 0.8f; // 히트박스 크기 축소 (기존 1.5f에서 0.8f로)
         collider.isTrigger = true;
+        enemyCollider = collider; // Enemy_Base의 콜라이더 참조 업데이트
     }
 
     private void StartBehavior()
@@ -143,9 +183,51 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         StartCoroutine(AttackRoutine());
     }
 
+    #region Enemy_Base 추상 메서드 구현
+
+    protected override void UpdateBehavior()
+    {
+        // Y축 위치 강제 고정
+        if (transform.position.y != heightFixed)
+        {
+            Vector3 pos = transform.position;
+            pos.y = heightFixed;
+            transform.position = pos;
+        }
+
+        // 플레이어와의 거리 체크
+        if (playerTransform != null)
+        {
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+            if (distanceToPlayer < minDistanceToPlayer)
+            {
+                Vector3 awayDirection = (transform.position - playerTransform.position).normalized;
+                awayDirection.y = 0;
+                transform.position += awayDirection * orbMoveSpeed * Time.deltaTime;
+            }
+            else if (distanceToPlayer > maxDistanceToPlayer)
+            {
+                Vector3 towardsDirection = (playerTransform.position - transform.position).normalized;
+                towardsDirection.y = 0;
+                transform.position += towardsDirection * orbMoveSpeed * Time.deltaTime;
+            }
+        }
+    }
+
+    protected override void PerformAttack()
+    {
+        // 공격은 AttackRoutine 코루틴에서 처리됨
+        // 필요시 여기서 추가 공격 로직 구현
+    }
+
+    #endregion
+
+    #region 이동 및 공격 루틴
+
     private IEnumerator MovementRoutine()
     {
-        while (!isDestroyed)
+        while (!isDead)
         {
             // 일정 시간마다 새로운 랜덤 위치 설정
             if (Time.time - lastRandomMoveTime >= randomMoveInterval)
@@ -161,16 +243,16 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
 
             if (moveDirection != Vector3.zero)
             {
-                float currentMoveSpeed = isFiring ? moveSpeed * 0.3f : moveSpeed;
+                float currentMoveSpeed = isFiring ? orbMoveSpeed * 0.3f : orbMoveSpeed;
                 Vector3 newPosition = currentPos + moveDirection * currentMoveSpeed * Time.deltaTime;
                 newPosition.y = heightFixed;
                 transform.position = newPosition;
             }
 
             // 플레이어를 향해 회전
-            if (player != null)
+            if (playerTransform != null)
             {
-                Vector3 lookDirection = (player.position - transform.position).normalized;
+                Vector3 lookDirection = (playerTransform.position - transform.position).normalized;
                 lookDirection.y = 0;
                 if (lookDirection != Vector3.zero)
                 {
@@ -188,7 +270,7 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
 
     private void SetRandomTargetPosition()
     {
-        if (player == null) return;
+        if (playerTransform == null) return;
 
         float randomAngle = Random.Range(0f, 360f);
         float randomDistance = Random.Range(minDistanceToPlayer, maxDistanceToPlayer);
@@ -199,12 +281,12 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
             Mathf.Sin(randomAngle * Mathf.Deg2Rad) * randomDistance
         );
 
-        currentTargetPosition = player.position + randomOffset;
+        currentTargetPosition = playerTransform.position + randomOffset;
     }
 
     private IEnumerator AttackRoutine()
     {
-        while (!isDestroyed && player != null)
+        while (!isDead && playerTransform != null)
         {
             if (Time.time - lastBulletTime >= darkBulletCooldown)
             {
@@ -278,7 +360,10 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
 
             Destroy(bullet, 5f);
         }
-        
+        else
+        {
+            CreateTempBullet(direction, damage, speed);
+        }
     }
 
     private void CreateTempBullet(Vector3 direction, float damage, float speed)
@@ -314,12 +399,12 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
 
-        if (player == null) yield break;
+        if (playerTransform == null) yield break;
 
         // 플레이어 방향으로 집중 다크 불릿 (3발)
         for (int i = 0; i < 3; i++)
         {
-            Vector3 baseDirection = (player.position - transform.position).normalized;
+            Vector3 baseDirection = (playerTransform.position - transform.position).normalized;
             baseDirection.y = 0;
 
             // 약간의 각도 변화
@@ -333,38 +418,19 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         }
     }
 
-    public void TakeDamage(float damage)
+    #endregion
+
+    #region Enemy_Base 오버라이드
+
+    protected override void OnDamaged()
     {
-        if (isDestroyed) return;
-
-        health -= damage;
-        Debug.Log($"어둠 구체 피해: {damage}, 남은 체력: {health}");
-
-        StartCoroutine(HitEffect());
-
-        if (health <= 0)
-        {
-            DestroyOrb();
-        }
+        base.OnDamaged(); // 기본 피격 효과 사용
     }
 
-    private IEnumerator HitEffect()
+    protected override void Die()
     {
-        Renderer renderer = GetComponentInChildren<Renderer>();
-        if (renderer != null)
-        {
-            Color originalColor = renderer.material.color;
-            renderer.material.color = Color.white;
-            yield return new WaitForSeconds(0.1f);
-            renderer.material.color = originalColor;
-        }
-    }
+        if (isDead) return;
 
-    private void DestroyOrb()
-    {
-        if (isDestroyed) return;
-
-        isDestroyed = true;
         Debug.Log("어둠 구체 파괴됨!");
 
         // 보스에게 알림
@@ -374,7 +440,8 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         // 마지막 다크 불릿 폭발
         StartCoroutine(DeathBulletExplosion());
 
-        Destroy(gameObject, 1f);
+        // Enemy_Base의 Die 호출
+        base.Die();
     }
 
     private IEnumerator DeathBulletExplosion()
@@ -396,52 +463,22 @@ public class Enemy_Final_Boss_DarkOrb : MonoBehaviour
         yield return null;
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected override void OnTriggerEnter(Collider other)
     {
-        // 다양한 플레이어 공격 태그 확인
-        if (other.CompareTag("Attack")) 
-        {
-            TakeDamage(50f);
-        }
+        // Enemy_Base의 기본 충돌 처리 사용
+        base.OnTriggerEnter(other);
     }
 
-    private void Update()
-    {
-        // Y축 위치 강제 고정
-        if (transform.position.y != heightFixed)
-        {
-            Vector3 pos = transform.position;
-            pos.y = heightFixed;
-            transform.position = pos;
-        }
-
-        // 플레이어와의 거리 체크
-        if (player != null)
-        {
-            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-            if (distanceToPlayer < minDistanceToPlayer)
-            {
-                Vector3 awayDirection = (transform.position - player.position).normalized;
-                awayDirection.y = 0;
-                transform.position += awayDirection * moveSpeed * Time.deltaTime;
-            }
-            else if (distanceToPlayer > maxDistanceToPlayer)
-            {
-                Vector3 towardsDirection = (player.position - transform.position).normalized;
-                towardsDirection.y = 0;
-                transform.position += towardsDirection * moveSpeed * Time.deltaTime;
-            }
-        }
-    }
+    #endregion
 
     // 에디터에서 콜라이더 영역 시각화
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 3f); // Trigger 콜라이더
+        Gizmos.DrawWireSphere(transform.position, 0.8f); // Trigger 콜라이더 (축소된 크기)
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, 2.5f); // Solid 콜라이더
+        Gizmos.DrawWireSphere(transform.position, minDistanceToPlayer); // 최소 거리
+        Gizmos.DrawWireSphere(transform.position, maxDistanceToPlayer); // 최대 거리
     }
 }

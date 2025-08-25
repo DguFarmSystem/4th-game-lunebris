@@ -20,6 +20,11 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
     [Header("5갈래 설정")]
     [SerializeField] private float[] beamAngles = { 0f, -15f, 15f, -30f, 30f }; // 중앙, 좌15, 우15, 좌30, 우30
 
+    [Header("슬로우 효과 설정")]
+    [SerializeField] private bool applySlowEffect = true;
+    [SerializeField] private float slowDuration = 3f;
+    [SerializeField] private float slowIntensity = 0.7f; // 70% 속도 감소
+
     [Header("컴포넌트")]
     [SerializeField] private LineRenderer centerBeam;
     [SerializeField] private LineRenderer leftBeam1;
@@ -36,6 +41,10 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
     private bool isFiring = false;
     private LineRenderer[] allBeams;
 
+    // 슬로우 효과 설정 (외부에서 설정 가능)
+    private float externalSlowDuration = 0f;
+    private float externalSlowIntensity = 0f;
+
     public void Initialize(float beamDamage, Vector3 beamDirection, float beamRange)
     {
         damage = beamDamage;
@@ -44,6 +53,16 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
 
         SetupComponents();
         StartCoroutine(FireSequence());
+    }
+
+    /// <summary>
+    /// 외부에서 슬로우 효과 설정 (Enemy_Final_Boss_Light에서 호출)
+    /// </summary>
+    public void SetSlowEffect(float duration, float intensity)
+    {
+        externalSlowDuration = duration;
+        externalSlowIntensity = intensity;
+        applySlowEffect = true;
     }
 
     private void SetupComponents()
@@ -307,6 +326,71 @@ public class Enemy_Final_Boss_RailgunBeam : MonoBehaviour
 
         player.DecreaseHP(calculatedDamage);
         Debug.Log($"플레이어가 레일건 빔 {beamIndex}에 맞음! 데미지: {calculatedDamage:F1}");
+
+        // 슬로우 효과 적용
+        ApplySlowEffectToPlayer(player);
+    }
+
+    /// <summary>
+    /// 플레이어에게 슬로우 효과 적용
+    /// </summary>
+    private void ApplySlowEffectToPlayer(Player.Player player)
+    {
+        if (!applySlowEffect || player == null) return;
+
+        // 외부에서 설정된 값이 있으면 우선 사용
+        float finalSlowDuration = externalSlowDuration > 0 ? externalSlowDuration : slowDuration;
+        float finalSlowIntensity = externalSlowIntensity > 0 ? externalSlowIntensity : slowIntensity;
+
+        GameObject playerObj = player.gameObject;
+
+        // 방법 1: Player 스크립트에 ApplySlowEffect 메서드가 있는 경우
+        var slowMethod = player.GetType().GetMethod("ApplySlowEffect");
+        if (slowMethod != null)
+        {
+            slowMethod.Invoke(player, new object[] { finalSlowDuration, finalSlowIntensity });
+            Debug.Log($"레일건 빔 - 플레이어에게 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+            return;
+        }
+
+        // 방법 2: Player Movement 컴포넌트가 있는 경우
+        var movementComponent = playerObj.GetComponent<MonoBehaviour>();
+        if (movementComponent != null)
+        {
+            var moveSlowMethod = movementComponent.GetType().GetMethod("ApplySlowEffect");
+            if (moveSlowMethod != null)
+            {
+                moveSlowMethod.Invoke(movementComponent, new object[] { finalSlowDuration, finalSlowIntensity });
+                Debug.Log($"레일건 빔 - 플레이어 이동에 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+                return;
+            }
+        }
+
+        // 방법 3: 직접 Rigidbody 제어 (임시 방법)
+        var playerRb = playerObj.GetComponent<Rigidbody>();
+        if (playerRb != null)
+        {
+            StartCoroutine(ApplyTemporarySlowEffect(playerRb, finalSlowDuration, finalSlowIntensity));
+            Debug.Log($"레일건 빔 - 플레이어에게 임시 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+        }
+    }
+
+    /// <summary>
+    /// 임시 슬로우 효과 (Rigidbody 직접 제어)
+    /// </summary>
+    private IEnumerator ApplyTemporarySlowEffect(Rigidbody playerRb, float duration, float intensity)
+    {
+        float originalDrag = playerRb.drag;
+        float slowDrag = originalDrag + (intensity * 10f); // 드래그 증가로 슬로우 효과
+
+        playerRb.drag = slowDrag;
+        yield return new WaitForSeconds(duration);
+
+        // Rigidbody가 아직 존재하는지 확인
+        if (playerRb != null)
+        {
+            playerRb.drag = originalDrag;
+        }
     }
 
     private void PlayFireSound()

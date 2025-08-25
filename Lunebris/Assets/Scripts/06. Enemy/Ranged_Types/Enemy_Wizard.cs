@@ -204,6 +204,11 @@ public class Enemy_Wizard : Enemy_Base
             // 메테오 시전 후 일정 시간 뒤에 실제 메테오 생성
             Invoke(nameof(SpawnMeteor), meteorCastTime);
             Invoke(nameof(EndMeteorCasting), meteorCastTime);
+
+            // 메테오가 땅에 떨어질 때까지의 총 시간 계산하여 경고 표시기 파괴 예약
+            float fallTime = meteorHeight / meteorFallSpeed;
+            float totalMeteorTime = meteorCastTime + fallTime;
+            Invoke(nameof(DestroyWarningIndicator), totalMeteorTime);
         }
     }
 
@@ -262,6 +267,19 @@ public class Enemy_Wizard : Enemy_Base
         }
     }
 
+    /// <summary>
+    /// 경고 표시기를 파괴하는 메서드
+    /// </summary>
+    private void DestroyWarningIndicator()
+    {
+        if (currentWarning != null)
+        {
+            Debug.Log($"{enemyName} 메테오 착지! 경고 표시기 파괴");
+            Destroy(currentWarning);
+            currentWarning = null;
+        }
+    }
+
     private void LookAtPlayer()
     {
         if (playerTransform == null) return;
@@ -284,7 +302,6 @@ public class Enemy_Wizard : Enemy_Base
     private void EndMeteorCasting()
     {
         isCastingMeteor = false;
-        currentWarning = null; // 경고 표시기 참조 해제 (메테오가 관리함)
         Debug.Log($"{enemyName} 메테오 시전 완료");
     }
 
@@ -299,6 +316,9 @@ public class Enemy_Wizard : Enemy_Base
         {
             Destroy(currentWarning);
         }
+
+        // 예약된 Invoke 취소
+        CancelInvoke();
     }
 
     private void OnDisable()
@@ -308,6 +328,9 @@ public class Enemy_Wizard : Enemy_Base
         {
             Destroy(currentWarning);
         }
+
+        // 예약된 Invoke 취소
+        CancelInvoke();
     }
 
     #endregion

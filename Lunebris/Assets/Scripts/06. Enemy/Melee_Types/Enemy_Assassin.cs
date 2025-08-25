@@ -17,6 +17,7 @@ public class Enemy_Assassin : Enemy_Base
     [SerializeField] private float dashSpeed = 25f; // 대쉬 속도 (20 → 25로 증가)
     [SerializeField] private float dashCooldown = 4f; // 대쉬 쿨다운
     [SerializeField] private float dashRange = 15f; // 대쉬 사용 가능 범위 (12 → 15로 증가)
+    [SerializeField] private float dashStopDistance = 2f; // 플레이어로부터 이 거리에서 대쉬 중지
     [SerializeField] private float dashPrepareDelay = 0.5f; // 대쉬 전 준비 딜레이
     [SerializeField] private float postDashAttackDelay = 0.2f; // 대쉬 후 공격 딜레이
 
@@ -273,18 +274,6 @@ public class Enemy_Assassin : Enemy_Base
         isDashing = true;
         dashTimer = 0f;
 
-        // 대시 중 플레이어와 충돌 무시
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            Collider playerCollider = player.GetComponent<Collider>();
-            Collider enemyCollider = GetComponent<Collider>();
-            if (playerCollider != null && enemyCollider != null)
-            {
-                Physics.IgnoreCollision(enemyCollider, playerCollider, true);
-            }
-        }
-
         dashStartPosition = transform.position;
         lastDashTime = Time.time;
 
@@ -300,12 +289,23 @@ public class Enemy_Assassin : Enemy_Base
         Invoke(nameof(ResetDashCooldown), dashCooldown);
     }
 
+
+
     /// <summary>
     /// 대쉬 업데이트 (매 프레임)
     /// </summary>
     private void UpdateDash()
     {
         dashTimer += Time.deltaTime;
+
+        // 플레이어와의 거리 체크 - 너무 가까워지면 대쉬 중지
+        float distanceToPlayer = GetDistanceToPlayer();
+        if (distanceToPlayer <= dashStopDistance)
+        {
+            Debug.Log($"{enemyName}: 플레이어 근처에 도착하여 대쉬 중지 (거리: {distanceToPlayer:F1})");
+            EndDash();
+            return;
+        }
 
         // 대쉬 거리 계산
         float dashDuration = dashDistance / dashSpeed;
@@ -491,4 +491,6 @@ public class Enemy_Assassin : Enemy_Base
     {
         return 22; // 대쉬 스킬로 인한 추가 경험치
     }
+
+
 }

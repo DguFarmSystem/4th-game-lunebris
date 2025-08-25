@@ -2,6 +2,7 @@ using UnityEngine;
 using Enemy;
 using System.Collections;
 using System.Collections.Generic;
+using Player;
 
 /// <summary>
 /// 탄환 패턴 종류
@@ -17,7 +18,7 @@ public enum BulletPattern
 }
 
 /// <summary>
-/// 최종보스 - 어둠 모드 (끌어당기기 탄환, 어둠 바닥, 보스 탄환) - 중간보스 패턴 적용
+/// 최종보스 - 어둠 모드 (끌어당기기 탄환, 어둠 바닥, 보스 탄환, 대시, 근거리 공격) - 중간보스 패턴 적용
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Final_Boss_Dark : Enemy_Base
@@ -26,9 +27,9 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     [SerializeField] private GameObject pullBulletPrefab;
     [SerializeField] private float pullBulletSpeed = 10f;
     [SerializeField] private int pullBulletSpawnCount = 16;
-    [SerializeField] private float mapRadius = 20f;
-    [SerializeField] private float pullBulletSpawnInterval = 8f;
-    [SerializeField] private float pullBulletRange = 25f;
+    [SerializeField] private float mapRadius = 15f; // 맵 반경 감소
+    [SerializeField] private float pullBulletSpawnInterval = 10f; // 적절한 간격으로 조정
+    [SerializeField] private float pullBulletRange = 18f; // 범위 감소 (이제 거리 체크에 사용 안됨)
 
     [Header("어둠 바닥")]
     [SerializeField] private GameObject darkFloorHazardPrefab;
@@ -40,8 +41,24 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     [SerializeField] private float bossBulletDamage = 50f;
     [SerializeField] private float bossBulletCooldown = 3f;
     [SerializeField] private int bossBulletCount = 8;
-    [SerializeField] private float bossBulletRange = 15f;
+    [SerializeField] private float bossBulletRange = 10f; // 범위 감소
     [SerializeField] private float bossBulletSpeed = 12f;
+
+    [Header("대시 공격")]
+    [SerializeField] private float dashSpeed = 20f; // 속도 감소
+    [SerializeField] private float dashRange = 8f; // 대시 범위 감소
+    [SerializeField] private float dashDamage = 80f;
+    [SerializeField] private float dashCooldown = 6f;
+    [SerializeField] private float dashDuration = 0.8f; // 대시 시간 감소
+    [SerializeField] private GameObject dashChargeEffect;
+    [SerializeField] private GameObject dashTrailEffect;
+
+    [Header("근거리 공격")]
+    [SerializeField] private float meleeRange = 4f; // 근접 범위 감소
+    [SerializeField] private float meleeDamage = 100f;
+    [SerializeField] private float meleeCooldown = 4f;
+    [SerializeField] private GameObject meleeAttackEffect;
+    [SerializeField] private float meleeAttackRadius = 5f; // 공격 반경 감소
 
     [Header("탄환 패턴 설정")]
     [SerializeField] private BulletPattern[] bulletPatterns;
@@ -55,11 +72,15 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     private bool isCreatingPullBullets = false;
     private bool isCreatingDarkFloor = false;
     private bool isShootingBossBullets = false;
+    private bool isDashing = false;
+    private bool isMeleeAttacking = false;
 
     // 공격 타이밍 관리
     private float lastPullBulletTime = 0f;
     private float lastDarkFloorTime = 0f;
     private float lastBossBulletTime = 0f;
+    private float lastDashTime = 0f;
+    private float lastMeleeTime = 0f;
 
     // 활성 오브젝트 관리
     private List<GameObject> activePullBullets = new();
@@ -70,10 +91,44 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     private BulletPattern currentBulletPattern = BulletPattern.Straight;
     private int consecutiveAttacks = 0;
 
+    // 대시 관련
+    private Vector3 dashStartPosition;
+    private Vector3 dashTargetPosition;
+    private float dashStartTime;
+
+    // Move 스크립트 참조
+    private Enemy_Final_Boss_Dark_Move moveScript;
+
+    // 애니메이터 파라미터 이름들 (상수로 정의)
+    private readonly string ANIM_IS_MOVING = "isMoving";
+    private readonly string ANIM_MOVE_SPEED = "moveSpeed";
+    private readonly string ANIM_IS_DEAD = "isDead";
+    private readonly string ANIM_IS_CREATING_PULL_BULLETS = "isCreatingPullBullets";
+    private readonly string ANIM_IS_CREATING_DARK_FLOOR = "isCreatingDarkFloor";
+    private readonly string ANIM_IS_SHOOTING_BULLETS = "isShootingBullets";
+    private readonly string ANIM_IS_DASHING = "isDashing";
+    private readonly string ANIM_IS_MELEE_ATTACKING = "isMeleeAttacking";
+    private readonly string ANIM_HIT_TRIGGER = "hit";
+    private readonly string ANIM_DIE_TRIGGER = "die";
+    private readonly string ANIM_DASH_ATTACK_TRIGGER = "dashAttack";
+    private readonly string ANIM_MELEE_ATTACK_TRIGGER = "meleeAttack";
+    private readonly string ANIM_BULLET_ATTACK_TRIGGER = "bulletAttack";
+    private readonly string ANIM_PULL_BULLET_CAST_TRIGGER = "pullBulletCast";
+    private readonly string ANIM_DARK_FLOOR_CAST_TRIGGER = "darkFloorCast";
+    private readonly string ANIM_HEALTH_PERCENT = "healthPercent";
+    private readonly string ANIM_ATTACK_INTENSITY = "attackIntensity";
+    private readonly string ANIM_BULLET_PATTERN = "bulletPattern";
+    private readonly string ANIM_CURRENT_PHASE = "currentPhase";
+
+    // 애니메이터 참조
+    private Animator bossAnimator;
+
     // 공개 프로퍼티 (Move 스크립트에서 참조 가능)
     public bool IsCreatingPullBullets => isCreatingPullBullets;
     public bool IsCreatingDarkFloor => isCreatingDarkFloor;
     public bool IsShootingBossBullets => isShootingBossBullets;
+    public bool IsDashing => isDashing;
+    public bool IsMeleeAttacking => isMeleeAttacking;
 
     protected override void Awake()
     {
@@ -81,6 +136,24 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Magical;
         enemyName = "Dark Sovereign";
+
+        moveScript = GetComponent<Enemy_Final_Boss_Dark_Move>();
+        if (moveScript == null)
+        {
+            moveScript = gameObject.AddComponent<Enemy_Final_Boss_Dark_Move>();
+        }
+
+        // 애니메이터 컴포넌트 가져오기
+        bossAnimator = GetComponent<Animator>();
+        if (bossAnimator == null)
+        {
+            bossAnimator = GetComponentInChildren<Animator>();
+        }
+
+        if (bossAnimator == null)
+        {
+            Debug.LogWarning($"{name}: Animator가 없습니다. 애니메이션이 재생되지 않습니다.");
+        }
 
         base.Awake();
     }
@@ -104,8 +177,8 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         // 어둠 바닥 해저드 생성
         CreateDarkFloorHazard();
 
-        // 주기적인 끌어당기기 탄환 시스템 시작
-        pullBulletSpawnRoutine = StartCoroutine(SpawnPullBulletsPeriodically());
+        // 주기적인 끌어당기기 탄환 시스템 비활성화 (수동 생성만 사용)
+        // pullBulletSpawnRoutine = StartCoroutine(SpawnPullBulletsPeriodically());
 
         // 연속 공격 루틴 시작
         StartCoroutine(ContinuousAttackRoutine());
@@ -118,10 +191,15 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         float distanceToPlayer = GetDistanceToPlayer();
 
         // 공격 우선순위 (거리별로 중간보스 패턴 적용)
-        if (distanceToPlayer >= pullBulletRange * 0.8f && CanUsePullBullets())
+        if (distanceToPlayer <= meleeRange && CanUseMeleeAttack())
         {
-            // 원거리에서 끌어당기기 탄환 사용
-            StartCoroutine(CreatePullBulletsAttack());
+            // 근거리에서 근접 공격 사용
+            StartCoroutine(PerformMeleeAttack());
+        }
+        else if (distanceToPlayer <= dashRange && distanceToPlayer > meleeRange && CanUseDash())
+        {
+            // 중거리에서 대시 공격 사용
+            StartCoroutine(PerformDashAttack());
         }
         else if (distanceToPlayer <= bossBulletRange && CanUseBossBullets())
         {
@@ -133,6 +211,12 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             // 어둠 바닥 재생성
             StartCoroutine(RefreshDarkFloorAttack());
         }
+
+        // 끌어당기기 탄환은 거리 상관없이 시간 기반으로만 체크
+        if (CanUsePullBullets())
+        {
+            StartCoroutine(CreatePullBulletsAttack());
+        }
     }
 
     protected override void UpdateMovement()
@@ -143,6 +227,17 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     protected override void PerformAttack()
     {
         // 기본 공격은 사용하지 않음
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        // 주기적으로 애니메이터 파라미터 업데이트
+        if (Time.frameCount % 10 == 0) // 10프레임마다 업데이트
+        {
+            UpdateAnimatorParameters();
+        }
     }
 
     #region 연속 공격 시스템
@@ -167,7 +262,177 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     private bool IsPerformingAnyAttack()
     {
-        return isCreatingPullBullets || isCreatingDarkFloor || isShootingBossBullets;
+        return isCreatingPullBullets || isCreatingDarkFloor || isShootingBossBullets || isDashing || isMeleeAttacking;
+    }
+
+    #endregion
+
+    #region 대시 공격
+
+    private bool CanUseDash()
+    {
+        return Time.time - lastDashTime >= dashCooldown &&
+               !IsPerformingAnyAttack() &&
+               playerTransform != null;
+    }
+
+    private IEnumerator PerformDashAttack()
+    {
+        isDashing = true;
+        lastDashTime = Time.time;
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_DASH_ATTACK_TRIGGER);
+        }
+
+        // 대시 준비 이펙트
+        GameObject chargeEffect = null;
+        if (dashChargeEffect != null)
+        {
+            chargeEffect = Instantiate(dashChargeEffect, transform.position, Quaternion.identity);
+        }
+
+        // 플레이어 위치 계산
+        Vector3 playerPos = playerTransform.position;
+        dashStartPosition = transform.position;
+
+        // 플레이어 뒤쪽으로 대시 (오버슛 감소)
+        Vector3 dashDirection = (playerPos - transform.position).normalized;
+        dashTargetPosition = playerPos + dashDirection * 1.5f; // 오버슛 거리 감소
+        dashTargetPosition.y = transform.position.y; // Y축 고정
+
+        dashStartTime = Time.time;
+
+        yield return new WaitForSeconds(0.8f); // 차지 시간
+
+        if (chargeEffect != null)
+        {
+            Destroy(chargeEffect);
+        }
+
+        // 대시 트레일 이펙트
+        GameObject trailEffect = null;
+        if (dashTrailEffect != null)
+        {
+            trailEffect = Instantiate(dashTrailEffect, transform.position, Quaternion.identity);
+            trailEffect.transform.SetParent(transform);
+        }
+
+        Debug.Log("다크 보스 대시 공격 시작!");
+
+        // 대시 실행
+        yield return StartCoroutine(ExecuteDash());
+
+        if (trailEffect != null)
+        {
+            trailEffect.transform.SetParent(null);
+            Destroy(trailEffect, 2f);
+        }
+
+        isDashing = false;
+        UpdateAnimatorParameters(); // 애니메이터 상태 업데이트
+    }
+
+    private IEnumerator ExecuteDash()
+    {
+        float elapsed = 0f;
+        Vector3 startPos = transform.position;
+
+        while (elapsed < dashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / dashDuration;
+
+            // 빠른 이동 (EaseInOutQuad)
+            float smoothProgress = progress < 0.5f ?
+                2f * progress * progress :
+                -1f + (4f - 2f * progress) * progress;
+
+            transform.position = Vector3.Lerp(startPos, dashTargetPosition, smoothProgress);
+
+            // 대시 중 충돌 체크
+            CheckDashCollision();
+
+            yield return null;
+        }
+
+        transform.position = dashTargetPosition;
+    }
+
+    private void CheckDashCollision()
+    {
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        if (distanceToPlayer <= 2f) // 충돌 거리 감소
+        {
+            // 플레이어에게 데미지 적용
+            var playerComponent = playerTransform.GetComponent<Player.Player>();
+            if (playerComponent != null)
+            {
+                playerComponent.DecreaseHP(dashDamage);
+            }
+
+            Debug.Log($"다크 보스 대시로 플레이어에게 {dashDamage} 데미지!");
+        }
+    }
+
+    #endregion
+
+    #region 근거리 공격
+
+    private bool CanUseMeleeAttack()
+    {
+        return Time.time - lastMeleeTime >= meleeCooldown &&
+               !IsPerformingAnyAttack();
+    }
+
+    private IEnumerator PerformMeleeAttack()
+    {
+        isMeleeAttacking = true;
+        lastMeleeTime = Time.time;
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_MELEE_ATTACK_TRIGGER);
+        }
+
+        // 근접 공격 이펙트
+        if (meleeAttackEffect != null)
+        {
+            GameObject effect = Instantiate(meleeAttackEffect, transform.position, Quaternion.identity);
+            Destroy(effect, 3f);
+        }
+
+        yield return new WaitForSeconds(0.5f); // 공격 준비 시간
+
+        // 범위 내 플레이어 찾기
+        Collider[] hits = Physics.OverlapSphere(transform.position, meleeAttackRadius);
+
+        foreach (Collider hit in hits)
+        {
+            if (hit.CompareTag("Player"))
+            {
+                // Player 컴포넌트를 찾아서 데미지 적용
+                var playerComponent = hit.GetComponent<Player.Player>();
+                if (playerComponent != null)
+                {
+                    playerComponent.DecreaseHP(meleeDamage);
+                }
+
+                Debug.Log($"다크 보스 근접 공격으로 {meleeDamage} 데미지!");
+                break;
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f); // 공격 후 딜레이
+        isMeleeAttacking = false;
+        UpdateAnimatorParameters(); // 애니메이터 상태 업데이트
     }
 
     #endregion
@@ -222,8 +487,9 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region 주기적 끌어당기기 탄환 시스템
+    #region 주기적 끌어당기기 탄환 시스템 (현재 비활성화)
 
+    // 주기적 생성은 비활성화하고 거리 기반 수동 생성만 사용
     private IEnumerator SpawnPullBulletsPeriodically()
     {
         yield return new WaitForSeconds(pullBulletSpawnInterval);
@@ -263,14 +529,23 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     private bool CanUsePullBullets()
     {
-        return Time.time - lastPullBulletTime >= pullBulletSpawnInterval * 0.5f &&
-               !IsPerformingAnyAttack();
+        return Time.time - lastPullBulletTime >= pullBulletSpawnInterval && // 시간 기반으로만 체크
+               !IsPerformingAnyAttack(); // 확률 제한 제거
     }
 
     private IEnumerator CreatePullBulletsAttack()
     {
         isCreatingPullBullets = true;
         lastPullBulletTime = Time.time;
+
+        Debug.Log("다크 보스: 끌어당기기 탄환 공격! (시간 기반 자동 발동)"); // 디버그 로그 수정
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_PULL_BULLET_CAST_TRIGGER);
+        }
 
         // 차지 이펙트
         GameObject chargeEffect = null;
@@ -288,6 +563,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         yield return CreatePullBullets();
         isCreatingPullBullets = false;
+        UpdateAnimatorParameters(); // 애니메이터 상태 업데이트
     }
 
     private IEnumerator CreatePullBullets()
@@ -338,12 +614,20 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isCreatingDarkFloor = true;
         lastDarkFloorTime = Time.time;
 
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_DARK_FLOOR_CAST_TRIGGER);
+        }
+
         yield return new WaitForSeconds(0.5f);
 
         CreateDarkFloorHazard();
 
         yield return new WaitForSeconds(0.5f);
         isCreatingDarkFloor = false;
+        UpdateAnimatorParameters(); // 애니메이터 상태 업데이트
     }
 
     private void CreateDarkFloorHazard()
@@ -390,11 +674,20 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         if (playerTransform == null)
         {
             isShootingBossBullets = false;
+            UpdateAnimatorParameters();
             yield break;
         }
 
         // 패턴 선택 (랜덤하게 변경하거나 연속 공격 횟수에 따라)
         SelectBulletPattern();
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_BULLET_ATTACK_TRIGGER);
+            bossAnimator.SetFloat(ANIM_BULLET_PATTERN, (float)currentBulletPattern); // Float으로 변경
+        }
 
         // 선택된 패턴에 따라 공격 실행
         switch (currentBulletPattern)
@@ -421,6 +714,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         consecutiveAttacks++;
         isShootingBossBullets = false;
+        UpdateAnimatorParameters(); // 애니메이터 상태 업데이트
     }
 
     private void SelectBulletPattern()
@@ -562,15 +856,102 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
+    #endregion
+
+    #region 애니메이터 관리
+
+    /// <summary>
+    /// 모든 애니메이터 파라미터를 현재 상태에 맞게 업데이트
+    /// </summary>
+    private void UpdateAnimatorParameters()
+    {
+        if (bossAnimator == null) return;
+
+        // Bool 파라미터들
+        bossAnimator.SetBool(ANIM_IS_MOVING, moveScript != null && moveScript.IsMoving());
+        bossAnimator.SetBool(ANIM_IS_DEAD, isDead);
+        bossAnimator.SetBool(ANIM_IS_CREATING_PULL_BULLETS, isCreatingPullBullets);
+        bossAnimator.SetBool(ANIM_IS_CREATING_DARK_FLOOR, isCreatingDarkFloor);
+        bossAnimator.SetBool(ANIM_IS_SHOOTING_BULLETS, isShootingBossBullets);
+        bossAnimator.SetBool(ANIM_IS_DASHING, isDashing);
+        bossAnimator.SetBool(ANIM_IS_MELEE_ATTACKING, isMeleeAttacking);
+
+        // Float 파라미터들
+        float currentSpeed = moveScript != null && moveScript.IsMoving() ? 5f : 0f;
+        bossAnimator.SetFloat(ANIM_MOVE_SPEED, currentSpeed);
+
+        float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
+        bossAnimator.SetFloat(ANIM_HEALTH_PERCENT, healthPercent);
+
+        bossAnimator.SetFloat(ANIM_ATTACK_INTENSITY, GetAttackIntensity());
+
+        // 페이즈를 Float으로 대체 (Unity 버전 호환성)
+        bossAnimator.SetFloat(ANIM_CURRENT_PHASE, GetCurrentPhase());
+    }
+
+    /// <summary>
+    /// 현재 페이즈 반환 (체력 기준)
+    /// </summary>
+    private int GetCurrentPhase()
+    {
+        float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
+
+        if (healthPercent > 0.7f) return 1;      // 1페이즈: 70% 이상
+        else if (healthPercent > 0.4f) return 2; // 2페이즈: 40-70%
+        else return 3;                           // 3페이즈: 40% 이하
+    }
+
+    /// <summary>
+    /// 공격 강도 반환 (체력과 연속 공격 기준)
+    /// </summary>
+    private float GetAttackIntensity()
+    {
+        float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
+        float baseIntensity = 1f;
+
+        // 체력이 낮을수록 강도 증가
+        if (healthPercent <= 0.4f) baseIntensity = 3f;      // 분노 모드
+        else if (healthPercent <= 0.7f) baseIntensity = 2f; // 강함
+        else baseIntensity = 1f;                             // 보통
+
+        // 연속 공격 시 강도 증가
+        if (consecutiveAttacks >= 3) baseIntensity += 0.5f;
+
+        return Mathf.Clamp(baseIntensity, 0f, 3f);
+    }
+
+    /// <summary>
+    /// 피격 시 호출되는 메서드 (애니메이션 포함)
+    /// </summary>
+    public override void TakeDamage(float baseDamage, DamageType damageType = DamageType.Physical, ElementType attackerElement = ElementType.Neutral)
+    {
+        if (isDead) return;
+
+        // 기본 피격 처리
+        base.TakeDamage(baseDamage, damageType, attackerElement);
+
+        // 피격 애니메이션
+        if (bossAnimator != null && !isDead)
+        {
+            bossAnimator.SetTrigger(ANIM_HIT_TRIGGER);
+        }
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+    }
+
+    #endregion
+
     #region 정리 및 오버라이드
 
     private void CleanupModeAttacks()
     {
-        if (pullBulletSpawnRoutine != null)
-        {
-            StopCoroutine(pullBulletSpawnRoutine);
-            pullBulletSpawnRoutine = null;
-        }
+        // 주기적 스폰 루틴이 비활성화되어 있으므로 정리할 필요 없음
+        // if (pullBulletSpawnRoutine != null)
+        // {
+        //     StopCoroutine(pullBulletSpawnRoutine);
+        //     pullBulletSpawnRoutine = null;
+        // }
 
         activePullBullets.ForEach(bullet => { if (bullet != null) Destroy(bullet); });
         activePullBullets.Clear();
@@ -588,6 +969,15 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isCreatingPullBullets = false;
         isCreatingDarkFloor = false;
         isShootingBossBullets = false;
+        isDashing = false;
+        isMeleeAttacking = false;
+
+        // 애니메이터 파라미터 업데이트
+        UpdateAnimatorParameters();
+        if (bossAnimator != null)
+        {
+            bossAnimator.SetTrigger(ANIM_DIE_TRIGGER);
+        }
 
         CleanupModeAttacks();
 
@@ -614,7 +1004,10 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     public bool IsPerformingSpecialAttack() => IsPerformingAnyAttack();
 
-    #endregion
+    // Move 스크립트에서 사용할 수 있는 추가 메서드들
+    public float GetDashSpeed() => dashSpeed;
+    public float GetMeleeRange() => meleeRange;
+    public float GetDashRange() => dashRange;
 
     #endregion
 }
