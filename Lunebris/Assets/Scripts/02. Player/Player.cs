@@ -89,14 +89,21 @@ namespace Player
     [DisallowMultipleComponent]
     public class Player : MonoBehaviour
     {
+        [Header("HP UI")]
         [SerializeField] private Slider hpSlider;
         [SerializeField] private TextMeshProUGUI hpTMP;
 
+        [Header("Shield UI")]
+        [SerializeField] private Slider shieldSlider;
+        [SerializeField] private TextMeshProUGUI shieldTMP;
+
+        [Header("EXP UI")]
         [SerializeField] private Slider xpSlider;
         [SerializeField] private TextMeshProUGUI xpTMP;
 
         [SerializeField] private TextMeshProUGUI levelTMP;
 
+       
         private PlayerStat stat;
         private CSVReader csvReader;
         private List<EXPData> expData;
@@ -108,6 +115,11 @@ namespace Player
         private int currentXP;
         private int maxXP;
 
+        //쉴드 관련 변수 추가
+        private float currentShield;
+        private float maxShield = 100f;
+        private GameObject activeShieldVFX;
+
         private void Awake()
         {
             stat = new PlayerStat();
@@ -118,12 +130,16 @@ namespace Player
         private void Start()
         {
             currentHP = stat.Get(StatType.MaxHp);
+            currentShield = 0f;
 
             level = 1;
 
             currentXP = 0;
             maxXP = expData[0].MaxEXP;
             UpdateXP();
+
+            UpdateHP();
+            UpdateShieldUI();
 
             //StartCoroutine(HPRegenRoutine());
         }
@@ -186,19 +202,43 @@ namespace Player
         public void IncreaseHP(float _value)
         {
             currentHP += _value;
+            currentHP = Mathf.Clamp(currentHP, 0, stat.Get(StatType.MaxHp));
             UpdateHP();
         }
-
         public void DecreaseHP(float _value)
         {
-            currentHP -= _value;
+            float damage = _value;
+
+            if (currentShield >= damage)
+            {
+                currentShield -= damage;
+                Debug.Log($"쉴드가 데미지 {damage}를 흡수. 남은 쉴드: {currentShield}");
+            }
+            else
+            {
+                float remainingDamage = damage - currentShield;
+                currentShield = 0;
+                currentHP -= remainingDamage;
+                Debug.Log($"쉴드 파괴! 체력에 {remainingDamage} 데미지.");
+            }
+
+            currentHP = Mathf.Max(currentHP, 0);
+
+            // [추가] 쉴드가 0 이하로 떨어졌고, 활성화된 이펙트가 있다면 파괴
+            if (currentShield <= 0 && activeShieldVFX != null)
+            {
+                Destroy(activeShieldVFX);
+                activeShieldVFX = null; // 참조를 깨끗하게 비워줍니다.
+            }
+
             UpdateHP();
+            UpdateShieldUI();
         }
 
         private void UpdateHP()
         {
-            hpSlider.value = 1 / stat.Get(StatType.MaxHp) * currentHP;
-            hpTMP.text = currentHP.ToString() + " / " + stat.Get(StatType.MaxHp);
+            hpSlider.value = currentHP / stat.Get(StatType.MaxHp);
+            hpTMP.text = $"{currentHP:F0} / {stat.Get(StatType.MaxHp)}";
         }
 
         public void IncreaseXP(int _value)
@@ -316,6 +356,40 @@ namespace Player
 
             levelTMP.text = "Lv." + level.ToString();
         }
+
+        public void AddShield(float _value, GameObject shieldVFXPrefab)
+        {
+            if (currentShield <= 0)
+            {
+                if (activeShieldVFX != null)
+                {
+                    Destroy(activeShieldVFX);
+                }
+
+                // 새로운 쉴드 이펙트 생성 및 저장
+                if (shieldVFXPrefab != null)
+                {
+                    activeShieldVFX = Instantiate(shieldVFXPrefab, this.transform.position, Quaternion.identity, this.transform);
+                }
+            }
+
+            currentShield += _value;
+            currentShield = Mathf.Clamp(currentShield, 0, maxShield);
+            Debug.Log($"쉴드 {_value} 획득! [현재 쉴드: {currentShield}]");
+            UpdateShieldUI();
+        }
+        private void UpdateShieldUI()
+        {
+            if (shieldSlider == null) return;
+            shieldSlider.gameObject.SetActive(currentShield > 0);
+            shieldSlider.maxValue = stat.Get(StatType.MaxHp);
+            shieldSlider.value = currentShield;
+            if (shieldTMP != null)
+            {
+                shieldTMP.text = currentShield > 0 ? $"{currentShield:F0}" : "";
+            }
+        }
+
         #endregion
     }
 }

@@ -503,8 +503,10 @@ public abstract class Enemy_Base : MonoBehaviour
 
         yield return new WaitForSeconds(deathAnimationLength);
 
+        killDetector.UpdateKillPower(GetElementType());
         // 오브젝트 비활성화
         gameObject.SetActive(false);
+        
     }
 
     protected virtual void GiveExperience()

@@ -45,8 +45,8 @@ public class MapController : MonoBehaviour
         // 어둠으로 초기화
         material.color = black;
         skin.material = materials[1];
-        UpdateSkillInterface();
         currentType = ElementType.Tenebris;
+        UpdateSkillInterface();
     }
 
     private void Update()
@@ -77,7 +77,7 @@ public class MapController : MonoBehaviour
             {
                 canConvert = false;
                 StartCoroutine(ConvertMapCoroutine(white, black));  // W2B
-                currentType = ElementType.Lux;
+                currentType = ElementType.Tenebris;
                 UpdateSkillInterface();
                 skin.material = materials[1]; // black skin
                 Debug.Log(GetCurrentAttribute());
@@ -86,7 +86,7 @@ public class MapController : MonoBehaviour
             {
                 canConvert = false;
                 StartCoroutine(ConvertMapCoroutine(black, white));  // B2W
-                currentType = ElementType.Tenebris;
+                currentType = ElementType.Lux;
                 UpdateSkillInterface();
                 skin.material = materials[0]; // white skin
                 Debug.Log(GetCurrentAttribute());
