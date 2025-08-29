@@ -389,7 +389,7 @@ GameObject:
   - component: {fileID: 3292732943077002645}
   - component: {fileID: 100330145415064699}
   m_Layer: 0
-  m_Name: Enemy_Assassin
+  m_Name: Enemy_Assassin_Dark
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -523,7 +523,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyType: 1
-  elementType: 0
+  elementType: 1
   primaryDamageType: 0
   enemyName: Enemy
   hpSlider: {fileID: 9047362814792292198}

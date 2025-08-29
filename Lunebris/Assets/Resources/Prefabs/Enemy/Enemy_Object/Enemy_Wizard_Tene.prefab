@@ -515,7 +515,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyType: 3
-  elementType: 0
+  elementType: 1
   primaryDamageType: 1
   enemyName: Enemy
   hpSlider: {fileID: 2464720421625699430}
