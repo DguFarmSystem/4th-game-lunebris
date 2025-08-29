@@ -6,24 +6,30 @@ using TMPro;
 [DisallowMultipleComponent]
 public class Timer : MonoBehaviour
 {
-    [Header("ÃÑ ½Ã°£(ºÐ)")]
-    [SerializeField] private float time;
+    [Header("Time Limit(Minutes)")]
+    [SerializeField] private float timeLimit;
 
     [Header("Timer TMP")]
     [SerializeField] private TextMeshProUGUI timerTMP;
 
+    [Header("Phase Management")]
+    [SerializeField] private float phaseConvertTime; // Minute
+    [SerializeField] private EnemySpawner enemySpawner;
+
+    // Timer Variables
     private float timer;
+    public float ElapsedTime { get; private set; }
     private bool isStop;
 
     private void Start()
     {
-        time *= 60;
-        timer = time;
+        timeLimit *= 60;    // Convert Minutes to Second
+        timer = timeLimit;  // Init Timer
     }
 
     private void Update()
     {
-        UpdateTimer();
+        UpdateTimer();  // Update Timer
     }
 
     private void UpdateTimer()
@@ -33,6 +39,8 @@ public class Timer : MonoBehaviour
         if (timer > 0f)
         {
             timer -= Time.deltaTime;
+            ElapsedTime += Time.deltaTime;
+
             UpdateTimerTMP();
         }
         else if (timer <= 0f)
@@ -42,6 +50,9 @@ public class Timer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Update TMP
+    /// </summary>
     private void UpdateTimerTMP()
     {
         int minutes = Mathf.FloorToInt(timer / 60f);

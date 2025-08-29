@@ -33,6 +33,9 @@ public class Enemy_Wizard_Meteor : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
 
+        // 플레이어와의 물리적 충돌 방지 설정
+        SetupCollisionSettings();
+
         // 최대 생존 시간 후 자동 파괴
         Destroy(gameObject, lifetime);
     }
@@ -62,6 +65,27 @@ public class Enemy_Wizard_Meteor : MonoBehaviour
 
         // 마법사에서 전달받은 경고 표시기 참조 (메테오가 관리하지 않음)
         warningInstance = warning;
+    }
+
+    /// <summary>
+    /// 플레이어와의 충돌 방지를 위한 설정
+    /// </summary>
+    private void SetupCollisionSettings()
+    {
+        // 플레이어와 물리적 충돌을 방지하기 위해 플레이어 레이어와의 충돌 무시
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            // 메테오와 플레이어 간의 충돌 무시
+            Collider meteorCollider = GetComponent<Collider>();
+            Collider playerCollider = player.GetComponent<Collider>();
+
+            if (meteorCollider != null && playerCollider != null)
+            {
+                Physics.IgnoreCollision(meteorCollider, playerCollider);
+                Debug.Log("메테오와 플레이어 간의 물리적 충돌이 무시되도록 설정됨");
+            }
+        }
     }
 
     private void FallToTarget()
@@ -134,7 +158,7 @@ public class Enemy_Wizard_Meteor : MonoBehaviour
 
         foreach (Collider target in hitTargets)
         {
-            // 플레이어에게 피해
+            // 플레이어에게 피해 (물리적 충돌 없이 데미지만)
             if (target.CompareTag("Player"))
             {
                 var playerScript = target.GetComponent<Player.Player>();
@@ -145,9 +169,9 @@ public class Enemy_Wizard_Meteor : MonoBehaviour
                     float damageMultiplier = Mathf.Clamp01(1f - (distance / damageRadius));
                     float finalDamage = damage * damageMultiplier;
 
-                    // 플레이어 DecreaseHP 메서드 사용
+                    // 플레이어 DecreaseHP 메서드 사용 (물리적 충돌 없이 데미지만 적용)
                     playerScript.DecreaseHP(finalDamage);
-                    Debug.Log($"플레이어에게 메테오 피해: {finalDamage} (거리 배율: {damageMultiplier:F2})");
+                    Debug.Log($"플레이어에게 메테오 피해: {finalDamage} (거리 배율: {damageMultiplier:F2}, 물리적 충돌 없음)");
                 }
             }
 
@@ -180,11 +204,18 @@ public class Enemy_Wizard_Meteor : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // 바닥이나 장애물과 충돌 시 즉시 폭발
+        // 플레이어와는 충돌하지 않음 - 바닥이나 장애물과만 충돌 시 폭발
         if (other.CompareTag("Ground") || other.CompareTag("Wall"))
         {
             targetPosition = transform.position;
             Explode();
+        }
+
+        // 플레이어와의 트리거 충돌도 무시
+        if (other.CompareTag("Player"))
+        {
+            Debug.Log("메테오가 플레이어를 통과함 (물리적 충돌 없음)");
+            return; // 아무것도 하지 않음
         }
     }
 

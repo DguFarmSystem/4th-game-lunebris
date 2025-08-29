@@ -13,16 +13,16 @@ public class EnemyKillDetector : MonoBehaviour
     [SerializeField] private Slider luxPowerSlider;
     [SerializeField] private Slider tenePowerSlider;
 
-    [Header("Power °ü·Ã")]
+    [Header("Power ê´€ë ¨")]
     [SerializeField] private int currentLuxPower;
     [SerializeField] private int currentTenePower;
     [SerializeField] private int maxLuxPower = 100;
     [SerializeField] private int maxTenePower = 100;
 
-    [Header("Å×½ºÆ®¿ë")]
+    [Header("í…ŒìŠ¤íŠ¸ìš©")]
     [SerializeField] private int increment;
 
-    [Header("»óÈ£ÀÛ¿ë °ü·Ã")]
+    [Header("ìƒí˜¸ì‘ìš© ê´€ë ¨")]
     [SerializeField] private AugmentationUI augmentation;
 
     public void UpdateKillPower(ElementType _type)
@@ -31,7 +31,7 @@ public class EnemyKillDetector : MonoBehaviour
         else if (_type == ElementType.Tenebris) IncreaseTenePower();
     }
 
-    private void IncreaseLuxPower()
+    public void IncreaseLuxPower()
     {
         currentLuxPower += increment;
 
@@ -43,10 +43,10 @@ public class EnemyKillDetector : MonoBehaviour
 
         luxPowerSlider.value = (float)currentLuxPower / (float)maxLuxPower;
 
-        Debug.Log("ºû ¿¡³ÊÁö Áõ°¡");
+        Debug.Log("ë¹› ì—ë„ˆì§€ ì¦ê°€");
     }
 
-    private void IncreaseTenePower()
+    public void IncreaseTenePower()
     {
 
     }

@@ -5901,12 +5901,18 @@ MonoBehaviour:
   skillAreaVFX: {fileID: 0}
   hitVFX: {fileID: 0}
   lux1_Radius: 5
+  lux2_ShieldAmount: 100
+  lux2_ShieldVFX_Prefab: {fileID: 0}
   lux3_Range: 20
   lux3_Width: 3
   lux3_MinDamageMultiplier: 0.5
   lux3_VFX_Prefab: {fileID: 0}
   summonPrefab: {fileID: 0}
   summonPoint: {fileID: 0}
+  tenebris1_Radius: 7
+  tenebris1_Duration: 2
+  tenebris1_MaxTargets: 3
+  tenebris1_TickRate: 0.2
 --- !u!114 &564111711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19501,83 +19507,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 740762920526093594, guid: cf9d320d0dbc85a4cac46b26b360d537, type: 3}
   m_PrefabInstance: {fileID: 1840666157}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1848264581
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1312796826648583663, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1312796826648583663, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1312796826648583663, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3899899079770035942, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_Name
-      value: Enemy_Final_Boss_Light
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 52.139267
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 56.46194
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6278620206084464612, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7607870551773340963, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7607870551773340963, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
 --- !u!1 &1850137846
 GameObject:
   m_ObjectHideFlags: 0
@@ -21985,6 +21914,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hpSlider: {fileID: 1074190438}
   hpTMP: {fileID: 580850649}
+  shieldSlider: {fileID: 0}
+  shieldTMP: {fileID: 0}
   xpSlider: {fileID: 932262771}
   xpTMP: {fileID: 1380443165}
   levelTMP: {fileID: 801740838}
@@ -23354,4 +23285,3 @@ SceneRoots:
   - {fileID: 268003531}
   - {fileID: 751122658}
   - {fileID: 1611882116}
-  - {fileID: 1848264581}

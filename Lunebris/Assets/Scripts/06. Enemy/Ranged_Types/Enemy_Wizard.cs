@@ -2,7 +2,7 @@ using UnityEngine;
 using Enemy;
 
 /// <summary>
-/// 마법사 AI 클래스 - Enemy_Base에 상속 (AP형) - 메테오 스킬 추가
+/// 마법사 AI 클래스 - Enemy_Base에 상속 (AP형) - 메테오 스킬 추가 - 사운드 시스템 포함
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Wizard : Enemy_Base
@@ -25,6 +25,19 @@ public class Enemy_Wizard : Enemy_Base
     public int meteorUseCondition = 3;    // 몇 번째 공격마다 메테오 사용
     public GameObject warningIndicator;   // 바닥 경고 표시기 프리팹
 
+    [Header("사운드 효과")]
+    [SerializeField] private AudioSource audioSource; // 오디오 소스
+    [SerializeField] private AudioClip orbCastSound; // 마법 구체 시전 사운드
+    [SerializeField] private AudioClip orbFireSound; // 마법 구체 발사 사운드
+    [SerializeField] private AudioClip meteorCastSound; // 메테오 시전 사운드
+    [SerializeField] private AudioClip meteorWarningSound; // 메테오 경고 사운드
+    [SerializeField] private AudioClip meteorImpactSound; // 메테오 충돌 사운드
+    [SerializeField] private AudioClip hitSound; // 피격 사운드
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // 사운드 볼륨
+    [SerializeField] private bool useRandomPitch = true; // 랜덤 피치 사용 여부
+    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // 최소 피치
+    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // 최대 피치
+
     private float lastAttackTime;
     private float lastMeteorTime;
     private bool isCasting = false;       // 마법 시전 중인지 여부
@@ -46,6 +59,9 @@ public class Enemy_Wizard : Enemy_Base
         // 스탯 시스템 설정
         enemyType = EnemyType.RangedAP;
         primaryDamageType = DamageType.Magical; // AP 드라이버로 마법 데미지
+
+        // AudioSource 자동 설정
+        SetupAudioSource();
 
         // 기본 초기화 로직
         if (castPoint == null)
@@ -96,6 +112,179 @@ public class Enemy_Wizard : Enemy_Base
     protected override void UpdateMovement()
     {
         // 이동은 Enemy_Wizard_Move에서 처리하므로 비어둠
+    }
+
+    protected override void OnDamaged()
+    {
+        // 피격 사운드 재생
+        PlayHitSound();
+
+        // 부모 클래스의 기본 피격 처리
+        base.OnDamaged();
+    }
+
+    #endregion
+
+    #region 사운드 시스템
+
+    /// <summary>
+    /// AudioSource 자동 설정
+    /// </summary>
+    private void SetupAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                Debug.Log($"{enemyName}: AudioSource 컴포넌트를 자동으로 추가했습니다.");
+            }
+        }
+
+        // AudioSource 기본 설정 (마법사는 신비로운 소리)
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.volume = soundVolume;
+            audioSource.spatialBlend = 1f; // 3D 사운드
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.maxDistance = 20f; // 마법사는 중간 범위
+            audioSource.minDistance = 1.5f;
+        }
+    }
+
+    /// <summary>
+    /// 마법 구체 시전 사운드 재생
+    /// </summary>
+    private void PlayOrbCastSound()
+    {
+        if (orbCastSound != null)
+        {
+            PlaySound(orbCastSound);
+            Debug.Log($"{enemyName}: 마법 구체 시전 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 마법 구체 발사 사운드 재생
+    /// </summary>
+    private void PlayOrbFireSound()
+    {
+        if (orbFireSound != null)
+        {
+            PlaySound(orbFireSound);
+            Debug.Log($"{enemyName}: 마법 구체 발사 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 메테오 시전 사운드 재생
+    /// </summary>
+    private void PlayMeteorCastSound()
+    {
+        if (meteorCastSound != null)
+        {
+            PlaySound(meteorCastSound);
+            Debug.Log($"{enemyName}: 메테오 시전 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 메테오 경고 사운드 재생
+    /// </summary>
+    private void PlayMeteorWarningSound()
+    {
+        if (meteorWarningSound != null)
+        {
+            PlaySound(meteorWarningSound);
+            Debug.Log($"{enemyName}: 메테오 경고 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 메테오 충돌 사운드를 특정 위치에서 재생
+    /// </summary>
+    public void PlayMeteorImpactAt(Vector3 position)
+    {
+        if (meteorImpactSound != null)
+        {
+            // 임시 오디오 소스를 해당 위치에 생성
+            GameObject tempAudio = new GameObject("TempMeteorImpactAudio");
+            tempAudio.transform.position = position;
+
+            AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+            tempSource.clip = meteorImpactSound;
+            tempSource.volume = soundVolume;
+            tempSource.spatialBlend = 1f; // 3D 사운드
+            tempSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            tempSource.maxDistance = 30f; // 메테오는 큰 소리
+
+            // 랜덤 피치 적용
+            if (useRandomPitch)
+            {
+                tempSource.pitch = Random.Range(minPitch, maxPitch);
+            }
+            else
+            {
+                tempSource.pitch = 1f;
+            }
+
+            tempSource.Play();
+
+            // 사운드 재생 완료 후 오브젝트 제거
+            Destroy(tempAudio, meteorImpactSound.length + 1f);
+
+            Debug.Log($"{enemyName}: 메테오 충돌 사운드를 위치 {position}에서 재생");
+        }
+    }
+
+    /// <summary>
+    /// 피격 사운드 재생
+    /// </summary>
+    private void PlayHitSound()
+    {
+        if (hitSound != null)
+        {
+            PlaySound(hitSound);
+            Debug.Log($"{enemyName}: 피격 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 사운드 재생 (공통 메서드)
+    /// </summary>
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null) return;
+
+        // 볼륨 설정
+        audioSource.volume = soundVolume;
+
+        // 랜덤 피치 적용 (마법사는 신비로운 음성)
+        if (useRandomPitch)
+        {
+            audioSource.pitch = Random.Range(minPitch, maxPitch);
+        }
+        else
+        {
+            audioSource.pitch = 1f;
+        }
+
+        // 사운드 재생
+        audioSource.PlayOneShot(clip);
+    }
+
+    /// <summary>
+    /// 사운드 즉시 정지
+    /// </summary>
+    private void StopSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     #endregion
@@ -153,8 +342,31 @@ public class Enemy_Wizard : Enemy_Base
             // 시전 시작
             isCasting = true;
 
+            // 마법 구체 시전 사운드 재생
+            PlayOrbCastSound();
+
             // 기본 공격 애니메이션 재생 (Enemy_Base의 attack 파라미터 사용)
             PlayAttackAnimation();
+
+            // 잠시 후 발사 사운드와 함께 구체 생성
+            Invoke(nameof(FireMagicOrb), 0.3f);
+
+            // 일정 시간 후 시전 상태 해제
+            Invoke(nameof(EndCasting), castDuration);
+
+            Debug.Log($"{enemyName} 마법 구체 공격! 마법 데미지: {GetMainDamage()}");
+        }
+    }
+
+    /// <summary>
+    /// 마법 구체 발사 (지연 실행)
+    /// </summary>
+    private void FireMagicOrb()
+    {
+        if (magicOrbPrefab != null && castPoint != null && playerTransform != null)
+        {
+            // 마법 구체 발사 사운드 재생
+            PlayOrbFireSound();
 
             // 마법 구체 복제 생성
             GameObject orb = Instantiate(magicOrbPrefab, castPoint.position, castPoint.rotation);
@@ -167,10 +379,7 @@ public class Enemy_Wizard : Enemy_Base
             // 마법 구체에 스탯 적용
             var orbComponent = orb.GetComponent<Enemy_Wizard_MagicOrb>();
 
-            // 일정 시간 후 시전 상태 해제
-            Invoke(nameof(EndCasting), castDuration);
-
-            Debug.Log($"{enemyName} 마법 구체 공격! 마법 데미지: {GetMainDamage()}");
+            Debug.Log($"{enemyName} 마법 구체 발사!");
         }
     }
 
@@ -184,6 +393,9 @@ public class Enemy_Wizard : Enemy_Base
 
             // 메테오 시전 애니메이션 재생
             PlayCastMeteorAnimation();
+
+            // 메테오 시전 사운드 재생
+            PlayMeteorCastSound();
 
             // 플레이어의 현재 위치를 예측 (시전 시간 + 낙하 시간 고려)
             Vector3 playerVelocity = Vector3.zero;
@@ -204,6 +416,11 @@ public class Enemy_Wizard : Enemy_Base
             // 메테오 시전 후 일정 시간 뒤에 실제 메테오 생성
             Invoke(nameof(SpawnMeteor), meteorCastTime);
             Invoke(nameof(EndMeteorCasting), meteorCastTime);
+
+            // 메테오가 땅에 떨어질 때까지의 총 시간 계산하여 경고 표시기 파괴 예약
+            float fallTime = meteorHeight / meteorFallSpeed;
+            float totalMeteorTime = meteorCastTime + fallTime;
+            Invoke(nameof(DestroyWarningIndicator), totalMeteorTime);
         }
     }
 
@@ -220,6 +437,9 @@ public class Enemy_Wizard : Enemy_Base
             // 바닥에 경고 표시기 생성
             Vector3 warningPos = new Vector3(position.x, position.y + 0.1f, position.z);
             currentWarning = Instantiate(warningIndicator, warningPos, Quaternion.identity);
+
+            // 경고 사운드 재생
+            PlayMeteorWarningSound();
 
             Debug.Log($"경고 표시기 생성: {warningPos}");
         }
@@ -262,6 +482,19 @@ public class Enemy_Wizard : Enemy_Base
         }
     }
 
+    /// <summary>
+    /// 경고 표시기를 파괴하는 메서드
+    /// </summary>
+    private void DestroyWarningIndicator()
+    {
+        if (currentWarning != null)
+        {
+            Debug.Log($"{enemyName} 메테오 착지! 경고 표시기 파괴");
+            Destroy(currentWarning);
+            currentWarning = null;
+        }
+    }
+
     private void LookAtPlayer()
     {
         if (playerTransform == null) return;
@@ -284,7 +517,6 @@ public class Enemy_Wizard : Enemy_Base
     private void EndMeteorCasting()
     {
         isCastingMeteor = false;
-        currentWarning = null; // 경고 표시기 참조 해제 (메테오가 관리함)
         Debug.Log($"{enemyName} 메테오 시전 완료");
     }
 
@@ -299,6 +531,9 @@ public class Enemy_Wizard : Enemy_Base
         {
             Destroy(currentWarning);
         }
+
+        // 예약된 Invoke 취소
+        CancelInvoke();
     }
 
     private void OnDisable()
@@ -308,6 +543,9 @@ public class Enemy_Wizard : Enemy_Base
         {
             Destroy(currentWarning);
         }
+
+        // 예약된 Invoke 취소
+        CancelInvoke();
     }
 
     #endregion

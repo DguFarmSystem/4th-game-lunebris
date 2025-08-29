@@ -21,11 +21,16 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     [SerializeField] private bool destroyOnReturn = true;     // 원점 도달 시 제거
 
     [Header("360도 패턴 설정")]
-    [SerializeField] private int beamCount = 12;             // 360도 안에서 발사할 개수
+    [SerializeField] private int beamCount = 2;             // 360도 안에서 발사할 개수
     [SerializeField] private bool fireAllAtOnce = false;     // true면 모든 방향 동시에 발사
     [SerializeField] private bool rotateWhileFiring = false; // true면 회전하며 순차 발사
     [SerializeField] private float delayBetweenBeams = 0.1f; // 순차 발사 시 지연시간
     [SerializeField] private float rotationSpeed = 60f;      // 회전 속도 (deg/sec)
+
+    [Header("슬로우 효과 설정")]
+    [SerializeField] private bool applySlowEffect = true;
+    [SerializeField] private float slowDuration = 2.5f;
+    [SerializeField] private float slowIntensity = 0.6f; // 60% 속도 감소
 
     private bool isFiring = false;
     private bool isSingleBeam = false;
@@ -42,6 +47,10 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     private Vector3 startPosition;
     private Vector3 targetPosition; // 돌아갈 위치 (보스 위치)
     private float traveledDistance = 0f;
+
+    // 슬로우 효과 설정 (외부에서 설정 가능)
+    private float externalSlowDuration = 0f;
+    private float externalSlowIntensity = 0f;
 
     private void Start()
     {
@@ -155,6 +164,16 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         {
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
         }
+    }
+
+    /// <summary>
+    /// 외부에서 슬로우 효과 설정 (Enemy_Final_Boss_Light에서 호출)
+    /// </summary>
+    public void SetSlowEffect(float duration, float intensity)
+    {
+        externalSlowDuration = duration;
+        externalSlowIntensity = intensity;
+        applySlowEffect = true;
     }
 
     /// <summary>
@@ -275,6 +294,14 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             {
                 beamScript.Initialize(beamDamage, velocity);
             }
+
+            // 슬로우 효과 전달
+            if (applySlowEffect)
+            {
+                float finalSlowDuration = externalSlowDuration > 0 ? externalSlowDuration : slowDuration;
+                float finalSlowIntensity = externalSlowIntensity > 0 ? externalSlowIntensity : slowIntensity;
+                beamScript.SetSlowEffect(finalSlowDuration, finalSlowIntensity);
+            }
         }
     }
 
@@ -378,6 +405,12 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // 보스와 충돌 시 무시 (물리적 밀어내기 방지)
+        if (other.CompareTag("Enemy"))
+        {
+            return; // 아무것도 하지 않음
+        }
+
         // 플레이어와 충돌 시 데미지 처리
         if (other.CompareTag("Player"))
         {
@@ -405,6 +438,9 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
 
                 string phase = isReturning ? "돌아가는 중" : "전진 중";
                 Debug.Log($"360빔이 {phase} 플레이어에게 {finalDamage:F1} {damageType} 데미지를 입혔습니다!");
+
+                // 슬로우 효과 적용
+                ApplySlowEffectToPlayer(playerScript);
             }
 
             // 부메랑 모드가 아니거나, 부메랑 모드에서 전진 중일 때만 제거
@@ -413,6 +449,68 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             {
                 Destroy(gameObject);
             }
+        }
+    }
+
+    /// <summary>
+    /// 플레이어에게 슬로우 효과 적용
+    /// </summary>
+    private void ApplySlowEffectToPlayer(Player.Player player)
+    {
+        if (!applySlowEffect || player == null) return;
+
+        // 외부에서 설정된 값이 있으면 우선 사용
+        float finalSlowDuration = externalSlowDuration > 0 ? externalSlowDuration : slowDuration;
+        float finalSlowIntensity = externalSlowIntensity > 0 ? externalSlowIntensity : slowIntensity;
+
+        GameObject playerObj = player.gameObject;
+
+        // 방법 1: Player 스크립트에 ApplySlowEffect 메서드가 있는 경우
+        var slowMethod = player.GetType().GetMethod("ApplySlowEffect");
+        if (slowMethod != null)
+        {
+            slowMethod.Invoke(player, new object[] { finalSlowDuration, finalSlowIntensity });
+            Debug.Log($"360빔 - 플레이어에게 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+            return;
+        }
+
+        // 방법 2: Player Movement 컴포넌트가 있는 경우
+        var movementComponent = playerObj.GetComponent<MonoBehaviour>();
+        if (movementComponent != null)
+        {
+            var moveSlowMethod = movementComponent.GetType().GetMethod("ApplySlowEffect");
+            if (moveSlowMethod != null)
+            {
+                moveSlowMethod.Invoke(movementComponent, new object[] { finalSlowDuration, finalSlowIntensity });
+                Debug.Log($"360빔 - 플레이어 이동에 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+                return;
+            }
+        }
+
+        // 방법 3: 직접 Rigidbody 제어 (임시 방법)
+        var playerRb = playerObj.GetComponent<Rigidbody>();
+        if (playerRb != null)
+        {
+            StartCoroutine(ApplyTemporarySlowEffect(playerRb, finalSlowDuration, finalSlowIntensity));
+            Debug.Log($"360빔 - 플레이어에게 임시 슬로우 효과 적용: {finalSlowIntensity * 100}% 감속, {finalSlowDuration}초 지속");
+        }
+    }
+
+    /// <summary>
+    /// 임시 슬로우 효과 (Rigidbody 직접 제어)
+    /// </summary>
+    private IEnumerator ApplyTemporarySlowEffect(Rigidbody playerRb, float duration, float intensity)
+    {
+        float originalDrag = playerRb.drag;
+        float slowDrag = originalDrag + (intensity * 10f); // 드래그 증가로 슬로우 효과
+
+        playerRb.drag = slowDrag;
+        yield return new WaitForSeconds(duration);
+
+        // Rigidbody가 아직 존재하는지 확인
+        if (playerRb != null)
+        {
+            playerRb.drag = originalDrag;
         }
     }
 }

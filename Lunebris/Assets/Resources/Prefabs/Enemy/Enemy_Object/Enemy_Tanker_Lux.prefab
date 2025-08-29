@@ -163,7 +163,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 1.42}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &1267104291534085576
@@ -455,7 +455,7 @@ GameObject:
   - component: {fileID: 2743262543321715273}
   m_Layer: 0
   m_Name: Enemy_Tanker_Lux
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -545,7 +545,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -583,19 +583,30 @@ MonoBehaviour:
   hpText: {fileID: 4592513758615363131}
   hpCanvas: {fileID: 1267104291534085576}
   damageText: {fileID: 5196292843300131578}
-  deathEffect: {fileID: 0}
-  deathSound: {fileID: 0}
+  deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
+  deathSound: {fileID: 8300000, guid: 566d2ea6240b489479a6e9fd608c2621, type: 3}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
+  ignoreEnemyCollisions: 1
+  destroyDelay: 2
   attackDuration: 0.5
   meleeAttackCooldown: 2
   slowProjectilePrefab: {fileID: 5858675820620108462, guid: 12ed5d33a65540c43950d2a84f8454d7, type: 3}
+  slowAreaPrefab: {fileID: 0}
   projectileSpawnPoint: {fileID: 3705467904533761725}
   projectileAttackRange: 20
   projectileAttackCooldown: 5
   projectileDelay: 0.5
+  audioSource: {fileID: 0}
+  meleeAttackSound: {fileID: 8300000, guid: ac6034ade498bb94b87620cdf6eac48b, type: 3}
+  projectileAttackSound: {fileID: 8300000, guid: c458b6714dab015479d507b21fd2cead, type: 3}
+  hitSound: {fileID: 0}
+  soundVolume: 0.8
+  useRandomPitch: 1
+  minPitch: 0.8
+  maxPitch: 1
   enableDebugLogs: 1
 --- !u!54 &2743262543321715273
 Rigidbody:
@@ -622,7 +633,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 4
   m_CollisionDetection: 0
 --- !u!1 &8144390659364425823
 GameObject:
@@ -641,7 +652,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &225499174966302999
 RectTransform:
   m_ObjectHideFlags: 0
@@ -992,7 +1003,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2402680229649957767, guid: 1562f7b07c98f1443845d949123bbbd8, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

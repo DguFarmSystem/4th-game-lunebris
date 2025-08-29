@@ -3,7 +3,7 @@ using Enemy;
 using System.Collections;
 
 /// <summary>
-/// 최종보스 - 중립 모드 (오브 관리만) - 중간보스 패턴 적용
+/// 최종보스 - 중립 모드 (오브 관리만) - 오브 재생성 방식으로 변경
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Final_Boss_Neutral : Enemy_Base
@@ -17,7 +17,7 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
     [SerializeField] private float orbSpawnDelay = 1f;
     [SerializeField] private bool spawnOrbsOnStart = true;
 
-    [Header("모드 전환")]
+    [Header("모드 전환 (사용 안함)")]
     [SerializeField] private GameObject lightModeBoss; // 빛 모드 보스 오브젝트
     [SerializeField] private GameObject darkModeBoss;  // 어둠 모드 보스 오브젝트
 
@@ -27,6 +27,10 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
 
     [Header("회전 설정")]
     [SerializeField] private float rotationSpeed = 10f;
+
+    [Header("오브 재생성 설정")]
+    [SerializeField] private float orbRespawnDelay = 3f; // 오브 재생성 딜레이
+    [SerializeField] private bool autoRespawnOrbs = true; // 자동 재생성 여부
 
     // 오브 관리
     private GameObject lightOrb;
@@ -39,6 +43,10 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
     // 쿨다운 관리
     private float orbRespawnCooldown = 5f;
     private float lastOrbCheckTime = 0f;
+
+    // 오브 파괴 시간 추적
+    private float lightOrbDestroyTime = -1f;
+    private float darkOrbDestroyTime = -1f;
 
     // 공개 프로퍼티 (Move 스크립트에서 참조 가능)
     public bool IsTransitioning => isTransitioning;
@@ -61,12 +69,20 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         // 기본 오브 위치 설정
         SetupOrbSpawnPositions();
 
+        Debug.Log($"중립 모드 보스 초기화 - spawnOrbsOnStart: {spawnOrbsOnStart}");
+        Debug.Log($"프리팹 상태 - 라이트: {lightOrbPrefab != null}, 다크: {darkOrbPrefab != null}");
+
         if (spawnOrbsOnStart)
         {
+            Debug.Log("오브 생성 시작!");
             StartCoroutine(SpawnOrbsWithDelay());
         }
+        else
+        {
+            Debug.Log("spawnOrbsOnStart가 false로 설정됨 - 수동으로 RespawnOrbs() 호출 필요");
+        }
 
-        Debug.Log("중립 모드 보스 등장! 구체들만 공격합니다.");
+        Debug.Log("중립 모드 보스 등장! 구체들을 파괴하세요. 구체는 자동으로 재생성됩니다.");
     }
 
     private void SetupOrbSpawnPositions()
@@ -92,11 +108,10 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         // 보스 본체는 천천히 회전만
         transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
 
-        // 주기적으로 오브 상태 체크
-        if (Time.time - lastOrbCheckTime >= orbRespawnCooldown)
+        // 자동 재생성이 활성화되어 있으면 오브 상태 체크
+        if (autoRespawnOrbs)
         {
             CheckAndRespawnOrbs();
-            lastOrbCheckTime = Time.time;
         }
     }
 
@@ -115,14 +130,17 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
     private IEnumerator SpawnOrbsWithDelay()
     {
         isSpawningOrbs = true;
+        Debug.Log("오브 생성 루틴 시작!");
 
-        // 빛 구체 먼저 생성
+        // 빛 구체 먼저 생성 (CanSpawnOrb 체크 건너뛰기)
+        Debug.Log("1초 후 빛 구체 생성...");
         yield return new WaitForSeconds(orbSpawnDelay);
-        SpawnLightOrb();
+        SpawnLightOrb(true); // 강제 생성 플래그
 
-        // 어둠 구체 생성
+        // 어둠 구체 생성 (CanSpawnOrb 체크 건너뛰기)
+        Debug.Log("1초 후 어둠 구체 생성...");
         yield return new WaitForSeconds(orbSpawnDelay);
-        SpawnDarkOrb();
+        SpawnDarkOrb(true); // 강제 생성 플래그
 
         Debug.Log("모든 오브 생성 완료!");
         isSpawningOrbs = false;
@@ -133,14 +151,28 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         return !isTransitioning && !isSpawningOrbs;
     }
 
-    public void SpawnLightOrb()
+    public void SpawnLightOrb(bool forceSpawn = false)
     {
-        if (lightOrb != null) return; // 이미 존재하면 생성하지 않음
+        Debug.Log($"SpawnLightOrb 호출됨 - 기존 오브 존재: {lightOrb != null}, 강제생성: {forceSpawn}");
+
+        if (lightOrb != null)
+        {
+            Debug.Log("이미 라이트 오브가 존재해서 생성하지 않음");
+            return;
+        }
+
+        if (!forceSpawn && !CanSpawnOrb())
+        {
+            Debug.Log($"CanSpawnOrb() 실패 - isTransitioning: {isTransitioning}, isSpawningOrbs: {isSpawningOrbs}");
+            return;
+        }
 
         Vector3 spawnPos = orbSpawnPositions.Length > 0 ? orbSpawnPositions[0] : transform.position + Vector3.left * 8f;
+        Debug.Log($"라이트 오브 스폰 위치: {spawnPos}");
 
         if (lightOrbPrefab != null)
         {
+            Debug.Log("라이트 오브 프리팹으로 생성 시도...");
             lightOrb = Instantiate(lightOrbPrefab, spawnPos, Quaternion.identity);
             Enemy_Final_Boss_LightOrb lightOrbScript = lightOrb.GetComponent<Enemy_Final_Boss_LightOrb>();
 
@@ -153,24 +185,45 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
                     lightOrbScript.SetHealth(100f * orbHealthMultiplier);
                 if (orbSpeedMultiplier != 1f)
                     lightOrbScript.SetMoveSpeed(3f * orbSpeedMultiplier);
+
+                Debug.Log("라이트 오브 프리팹 생성 및 초기화 완료!");
+            }
+            else
+            {
+                Debug.LogWarning("라이트 오브 프리팹에 Enemy_Final_Boss_LightOrb 스크립트가 없음!");
             }
 
             Debug.Log("빛 구체 생성됨!");
         }
         else
         {
+            Debug.Log("라이트 오브 프리팹이 null - 임시 오브 생성");
             CreateTempLightOrb(spawnPos);
         }
     }
 
-    public void SpawnDarkOrb()
+    public void SpawnDarkOrb(bool forceSpawn = false)
     {
-        if (darkOrb != null) return; // 이미 존재하면 생성하지 않음
+        Debug.Log($"SpawnDarkOrb 호출됨 - 기존 오브 존재: {darkOrb != null}, 강제생성: {forceSpawn}");
+
+        if (darkOrb != null)
+        {
+            Debug.Log("이미 다크 오브가 존재해서 생성하지 않음");
+            return;
+        }
+
+        if (!forceSpawn && !CanSpawnOrb())
+        {
+            Debug.Log($"CanSpawnOrb() 실패 - isTransitioning: {isTransitioning}, isSpawningOrbs: {isSpawningOrbs}");
+            return;
+        }
 
         Vector3 spawnPos = orbSpawnPositions.Length > 1 ? orbSpawnPositions[1] : transform.position + Vector3.right * 8f;
+        Debug.Log($"다크 오브 스폰 위치: {spawnPos}");
 
         if (darkOrbPrefab != null)
         {
+            Debug.Log("다크 오브 프리팹으로 생성 시도...");
             darkOrb = Instantiate(darkOrbPrefab, spawnPos, Quaternion.identity);
             Enemy_Final_Boss_DarkOrb darkOrbScript = darkOrb.GetComponent<Enemy_Final_Boss_DarkOrb>();
 
@@ -183,12 +236,19 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
                     darkOrbScript.SetHealth(100f * orbHealthMultiplier);
                 if (orbSpeedMultiplier != 1f)
                     darkOrbScript.SetMoveSpeed(3f * orbSpeedMultiplier);
+
+                Debug.Log("다크 오브 프리팹 생성 및 초기화 완료!");
+            }
+            else
+            {
+                Debug.LogWarning("다크 오브 프리팹에 Enemy_Final_Boss_DarkOrb 스크립트가 없음!");
             }
 
             Debug.Log("어둠 구체 생성됨!");
         }
         else
         {
+            Debug.Log("다크 오브 프리팹이 null - 임시 오브 생성");
             CreateTempDarkOrb(spawnPos);
         }
     }
@@ -207,8 +267,8 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         material.SetColor("_EmissionColor", Color.white * 2f);
         renderer.material = material;
 
-        Enemy_Temp_Orb_Health healthScript = lightOrb.AddComponent<Enemy_Temp_Orb_Health>();
-        healthScript.Initialize(this, 100f * orbHealthMultiplier, true);
+        // 임시 오브는 시각적 효과만 (체력 관리 없음)
+        Debug.Log("임시 빛 구체 생성 (시각적 효과만)");
     }
 
     private void CreateTempDarkOrb(Vector3 position)
@@ -225,23 +285,49 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         material.SetColor("_EmissionColor", Color.red * 2f);
         renderer.material = material;
 
-        Enemy_Temp_Orb_Health healthScript = darkOrb.AddComponent<Enemy_Temp_Orb_Health>();
-        healthScript.Initialize(this, 100f * orbHealthMultiplier, false);
+        // 임시 오브는 시각적 효과만 (체력 관리 없음)
+        Debug.Log("임시 어둠 구체 생성 (시각적 효과만)");
     }
 
     private void CheckAndRespawnOrbs()
     {
-        // 오브들이 모두 파괴되었다면 재생성 (안전장치)
-        if (lightOrb == null && darkOrb == null && !isTransitioning)
+        // 오브 생성 중일 때는 체크하지 않음
+        if (isSpawningOrbs)
         {
-            Debug.Log("모든 오브가 파괴됨! 재생성합니다.");
+            Debug.Log("오브 생성 중이므로 재생성 체크 건너뜀");
+            return;
+        }
+
+        // 라이트 오브 재생성 체크
+        if (lightOrb == null && lightOrbDestroyTime > 0 &&
+            Time.time - lightOrbDestroyTime >= orbRespawnDelay)
+        {
+            Debug.Log("빛 구체 재생성!");
+            SpawnLightOrb();
+            lightOrbDestroyTime = -1f;
+        }
+
+        // 다크 오브 재생성 체크
+        if (darkOrb == null && darkOrbDestroyTime > 0 &&
+            Time.time - darkOrbDestroyTime >= orbRespawnDelay)
+        {
+            Debug.Log("어둠 구체 재생성!");
+            SpawnDarkOrb();
+            darkOrbDestroyTime = -1f;
+        }
+
+        // 모든 오브가 파괴되었고 파괴 시간도 기록되지 않은 경우만 즉시 재생성
+        if (lightOrb == null && darkOrb == null &&
+            lightOrbDestroyTime < 0 && darkOrbDestroyTime < 0)
+        {
+            Debug.Log("모든 오브가 파괴됨! 즉시 재생성합니다.");
             StartCoroutine(SpawnOrbsWithDelay());
         }
     }
 
     #endregion
 
-    #region 오브 파괴 콜백
+    #region 오브 파괴 콜백 (모드 전환)
 
     public void OnLightOrbDestroyed()
     {
@@ -283,7 +369,7 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
 
     private IEnumerator TransitionToMode(GameObject targetBoss, bool isLightMode)
     {
-        Debug.Log($"{(isLightMode ? "빛" : "어둠")} 모드로 전환 중...");
+        Debug.Log($"{(isLightMode ? "빛" : "어둠")} 모드로 수동 전환 중...");
 
         // 전환 이벤트 시간
         yield return new WaitForSeconds(1f);
@@ -380,6 +466,8 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
     public void RespawnOrbs()
     {
         CleanupOrbs();
+        lightOrbDestroyTime = -1f;
+        darkOrbDestroyTime = -1f;
         StartCoroutine(SpawnOrbsWithDelay());
     }
 
@@ -387,13 +475,22 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
     public void RespawnLightOrb()
     {
         if (lightOrb != null) Destroy(lightOrb);
-        SpawnLightOrb();
+        lightOrbDestroyTime = -1f;
+        SpawnLightOrb(); // 기본 호출 (forceSpawn=false)
     }
 
     public void RespawnDarkOrb()
     {
         if (darkOrb != null) Destroy(darkOrb);
-        SpawnDarkOrb();
+        darkOrbDestroyTime = -1f;
+        SpawnDarkOrb(); // 기본 호출 (forceSpawn=false)
+    }
+
+    // 자동 재생성 토글
+    public void SetAutoRespawn(bool enable)
+    {
+        autoRespawnOrbs = enable;
+        Debug.Log($"오브 자동 재생성: {(enable ? "활성화" : "비활성화")}");
     }
 
     #endregion
@@ -407,6 +504,8 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
         public bool darkOrbActive;
         public Vector3 lightOrbPosition;
         public Vector3 darkOrbPosition;
+        public float lightOrbRespawnTime;
+        public float darkOrbRespawnTime;
     }
 
     public OrbStatus GetOrbStatus()
@@ -416,11 +515,29 @@ public class Enemy_Final_Boss_Neutral : Enemy_Base
             lightOrbActive = lightOrb != null,
             darkOrbActive = darkOrb != null,
             lightOrbPosition = lightOrb != null ? lightOrb.transform.position : Vector3.zero,
-            darkOrbPosition = darkOrb != null ? darkOrb.transform.position : Vector3.zero
+            darkOrbPosition = darkOrb != null ? darkOrb.transform.position : Vector3.zero,
+            lightOrbRespawnTime = lightOrbDestroyTime > 0 ? orbRespawnDelay - (Time.time - lightOrbDestroyTime) : -1f,
+            darkOrbRespawnTime = darkOrbDestroyTime > 0 ? orbRespawnDelay - (Time.time - darkOrbDestroyTime) : -1f
         };
     }
 
     public bool IsPerformingSpecialAction() => isTransitioning || isSpawningOrbs;
+
+    // 한방에 죽는 버그 디버깅용
+    public void DebugOrbHealth()
+    {
+        if (lightOrb != null)
+        {
+            Enemy_Final_Boss_LightOrb lightScript = lightOrb.GetComponent<Enemy_Final_Boss_LightOrb>();
+            Debug.Log($"라이트 오브 - 메인 스크립트: {lightScript != null}");
+        }
+
+        if (darkOrb != null)
+        {
+            Enemy_Final_Boss_DarkOrb darkScript = darkOrb.GetComponent<Enemy_Final_Boss_DarkOrb>();
+            Debug.Log($"다크 오브 - 메인 스크립트: {darkScript != null}");
+        }
+    }
 
     #endregion
 

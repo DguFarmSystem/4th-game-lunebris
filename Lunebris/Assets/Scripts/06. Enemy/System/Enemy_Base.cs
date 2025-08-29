@@ -28,6 +28,12 @@ public abstract class Enemy_Base : MonoBehaviour
     [SerializeField] protected bool usePhysicsMovement = true; // Rigidbody 사용 여부
     [SerializeField] protected float enemyRotationSpeed = 5f; // 회전 속도
 
+    [Header("충돌 설정")]
+    [SerializeField] protected bool ignoreEnemyCollisions = true; // Enemy끼리 충돌 무시 여부
+
+    [Header("죽음 처리 설정")]
+    [SerializeField] protected float destroyDelay = 2f; // 죽음 후 삭제까지 딜레이 (효과를 위해)
+
     // 스탯 시스템
     protected EnemyStatSystem enemyStats;
     protected float currentHp;
@@ -114,6 +120,12 @@ public abstract class Enemy_Base : MonoBehaviour
     {
         InitializeEnemy();
         UpdateHpUI();
+
+        // Enemy끼리 충돌 무시 설정 (Start에서 실행 - 모든 Enemy가 생성된 후)
+        if (ignoreEnemyCollisions)
+        {
+            SetupEnemyCollisionIgnoring();
+        }
     }
 
     protected virtual void Update()
@@ -157,6 +169,62 @@ public abstract class Enemy_Base : MonoBehaviour
         Debug.Log($"물리 방어력: {enemyStats.Get(EnemyStatType.PhysicalDefense)}");
         Debug.Log($"마법 방어력: {enemyStats.Get(EnemyStatType.MagicalDefense)}");
         Debug.Log($"이동속도: {enemyStats.Get(EnemyStatType.MoveSpeed)}");
+    }
+
+    #endregion
+
+    #region Enemy 충돌 무시 시스템
+
+    /// <summary>
+    /// 다른 모든 Enemy와의 물리적 충돌을 무시하도록 설정
+    /// </summary>
+    protected virtual void SetupEnemyCollisionIgnoring()
+    {
+        if (enemyCollider == null) return;
+
+        // 현재 씬의 모든 Enemy_Base를 상속받은 오브젝트 찾기
+        Enemy_Base[] allEnemies = FindObjectsOfType<Enemy_Base>();
+
+        foreach (Enemy_Base otherEnemy in allEnemies)
+        {
+            // 자기 자신은 제외
+            if (otherEnemy == this || otherEnemy.enemyCollider == null) continue;
+
+            // 물리적 충돌 무시 설정
+            Physics.IgnoreCollision(enemyCollider, otherEnemy.enemyCollider, true);
+        }
+
+        Debug.Log($"{enemyName}: {allEnemies.Length - 1}개의 다른 Enemy와 충돌 무시 설정 완료");
+    }
+
+    /// <summary>
+    /// 새로 생성된 Enemy와 충돌 무시 설정 (런타임에 Enemy가 스폰될 때 사용)
+    /// </summary>
+    public virtual void IgnoreCollisionWith(Enemy_Base otherEnemy)
+    {
+        if (otherEnemy == null || otherEnemy == this) return;
+        if (enemyCollider == null || otherEnemy.enemyCollider == null) return;
+
+        Physics.IgnoreCollision(enemyCollider, otherEnemy.enemyCollider, true);
+    }
+
+    /// <summary>
+    /// 모든 기존 Enemy들과 새로 생성된 Enemy의 충돌 무시 설정
+    /// (Enemy 스포너에서 호출할 수 있는 정적 메서드)
+    /// </summary>
+    public static void SetupCollisionIgnoringForNewEnemy(Enemy_Base newEnemy)
+    {
+        if (newEnemy == null || newEnemy.enemyCollider == null) return;
+
+        Enemy_Base[] existingEnemies = FindObjectsOfType<Enemy_Base>();
+
+        foreach (Enemy_Base existingEnemy in existingEnemies)
+        {
+            if (existingEnemy != newEnemy && existingEnemy.ignoreEnemyCollisions)
+            {
+                newEnemy.IgnoreCollisionWith(existingEnemy);
+            }
+        }
     }
 
     #endregion
@@ -425,12 +493,10 @@ public abstract class Enemy_Base : MonoBehaviour
         // 사망 효과
         PlayDeathEffects();
 
-        // 일정 시간 후 비활성화 (애니메이션이 끝날 때까지 기다림)
-        StartCoroutine(DeactivateAfterDeathAnimation());
-
+        // 킬 감지기 업데이트
         if (killDetector != null)
         {
-            //killDetector.IncreaseTenePower();
+            killDetector.UpdateKillPower(GetElementType());
         }
     }
 
@@ -453,12 +519,10 @@ public abstract class Enemy_Base : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(deathAnimationLength);
+        // 설정된 딜레이 후 오브젝트 삭제
+        Destroy(gameObject, destroyDelay);
 
-        killDetector.UpdateKillPower(GetElementType());
-        // 오브젝트 비활성화
-        gameObject.SetActive(false);
-        
+        Debug.Log($"{enemyName} 죽음 처리 완료! {destroyDelay}초 후 삭제됩니다.");
     }
 
     protected virtual void GiveExperience()
@@ -598,12 +662,27 @@ public abstract class Enemy_Base : MonoBehaviour
 
     protected virtual void OnTriggerEnter(Collider other)
     {
+        // Enemy 태그인 경우 충돌을 무시 (통과)
+        if (other.CompareTag("Enemy") && ignoreEnemyCollisions)
+        {
+            return; // 아무 작업도 하지 않음
+        }
+
         if (other.CompareTag("Attack"))
         {
             other.gameObject.SetActive(false);
 
             // 플레이어 공격은 기본적으로 물리 데미지로 처리
             TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
+        }
+    }
+
+    protected virtual void OnCollisionEnter(Collision collision)
+    {
+        // Enemy 태그인 경우 물리적 상호작용을 무시
+        if (collision.gameObject.CompareTag("Enemy") && ignoreEnemyCollisions)
+        {
+            return; // 이미 Physics.IgnoreCollision으로 처리되어 있어야 함
         }
     }
 
