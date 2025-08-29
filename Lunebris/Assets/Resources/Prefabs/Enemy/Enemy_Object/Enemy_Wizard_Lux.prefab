@@ -681,12 +681,13 @@ MonoBehaviour:
   hpCanvas: {fileID: 8146026077564149767}
   damageText: {fileID: 5799900247116178635}
   deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
-  deathSound: {fileID: 0}
+  deathSound: {fileID: 8300000, guid: 566d2ea6240b489479a6e9fd608c2621, type: 3}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
   ignoreEnemyCollisions: 1
+  destroyDelay: 2
   magicOrbPrefab: {fileID: 8868267741754983239, guid: 69784a6365d5f504ca1c0a65da01dd32, type: 3}
   meteorPrefab: {fileID: 8273774523043920398, guid: 54d40257b9ddf77479fc65dd532b0f23, type: 3}
   castPoint: {fileID: 8616903191828434406}
@@ -701,6 +702,17 @@ MonoBehaviour:
   meteorDamageRadius: 3
   meteorUseCondition: 3
   warningIndicator: {fileID: 3280519133390621005, guid: a71be3e7990efb040a07565c43cbb198, type: 3}
+  audioSource: {fileID: 0}
+  orbCastSound: {fileID: 0}
+  orbFireSound: {fileID: 0}
+  meteorCastSound: {fileID: 0}
+  meteorWarningSound: {fileID: 0}
+  meteorImpactSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  soundVolume: 0.8
+  useRandomPitch: 1
+  minPitch: 0.9
+  maxPitch: 1.1
 --- !u!114 &8397029853193708091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -939,7 +951,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2045079878988913867
 RectTransform:
   m_ObjectHideFlags: 0

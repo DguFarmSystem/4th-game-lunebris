@@ -31,6 +31,9 @@ public abstract class Enemy_Base : MonoBehaviour
     [Header("충돌 설정")]
     [SerializeField] protected bool ignoreEnemyCollisions = true; // Enemy끼리 충돌 무시 여부
 
+    [Header("죽음 처리 설정")]
+    [SerializeField] protected float destroyDelay = 2f; // 죽음 후 삭제까지 딜레이 (효과를 위해)
+
     // 스탯 시스템
     protected EnemyStatSystem enemyStats;
     protected float currentHp;
@@ -473,40 +476,17 @@ public abstract class Enemy_Base : MonoBehaviour
         // 사망 효과
         PlayDeathEffects();
 
-        // 일정 시간 후 비활성화 (애니메이션이 끝날 때까지 기다림)
-        StartCoroutine(DeactivateAfterDeathAnimation());
-
+        // 킬 감지기 업데이트
         if (killDetector != null)
         {
             killDetector.IncreaseTenePower();
-        }
-    }
-
-    protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
-    {
-        // 죽음 애니메이션 길이만큼 대기
-        float deathAnimationLength = 2f; // 기본값
-
-        if (characterAnimator != null && characterAnimator.runtimeAnimatorController != null)
-        {
-            // 실제 애니메이션 길이 가져오기
-            AnimationClip[] clips = characterAnimator.runtimeAnimatorController.animationClips;
-            foreach (var clip in clips)
-            {
-                if (clip.name.ToLower().Contains("death") || clip.name.ToLower().Contains("die"))
-                {
-                    deathAnimationLength = clip.length;
-                    break;
-                }
-            }
+            killDetector.UpdateKillPower(GetElementType());
         }
 
-        yield return new WaitForSeconds(deathAnimationLength);
+        // 설정된 딜레이 후 오브젝트 삭제
+        Destroy(gameObject, destroyDelay);
 
-        killDetector.UpdateKillPower(GetElementType());
-        // 오브젝트 비활성화
-        gameObject.SetActive(false);
-        
+        Debug.Log($"{enemyName} 죽음 처리 완료! {destroyDelay}초 후 삭제됩니다.");
     }
 
     protected virtual void GiveExperience()

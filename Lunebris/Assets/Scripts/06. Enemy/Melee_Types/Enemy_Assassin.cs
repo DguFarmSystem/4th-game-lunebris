@@ -25,6 +25,17 @@ public class Enemy_Assassin : Enemy_Base
     [SerializeField] private GameObject dashEffect; // 대쉬 이펙트
     [SerializeField] private TrailRenderer dashTrail; // 대쉬 궤적
 
+    [Header("사운드 효과")]
+    [SerializeField] private AudioSource audioSource; // 오디오 소스
+    [SerializeField] private AudioClip attackSound; // 공격 사운드
+    [SerializeField] private AudioClip dashPrepareSound; // 대쉬 준비 사운드
+    [SerializeField] private AudioClip dashExecuteSound; // 대쉬 실행 사운드
+    [SerializeField] private AudioClip dashEndSound; // 대쉬 종료 사운드
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // 사운드 볼륨
+    [SerializeField] private bool useRandomPitch = true; // 랜덤 피치 사용 여부
+    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // 최소 피치
+    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // 최대 피치
+
     // 상태 관리
     private bool isAttacking = false;
     private bool isDashing = false;
@@ -60,6 +71,9 @@ public class Enemy_Assassin : Enemy_Base
         enemyName = "Dash Assassin";
 
         rb = GetComponent<Rigidbody>();
+
+        // AudioSource 자동 설정
+        SetupAudioSource();
 
         base.Awake();
     }
@@ -140,10 +154,127 @@ public class Enemy_Assassin : Enemy_Base
     {
         if (playerScript == null) return;
 
+        // 공격 사운드 재생
+        PlayAttackSound();
+
         // 빠르고 강력한 물리 공격 (암살자 특성)
         DealDamageToPlayer(DamageType.Physical);
         Debug.Log($"{enemyName}: 기습 공격!");
     }
+
+    #region 사운드 시스템
+
+    /// <summary>
+    /// AudioSource 자동 설정
+    /// </summary>
+    private void SetupAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                Debug.Log($"{enemyName}: AudioSource 컴포넌트를 자동으로 추가했습니다.");
+            }
+        }
+
+        // AudioSource 기본 설정
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.volume = soundVolume;
+            audioSource.spatialBlend = 1f; // 3D 사운드
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.maxDistance = 20f;
+        }
+    }
+
+    /// <summary>
+    /// 공격 사운드 재생
+    /// </summary>
+    private void PlayAttackSound()
+    {
+        if (attackSound != null)
+        {
+            PlaySound(attackSound);
+            Debug.Log($"{enemyName}: 공격 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 대쉬 준비 사운드 재생
+    /// </summary>
+    private void PlayDashPrepareSound()
+    {
+        if (dashPrepareSound != null)
+        {
+            PlaySound(dashPrepareSound);
+            Debug.Log($"{enemyName}: 대쉬 준비 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 대쉬 실행 사운드 재생
+    /// </summary>
+    private void PlayDashExecuteSound()
+    {
+        if (dashExecuteSound != null)
+        {
+            PlaySound(dashExecuteSound);
+            Debug.Log($"{enemyName}: 대쉬 실행 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 대쉬 종료 사운드 재생
+    /// </summary>
+    private void PlayDashEndSound()
+    {
+        if (dashEndSound != null)
+        {
+            PlaySound(dashEndSound);
+            Debug.Log($"{enemyName}: 대쉬 종료 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 사운드 재생 (공통 메서드)
+    /// </summary>
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null) return;
+
+        // 볼륨 설정
+        audioSource.volume = soundVolume;
+
+        // 랜덤 피치 적용
+        if (useRandomPitch)
+        {
+            audioSource.pitch = Random.Range(minPitch, maxPitch);
+        }
+        else
+        {
+            audioSource.pitch = 1f;
+        }
+
+        // 사운드 재생
+        audioSource.PlayOneShot(clip);
+    }
+
+    /// <summary>
+    /// 사운드 즉시 정지
+    /// </summary>
+    private void StopSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
+
+    #endregion
 
     #region 대쉬 애니메이션
 
@@ -252,6 +383,9 @@ public class Enemy_Assassin : Enemy_Base
         // 대쉬 준비 애니메이션 재생
         PlayDashPrepareAnimation();
 
+        // 대쉬 준비 사운드 재생
+        PlayDashPrepareSound();
+
         Debug.Log($"{enemyName}: 대쉬 준비 시작! 방향 {dashDirection}");
 
         // 준비 딜레이 후 실제 대쉬 실행
@@ -282,6 +416,9 @@ public class Enemy_Assassin : Enemy_Base
 
         // 대쉬 시작 애니메이션 재생
         PlayDashStartAnimation();
+
+        // 대쉬 실행 사운드 재생
+        PlayDashExecuteSound();
 
         Debug.Log($"{enemyName}: 대쉬 실행! 방향 {dashDirection}");
 
@@ -374,6 +511,9 @@ public class Enemy_Assassin : Enemy_Base
 
         // 대쉬 종료 애니메이션 재생
         PlayDashEndAnimation();
+
+        // 대쉬 종료 사운드 재생
+        PlayDashEndSound();
 
         Debug.Log($"{enemyName}: 대쉬 완료!");
 
@@ -491,6 +631,5 @@ public class Enemy_Assassin : Enemy_Base
     {
         return 22; // 대쉬 스킬로 인한 추가 경험치
     }
-
 
 }

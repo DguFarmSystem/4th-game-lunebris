@@ -124,6 +124,13 @@ MonoBehaviour:
   radius: 3
   duration: 5
   slowAmount: 0.5
+  audioSource: {fileID: 0}
+  explosionSound: {fileID: 8300000, guid: 83829ff414f47a048b5387e4ab33571c, type: 3}
+  enterSound: {fileID: 0}
+  soundVolume: 0.8
+  useRandomPitch: 1
+  minPitch: 0.9
+  maxPitch: 1.1
 --- !u!1001 &8288952340292068551
 PrefabInstance:
   m_ObjectHideFlags: 0

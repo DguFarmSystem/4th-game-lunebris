@@ -46,7 +46,7 @@ public class EnemyKillDetector : MonoBehaviour
         Debug.Log("빛 에너지 증가");
     }
 
-    private void IncreaseTenePower()
+    public void IncreaseTenePower()
     {
 
     }

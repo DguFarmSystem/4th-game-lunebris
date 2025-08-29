@@ -573,7 +573,7 @@ MonoBehaviour:
   hpCanvas: {fileID: 4940158954374202554}
   damageText: {fileID: 0}
   deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
-  deathSound: {fileID: 0}
+  deathSound: {fileID: 8300000, guid: 566d2ea6240b489479a6e9fd608c2621, type: 3}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
