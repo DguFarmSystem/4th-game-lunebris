@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Enemy;
@@ -413,7 +413,7 @@ public abstract class Enemy_Base : MonoBehaviour
 
         if (killDetector != null)
         {
-            killDetector.IncreaseTenePower();
+            killDetector.IncreaseLuxPower();
         }
     }
 
