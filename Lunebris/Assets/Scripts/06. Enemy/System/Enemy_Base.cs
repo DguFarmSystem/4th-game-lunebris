@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Enemy;
@@ -479,8 +479,27 @@ public abstract class Enemy_Base : MonoBehaviour
         // 킬 감지기 업데이트
         if (killDetector != null)
         {
-            killDetector.IncreaseTenePower();
             killDetector.UpdateKillPower(GetElementType());
+        }
+    }
+
+    protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
+    {
+        // 죽음 애니메이션 길이만큼 대기
+        float deathAnimationLength = 2f; // 기본값
+
+        if (characterAnimator != null && characterAnimator.runtimeAnimatorController != null)
+        {
+            // 실제 애니메이션 길이 가져오기
+            AnimationClip[] clips = characterAnimator.runtimeAnimatorController.animationClips;
+            foreach (var clip in clips)
+            {
+                if (clip.name.ToLower().Contains("death") || clip.name.ToLower().Contains("die"))
+                {
+                    deathAnimationLength = clip.length;
+                    break;
+                }
+            }
         }
 
         // 설정된 딜레이 후 오브젝트 삭제
