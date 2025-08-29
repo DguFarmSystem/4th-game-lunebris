@@ -3,76 +3,84 @@ using System.Collections;
 using Enemy;
 
 /// <summary>
-/// ´ë½¬ ½ºÅ³À» °¡Áø ±ÙÁ¢ ¾Ï»ìÀÚ
-/// ºü¸¥ ¼Óµµ·Î ÇÃ·¹ÀÌ¾î¿¡°Ô Á¢±ÙÇØ¼­ ±â½À °ø°İ
+/// ëŒ€ì‰¬ ìŠ¤í‚¬ì„ ê°€ì§„ ê·¼ì ‘ ì•”ì‚´ì
+/// ë¹ ë¥¸ ì†ë„ë¡œ í”Œë ˆì´ì–´ì—ê²Œ ì ‘ê·¼í•´ì„œ ê¸°ìŠµ ê³µê²©
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Assassin : Enemy_Base
 {
-    [Header("±âº» °ø°İ ¼³Á¤")]
-    [SerializeField] private float attackDuration = 0.3f; // °ø°İ Áö¼Ó½Ã°£
+    [Header("ê¸°ë³¸ ê³µê²© ì„¤ì •")]
+    [SerializeField] private float attackDuration = 0.3f; // ê³µê²© ì§€ì†ì‹œê°„
 
-    [Header("´ë½¬ ½ºÅ³ ¼³Á¤")]
-    [SerializeField] private float dashDistance = 12f; // ´ë½¬ °Å¸® (8 ¡æ 12·Î Áõ°¡)
-    [SerializeField] private float dashSpeed = 25f; // ´ë½¬ ¼Óµµ (20 ¡æ 25·Î Áõ°¡)
-    [SerializeField] private float dashCooldown = 4f; // ´ë½¬ Äğ´Ù¿î
-    [SerializeField] private float dashRange = 15f; // ´ë½¬ »ç¿ë °¡´É ¹üÀ§ (12 ¡æ 15·Î Áõ°¡)
-    [SerializeField] private float dashStopDistance = 2f; // ÇÃ·¹ÀÌ¾î·ÎºÎÅÍ ÀÌ °Å¸®¿¡¼­ ´ë½¬ ÁßÁö
-    [SerializeField] private float dashPrepareDelay = 0.5f; // ´ë½¬ Àü ÁØºñ µô·¹ÀÌ
-    [SerializeField] private float postDashAttackDelay = 0.2f; // ´ë½¬ ÈÄ °ø°İ µô·¹ÀÌ
+    [Header("ëŒ€ì‰¬ ìŠ¤í‚¬ ì„¤ì •")]
+    [SerializeField] private float dashDistance = 12f; // ëŒ€ì‰¬ ê±°ë¦¬ (8 â†’ 12ë¡œ ì¦ê°€)
+    [SerializeField] private float dashSpeed = 25f; // ëŒ€ì‰¬ ì†ë„ (20 â†’ 25ë¡œ ì¦ê°€)
+    [SerializeField] private float dashCooldown = 4f; // ëŒ€ì‰¬ ì¿¨ë‹¤ìš´
+    [SerializeField] private float dashRange = 100f; // ëŒ€ì‰¬ ì‚¬ìš© ê°€ëŠ¥ ë²”ìœ„ (12 â†’ 15ë¡œ ì¦ê°€)
+    [SerializeField] private float dashStopDistance = 2f; // í”Œë ˆì´ì–´ë¡œë¶€í„° ì´ ê±°ë¦¬ì—ì„œ ëŒ€ì‰¬ ì¤‘ì§€
+    [SerializeField] private float dashPrepareDelay = 0.5f; // ëŒ€ì‰¬ ì „ ì¤€ë¹„ ë”œë ˆì´
+    [SerializeField] private float postDashAttackDelay = 0.2f; // ëŒ€ì‰¬ í›„ ê³µê²© ë”œë ˆì´
 
-    [Header("½Ã°¢Àû È¿°ú")]
-    [SerializeField] private GameObject dashEffect; // ´ë½¬ ÀÌÆåÆ®
-    [SerializeField] private TrailRenderer dashTrail; // ´ë½¬ ±ËÀû
+    [Header("ëŒ€ì‰¬ ë¬¼ë¦¬ ì„¤ì •")]
+    [SerializeField] private bool ignoreCollisionDuringDash = true; // ëŒ€ì‰¬ ì¤‘ ì¶©ëŒ ë¬´ì‹œ ì—¬ë¶€
+    [SerializeField] private LayerMask dashObstacleLayer = -1; // ëŒ€ì‰¬ ì¤‘ ì¶©ëŒ ì²´í¬í•  ë ˆì´ì–´
 
-    [Header("»ç¿îµå È¿°ú")]
-    [SerializeField] private AudioSource audioSource; // ¿Àµğ¿À ¼Ò½º
-    [SerializeField] private AudioClip attackSound; // °ø°İ »ç¿îµå
-    [SerializeField] private AudioClip dashPrepareSound; // ´ë½¬ ÁØºñ »ç¿îµå
-    [SerializeField] private AudioClip dashExecuteSound; // ´ë½¬ ½ÇÇà »ç¿îµå
-    [SerializeField] private AudioClip dashEndSound; // ´ë½¬ Á¾·á »ç¿îµå
-    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // »ç¿îµå º¼·ı
-    [SerializeField] private bool useRandomPitch = true; // ·£´ı ÇÇÄ¡ »ç¿ë ¿©ºÎ
-    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // ÃÖ¼Ò ÇÇÄ¡
-    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // ÃÖ´ë ÇÇÄ¡
+    [Header("ì‹œê°ì  íš¨ê³¼")]
+    [SerializeField] private GameObject dashEffect; // ëŒ€ì‰¬ ì´í™íŠ¸
+    [SerializeField] private TrailRenderer dashTrail; // ëŒ€ì‰¬ ê¶¤ì 
 
-    // »óÅÂ °ü¸®
+    [Header("ì‚¬ìš´ë“œ íš¨ê³¼")]
+    [SerializeField] private AudioSource audioSource; // ì˜¤ë””ì˜¤ ì†ŒìŠ¤
+    [SerializeField] private AudioClip attackSound; // ê³µê²© ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip dashPrepareSound; // ëŒ€ì‰¬ ì¤€ë¹„ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip dashExecuteSound; // ëŒ€ì‰¬ ì‹¤í–‰ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip dashEndSound; // ëŒ€ì‰¬ ì¢…ë£Œ ì‚¬ìš´ë“œ
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // ì‚¬ìš´ë“œ ë³¼ë¥¨
+    [SerializeField] private bool useRandomPitch = true; // ëœë¤ í”¼ì¹˜ ì‚¬ìš© ì—¬ë¶€
+    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // ìµœì†Œ í”¼ì¹˜
+    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // ìµœëŒ€ í”¼ì¹˜
+
+    // ìƒíƒœ ê´€ë¦¬
     private bool isAttacking = false;
     private bool isDashing = false;
-    private bool isPreparingDash = false; // ´ë½¬ ÁØºñ ÁßÀÎÁö
+    private bool isPreparingDash = false; // ëŒ€ì‰¬ ì¤€ë¹„ ì¤‘ì¸ì§€
     private bool canDash = true;
     private float lastAttackTime;
     private float lastDashTime;
 
-    // ´ë½¬ °ü·Ã
+    // ëŒ€ì‰¬ ê´€ë ¨
     private Vector3 dashDirection;
     private Vector3 dashStartPosition;
+    private Vector3 dashTargetPosition;
     private float dashTimer;
+    private float dashDuration;
     private Rigidbody rb;
+    private Collider[] enemyColliders; // ì¶©ëŒ ë¬´ì‹œë¥¼ ìœ„í•œ ì½œë¼ì´ë”ë“¤
 
-    // ´ë½¬ ¾Ö´Ï¸ŞÀÌ¼Ç ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé
-    private readonly string ANIM_DASH_PREPARE = "prepareDash"; // ´ë½¬ ÁØºñ Æ®¸®°Å
-    private readonly string ANIM_IS_PREPARING_DASH = "isPreparingDash"; // ´ë½¬ ÁØºñ ÁßÀÎÁö
+    // ëŒ€ì‰¬ ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤
+    private readonly string ANIM_DASH_PREPARE = "prepareDash"; // ëŒ€ì‰¬ ì¤€ë¹„ íŠ¸ë¦¬ê±°
+    private readonly string ANIM_IS_PREPARING_DASH = "isPreparingDash"; // ëŒ€ì‰¬ ì¤€ë¹„ ì¤‘ì¸ì§€
     private readonly string ANIM_DASH_TRIGGER = "startDash";
     private readonly string ANIM_IS_DASHING = "isDashing";
     private readonly string ANIM_DASH_END = "endDash";
 
-    // Move ½ºÅ©¸³Æ®¿¡¼­ ÂüÁ¶ÇÒ ¼ö ÀÖ´Â ÇÁ·ÎÆÛÆ¼µé
+    // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì°¸ì¡°í•  ìˆ˜ ìˆëŠ” í”„ë¡œí¼í‹°ë“¤
     public bool IsAttacking => isAttacking;
     public bool IsDashing => isDashing;
     public bool IsPreparingDash => isPreparingDash;
 
     protected override void Awake()
     {
-        // ¾Ï»ìÀÚ ±âº» ¼³Á¤
+        // ì•”ì‚´ì ê¸°ë³¸ ì„¤ì •
         enemyType = EnemyType.MeleeAssassin;
         elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Physical;
         enemyName = "Dash Assassin";
 
         rb = GetComponent<Rigidbody>();
+        enemyColliders = GetComponentsInChildren<Collider>();
 
-        // AudioSource ÀÚµ¿ ¼³Á¤
+        // AudioSource ìë™ ì„¤ì •
         SetupAudioSource();
 
         base.Awake();
@@ -80,10 +88,10 @@ public class Enemy_Assassin : Enemy_Base
 
     protected override void InitializeEnemy()
     {
-        // °ø°İ Áö¼Ó½Ã°£À» °ø°İ¼Óµµ¿¡ µû¶ó Á¶Á¤
+        // ê³µê²© ì§€ì†ì‹œê°„ì„ ê³µê²©ì†ë„ì— ë”°ë¼ ì¡°ì •
         attackDuration = 1f / enemyStats.Get(EnemyStatType.AttackSpeed) * 0.3f;
 
-        // Trail Renderer ¼³Á¤
+        // Trail Renderer ì„¤ì •
         if (dashTrail != null)
         {
             dashTrail.enabled = false;
@@ -94,10 +102,10 @@ public class Enemy_Assassin : Enemy_Base
 
     protected override void UpdateBehavior()
     {
-        // ´ë½¬ ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ¾÷µ¥ÀÌÆ®
+        // ëŒ€ì‰¬ ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì—…ë°ì´íŠ¸
         UpdateDashAnimation();
 
-        // ´ë½¬ ÁßÀÏ ¶§´Â ´Ù¸¥ Çàµ¿ ÇÏÁö ¾ÊÀ½
+        // ëŒ€ì‰¬ ì¤‘ì¼ ë•ŒëŠ” ë‹¤ë¥¸ í–‰ë™ í•˜ì§€ ì•ŠìŒ
         if (isDashing)
         {
             UpdateDash();
@@ -106,66 +114,90 @@ public class Enemy_Assassin : Enemy_Base
 
         if (isPreparingDash)
         {
-            // ÁØºñ Áß¿¡´Â °è¼Ó ¸ØÃã »óÅÂ À¯Áö
+            // ì¤€ë¹„ ì¤‘ì—ëŠ” ê³„ì† ë©ˆì¶¤ ìƒíƒœ ìœ ì§€
             StopMovement();
-            return; // ´ë½¬ ÁØºñ ÁßÀÌ¸é ´Ù¸¥ Çàµ¿ ÇÏÁö ¾ÊÀ½
+            return; // ëŒ€ì‰¬ ì¤€ë¹„ ì¤‘ì´ë©´ ë‹¤ë¥¸ í–‰ë™ í•˜ì§€ ì•ŠìŒ
         }
 
-        // °ø°İ ÁßÀÎÁö Ã¼Å©
+        // ê³µê²© ì¤‘ì¸ì§€ ì²´í¬
         if (isAttacking)
         {
             if (Time.time - lastAttackTime >= attackDuration)
             {
                 isAttacking = false;
-                Debug.Log($"{enemyName}: °ø°İ ¿Ï·á");
+                Debug.Log($"{enemyName}: ê³µê²© ì™„ë£Œ");
             }
-            return; // °ø°İ ÁßÀÌ¸é ´Ù¸¥ Çàµ¿ ÇÏÁö ¾ÊÀ½
+            return; // ê³µê²© ì¤‘ì´ë©´ ë‹¤ë¥¸ í–‰ë™ í•˜ì§€ ì•ŠìŒ
         }
 
         if (playerTransform == null) return;
 
         float distanceToPlayer = GetDistanceToPlayer();
 
-        // 1. ´ë½¬ ¹üÀ§ ³»¸é ´ë½¬ ½Ãµµ
+        // 1. ëŒ€ì‰¬ ë²”ìœ„ ë‚´ë©´ ëŒ€ì‰¬ ì‹œë„
         if (distanceToPlayer <= dashRange && CanUseDash())
         {
             StartDashPrepare();
         }
-        // 2. °ø°İ ¹üÀ§ ³»¸é °ø°İ
+        // 2. ê³µê²© ë²”ìœ„ ë‚´ë©´ ê³µê²©
         else if (IsPlayerInAttackRange())
         {
             TryAttack();
         }
+        // 3. ëŒ€ì‰¬ ë²”ìœ„ ë°–ì´ë©´ ì¼ë°˜ ì¶”ì  (UpdateMovementì—ì„œ ì²˜ë¦¬)
+        // ì´ ë¶€ë¶„ì€ UpdateMovement()ì—ì„œ base.UpdateMovement() í˜¸ì¶œë¡œ ì²˜ë¦¬ë¨
     }
 
     protected override void UpdateMovement()
     {
-        // ´ë½¬ ÁØºñ ÁßÀÌ°Å³ª ´ë½¬ ÁßÀÏ ¶§´Â ¿òÁ÷ÀÓ ¸ØÃã
+        // ëŒ€ì‰¬ ì¤€ë¹„ ì¤‘ì´ê±°ë‚˜ ëŒ€ì‰¬ ì¤‘ì¼ ë•ŒëŠ” ì›€ì§ì„ ë©ˆì¶¤
         if (isPreparingDash || isDashing)
         {
             StopMovement();
             return;
         }
 
-        // ÀÌµ¿Àº Enemy_Assassin_Move¿¡¼­ Ã³¸®ÇÏ°Å³ª ´ë½¬·Î ´ëÃ¼
+        // ê³µê²© ì¤‘ì¼ ë•Œë„ ì›€ì§ì„ ë©ˆì¶¤
+        if (isAttacking)
+        {
+            StopMovement();
+            return;
+        }
+
+        // í”Œë ˆì´ì–´ê°€ ì—†ìœ¼ë©´ ì›€ì§ì´ì§€ ì•ŠìŒ
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = GetDistanceToPlayer();
+
+        // ëŒ€ì‰¬ ë²”ìœ„ ë°–ì´ê³  ê³µê²© ë²”ìœ„ ë°–ì¼ ë•Œë§Œ ì¼ë°˜ ì¶”ì  ì´ë™
+        if (distanceToPlayer > dashRange && !IsPlayerInAttackRange())
+        {
+            // ì¼ë°˜ì ì¸ ì¶”ì  ì´ë™ (ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ê¸°ë³¸ ì´ë™ ì‚¬ìš©)
+            base.UpdateMovement();
+        }
+        else
+        {
+            // ëŒ€ì‰¬ ë²”ìœ„ë‚˜ ê³µê²© ë²”ìœ„ ë‚´ì—ì„œëŠ” ì›€ì§ì„ ì •ì§€ (ëŒ€ê¸°)
+            StopMovement();
+        }
     }
 
     protected override void PerformAttack()
     {
         if (playerScript == null) return;
 
-        // °ø°İ »ç¿îµå Àç»ı
+        // ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
         PlayAttackSound();
 
-        // ºü¸£°í °­·ÂÇÑ ¹°¸® °ø°İ (¾Ï»ìÀÚ Æ¯¼º)
+        // ë¹ ë¥´ê³  ê°•ë ¥í•œ ë¬¼ë¦¬ ê³µê²© (ì•”ì‚´ì íŠ¹ì„±)
         DealDamageToPlayer(DamageType.Physical);
-        Debug.Log($"{enemyName}: ±â½À °ø°İ!");
+        Debug.Log($"{enemyName}: ê¸°ìŠµ ê³µê²©!");
     }
 
-    #region »ç¿îµå ½Ã½ºÅÛ
+    #region ì‚¬ìš´ë“œ ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// AudioSource ÀÚµ¿ ¼³Á¤
+    /// AudioSource ìë™ ì„¤ì •
     /// </summary>
     private void SetupAudioSource()
     {
@@ -176,80 +208,80 @@ public class Enemy_Assassin : Enemy_Base
             if (audioSource == null)
             {
                 audioSource = gameObject.AddComponent<AudioSource>();
-                Debug.Log($"{enemyName}: AudioSource ÄÄÆ÷³ÍÆ®¸¦ ÀÚµ¿À¸·Î Ãß°¡Çß½À´Ï´Ù.");
+                Debug.Log($"{enemyName}: AudioSource ì»´í¬ë„ŒíŠ¸ë¥¼ ìë™ìœ¼ë¡œ ì¶”ê°€í–ˆìŠµë‹ˆë‹¤.");
             }
         }
 
-        // AudioSource ±âº» ¼³Á¤
+        // AudioSource ê¸°ë³¸ ì„¤ì •
         if (audioSource != null)
         {
             audioSource.playOnAwake = false;
             audioSource.volume = soundVolume;
-            audioSource.spatialBlend = 1f; // 3D »ç¿îµå
+            audioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œ
             audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
             audioSource.maxDistance = 20f;
         }
     }
 
     /// <summary>
-    /// °ø°İ »ç¿îµå Àç»ı
+    /// ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayAttackSound()
     {
         if (attackSound != null)
         {
             PlaySound(attackSound);
-            Debug.Log($"{enemyName}: °ø°İ »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ´ë½¬ ÁØºñ »ç¿îµå Àç»ı
+    /// ëŒ€ì‰¬ ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayDashPrepareSound()
     {
         if (dashPrepareSound != null)
         {
             PlaySound(dashPrepareSound);
-            Debug.Log($"{enemyName}: ´ë½¬ ÁØºñ »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ´ë½¬ ½ÇÇà »ç¿îµå Àç»ı
+    /// ëŒ€ì‰¬ ì‹¤í–‰ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayDashExecuteSound()
     {
         if (dashExecuteSound != null)
         {
             PlaySound(dashExecuteSound);
-            Debug.Log($"{enemyName}: ´ë½¬ ½ÇÇà »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì‹¤í–‰ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ´ë½¬ Á¾·á »ç¿îµå Àç»ı
+    /// ëŒ€ì‰¬ ì¢…ë£Œ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayDashEndSound()
     {
         if (dashEndSound != null)
         {
             PlaySound(dashEndSound);
-            Debug.Log($"{enemyName}: ´ë½¬ Á¾·á »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¢…ë£Œ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// »ç¿îµå Àç»ı (°øÅë ¸Ş¼­µå)
+    /// ì‚¬ìš´ë“œ ì¬ìƒ (ê³µí†µ ë©”ì„œë“œ)
     /// </summary>
     private void PlaySound(AudioClip clip)
     {
         if (audioSource == null || clip == null) return;
 
-        // º¼·ı ¼³Á¤
+        // ë³¼ë¥¨ ì„¤ì •
         audioSource.volume = soundVolume;
 
-        // ·£´ı ÇÇÄ¡ Àû¿ë
+        // ëœë¤ í”¼ì¹˜ ì ìš©
         if (useRandomPitch)
         {
             audioSource.pitch = Random.Range(minPitch, maxPitch);
@@ -259,12 +291,12 @@ public class Enemy_Assassin : Enemy_Base
             audioSource.pitch = 1f;
         }
 
-        // »ç¿îµå Àç»ı
+        // ì‚¬ìš´ë“œ ì¬ìƒ
         audioSource.PlayOneShot(clip);
     }
 
     /// <summary>
-    /// »ç¿îµå Áï½Ã Á¤Áö
+    /// ì‚¬ìš´ë“œ ì¦‰ì‹œ ì •ì§€
     /// </summary>
     private void StopSound()
     {
@@ -276,10 +308,10 @@ public class Enemy_Assassin : Enemy_Base
 
     #endregion
 
-    #region ´ë½¬ ¾Ö´Ï¸ŞÀÌ¼Ç
+    #region ëŒ€ì‰¬ ì• ë‹ˆë©”ì´ì…˜
 
     /// <summary>
-    /// ´ë½¬ ÁØºñ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ëŒ€ì‰¬ ì¤€ë¹„ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     private void PlayDashPrepareAnimation()
     {
@@ -287,11 +319,11 @@ public class Enemy_Assassin : Enemy_Base
 
         characterAnimator.SetTrigger(ANIM_DASH_PREPARE);
         characterAnimator.SetBool(ANIM_IS_PREPARING_DASH, true);
-        Debug.Log($"{enemyName}: ´ë½¬ ÁØºñ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¤€ë¹„ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     /// <summary>
-    /// ´ë½¬ ½ÃÀÛ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ëŒ€ì‰¬ ì‹œì‘ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     private void PlayDashStartAnimation()
     {
@@ -300,11 +332,11 @@ public class Enemy_Assassin : Enemy_Base
         characterAnimator.SetBool(ANIM_IS_PREPARING_DASH, false);
         characterAnimator.SetTrigger(ANIM_DASH_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_DASHING, true);
-        Debug.Log($"{enemyName}: ´ë½¬ ½ÃÀÛ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì‹œì‘ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     /// <summary>
-    /// ´ë½¬ Á¾·á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ëŒ€ì‰¬ ì¢…ë£Œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     private void PlayDashEndAnimation()
     {
@@ -312,11 +344,11 @@ public class Enemy_Assassin : Enemy_Base
 
         characterAnimator.SetTrigger(ANIM_DASH_END);
         characterAnimator.SetBool(ANIM_IS_DASHING, false);
-        Debug.Log($"{enemyName}: ´ë½¬ Á¾·á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¢…ë£Œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     /// <summary>
-    /// ´ë½¬ »óÅÂ ¾Ö´Ï¸ŞÀÌ¼Ç ¾÷µ¥ÀÌÆ®
+    /// ëŒ€ì‰¬ ìƒíƒœ ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸
     /// </summary>
     private void UpdateDashAnimation()
     {
@@ -328,10 +360,10 @@ public class Enemy_Assassin : Enemy_Base
 
     #endregion
 
-    #region ´ë½¬ ½Ã½ºÅÛ
+    #region ëŒ€ì‰¬ ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// ÀÏ¹İ °ø°İ ½Ãµµ
+    /// ì¼ë°˜ ê³µê²© ì‹œë„
     /// </summary>
     private void TryAttack()
     {
@@ -344,13 +376,13 @@ public class Enemy_Assassin : Enemy_Base
             PerformAttack();
             lastAttackTime = Time.time;
 
-            // ÀÏÁ¤ ½Ã°£ ÈÄ °ø°İ »óÅÂ ÇØÁ¦
+            // ì¼ì • ì‹œê°„ í›„ ê³µê²© ìƒíƒœ í•´ì œ
             Invoke(nameof(EndAttack), attackDuration);
         }
     }
 
     /// <summary>
-    /// ´ë½¬ ÁØºñ ½ÃÀÛ
+    /// ëŒ€ì‰¬ ì¤€ë¹„ ì‹œì‘
     /// </summary>
     private void StartDashPrepare()
     {
@@ -359,17 +391,17 @@ public class Enemy_Assassin : Enemy_Base
         isPreparingDash = true;
         canDash = false;
 
-        // ÁØºñ Áß¿¡´Â ¿òÁ÷ÀÓ ¸ØÃã
+        // ì¤€ë¹„ ì¤‘ì—ëŠ” ì›€ì§ì„ ë©ˆì¶¤
         StopMovement();
 
-        // ÇÃ·¹ÀÌ¾î ¹æÇâ ¹Ì¸® °è»ê
+        // í”Œë ˆì´ì–´ ë°©í–¥ ë¯¸ë¦¬ ê³„ì‚°
         Vector3 dir = (playerTransform.position - transform.position);
         dir.y = 0f;
 
-        // ¹æÇâÀÌ ³Ê¹« ÀÛÀ¸¸é(°ÅÀÇ °°Àº À§Ä¡) ´ë½¬ Ãë¼Ò
+        // ë°©í–¥ì´ ë„ˆë¬´ ì‘ìœ¼ë©´(ê±°ì˜ ê°™ì€ ìœ„ì¹˜) ëŒ€ì‰¬ ì·¨ì†Œ
         if (dir.magnitude < 0.1f)
         {
-            Debug.Log($"{enemyName}: ÇÃ·¹ÀÌ¾î°¡ ³Ê¹« °¡±î¿ö ´ë½¬ Ãë¼Ò");
+            Debug.Log($"{enemyName}: í”Œë ˆì´ì–´ê°€ ë„ˆë¬´ ê°€ê¹Œì›Œ ëŒ€ì‰¬ ì·¨ì†Œ");
             isPreparingDash = false;
             canDash = true;
             return;
@@ -377,20 +409,20 @@ public class Enemy_Assassin : Enemy_Base
 
         dashDirection = dir.normalized;
 
-        // ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î È¸Àü (ÁØºñ µ¿ÀÛ)
+        // í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ íšŒì „ (ì¤€ë¹„ ë™ì‘)
         transform.LookAt(new Vector3(playerTransform.position.x, transform.position.y, playerTransform.position.z));
 
-        // ´ë½¬ ÁØºñ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ëŒ€ì‰¬ ì¤€ë¹„ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashPrepareAnimation();
 
-        // ´ë½¬ ÁØºñ »ç¿îµå Àç»ı
+        // ëŒ€ì‰¬ ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ
         PlayDashPrepareSound();
 
-        Debug.Log($"{enemyName}: ´ë½¬ ÁØºñ ½ÃÀÛ! ¹æÇâ {dashDirection}");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¤€ë¹„ ì‹œì‘! ë°©í–¥ {dashDirection}");
 
-        // ÁØºñ µô·¹ÀÌ ÈÄ ½ÇÁ¦ ´ë½¬ ½ÇÇà
+        // ì¤€ë¹„ ë”œë ˆì´ í›„ ì‹¤ì œ ëŒ€ì‰¬ ì‹¤í–‰
         DelayAction(dashPrepareDelay, () => {
-            if (isPreparingDash) // ÁØºñ ÁßÀÎ »óÅÂ¿¡¼­¸¸ ´ë½¬ ½ÇÇà
+            if (isPreparingDash) // ì¤€ë¹„ ì¤‘ì¸ ìƒíƒœì—ì„œë§Œ ëŒ€ì‰¬ ì‹¤í–‰
             {
                 ExecuteDash();
             }
@@ -398,7 +430,7 @@ public class Enemy_Assassin : Enemy_Base
     }
 
     /// <summary>
-    /// ½ÇÁ¦ ´ë½¬ ½ÇÇà
+    /// ì‹¤ì œ ëŒ€ì‰¬ ì‹¤í–‰
     /// </summary>
     private void ExecuteDash()
     {
@@ -411,113 +443,125 @@ public class Enemy_Assassin : Enemy_Base
         dashStartPosition = transform.position;
         lastDashTime = Time.time;
 
-        // ½Ã°¢Àû È¿°ú
+        // ëŒ€ì‰¬ ëª©í‘œ ì§€ì  ê³„ì‚°
+        dashTargetPosition = dashStartPosition + (dashDirection * dashDistance);
+        dashDuration = dashDistance / dashSpeed;
+
+        // ëŒ€ì‰¬ ì¤‘ ì¶©ëŒ ì²˜ë¦¬ ì„¤ì •
+        if (ignoreCollisionDuringDash)
+        {
+            SetCollisionIgnore(true);
+        }
+
+        // ì‹œê°ì  íš¨ê³¼
         StartDashEffects();
 
-        // ´ë½¬ ½ÃÀÛ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ëŒ€ì‰¬ ì‹œì‘ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashStartAnimation();
 
-        // ´ë½¬ ½ÇÇà »ç¿îµå Àç»ı
+        // ëŒ€ì‰¬ ì‹¤í–‰ ì‚¬ìš´ë“œ ì¬ìƒ
         PlayDashExecuteSound();
 
-        Debug.Log($"{enemyName}: ´ë½¬ ½ÇÇà! ¹æÇâ {dashDirection}");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì‹¤í–‰! ì‹œì‘: {dashStartPosition}, ëª©í‘œ: {dashTargetPosition}");
 
-        // ´ë½¬ Äğ´Ù¿î ½ÃÀÛ
+        // ëŒ€ì‰¬ ì¿¨ë‹¤ìš´ ì‹œì‘
         Invoke(nameof(ResetDashCooldown), dashCooldown);
     }
 
-
-
     /// <summary>
-    /// ´ë½¬ ¾÷µ¥ÀÌÆ® (¸Å ÇÁ·¹ÀÓ)
+    /// ëŒ€ì‰¬ ì—…ë°ì´íŠ¸ (ë§¤ í”„ë ˆì„) - Transform ê¸°ë°˜
     /// </summary>
     private void UpdateDash()
     {
         dashTimer += Time.deltaTime;
 
-        // ÇÃ·¹ÀÌ¾î¿ÍÀÇ °Å¸® Ã¼Å© - ³Ê¹« °¡±î¿öÁö¸é ´ë½¬ ÁßÁö
+        // í”Œë ˆì´ì–´ì™€ì˜ ê±°ë¦¬ ì²´í¬ - ë„ˆë¬´ ê°€ê¹Œì›Œì§€ë©´ ëŒ€ì‰¬ ì¤‘ì§€
         float distanceToPlayer = GetDistanceToPlayer();
         if (distanceToPlayer <= dashStopDistance)
         {
-            Debug.Log($"{enemyName}: ÇÃ·¹ÀÌ¾î ±ÙÃ³¿¡ µµÂøÇÏ¿© ´ë½¬ ÁßÁö (°Å¸®: {distanceToPlayer:F1})");
+            Debug.Log($"{enemyName}: í”Œë ˆì´ì–´ ê·¼ì²˜ì— ë„ì°©í•˜ì—¬ ëŒ€ì‰¬ ì¤‘ì§€ (ê±°ë¦¬: {distanceToPlayer:F1})");
             EndDash();
             return;
         }
 
-        // ´ë½¬ °Å¸® °è»ê
-        float dashDuration = dashDistance / dashSpeed;
-
+        // ëŒ€ì‰¬ ì™„ë£Œ ì²´í¬
         if (dashTimer >= dashDuration)
         {
-            // ´ë½¬ ¿Ï·á
+            // ëŒ€ì‰¬ ì™„ë£Œ
             EndDash();
             return;
         }
 
-        // ´ë½¬ ÀÌµ¿
-        Vector3 dashVelocity = dashDirection * dashSpeed;
+        // Transform ê¸°ë°˜ ì´ë™ - ì„ í˜• ë³´ê°„ ì‚¬ìš©
+        float progress = dashTimer / dashDuration;
+        Vector3 currentPosition = Vector3.Lerp(dashStartPosition, dashTargetPosition, progress);
 
-        bool moved = false;
-
-        if (rb != null && !rb.isKinematic && !rb.constraints.HasFlag(RigidbodyConstraints.FreezePositionX) && !rb.constraints.HasFlag(RigidbodyConstraints.FreezePositionZ))
+        // ì¥ì• ë¬¼ ì²´í¬ (ì˜µì…˜)
+        if (CheckDashPath(currentPosition))
         {
-            rb.velocity = new Vector3(dashVelocity.x, rb.velocity.y, dashVelocity.z);
-            moved = true;
+            transform.position = currentPosition;
         }
-
-        // Rigidbody·Î ¾È ¿òÁ÷¿´´Ù¸é Transform Á÷Á¢ ÀÌµ¿
-        if (!moved)
+        else
         {
-            transform.position += dashVelocity * Time.deltaTime;
+            // ì¥ì• ë¬¼ì— ë§‰í˜”ì„ ë•Œ ëŒ€ì‰¬ ì¢…ë£Œ
+            Debug.Log($"{enemyName}: ì¥ì• ë¬¼ì— ë§‰í˜€ ëŒ€ì‰¬ ì¤‘ë‹¨");
+            EndDash();
         }
-
-        // Àå¾Ö¹° Ãæµ¹ Ã¼Å© (¿É¼Ç) - µğ¹ö±×¿ëÀ¸·Î ºñÈ°¼ºÈ­
-        // CheckDashCollision();
     }
 
     /// <summary>
-    /// ´ë½¬ Áß Ãæµ¹ Ã¼Å©
+    /// ëŒ€ì‰¬ ê²½ë¡œ ì¥ì• ë¬¼ ì²´í¬
     /// </summary>
-    private void CheckDashCollision()
+    private bool CheckDashPath(Vector3 targetPosition)
     {
-        // ¾ÕÂÊ¿¡ Àå¾Ö¹°ÀÌ ÀÖÀ¸¸é ´ë½¬ Áß´Ü
-        float checkDistance = 1f;
-        RaycastHit hit;
+        // í˜„ì¬ ìœ„ì¹˜ì—ì„œ ëª©í‘œ ìœ„ì¹˜ë¡œì˜ ê²½ë¡œì— ì¥ì• ë¬¼ì´ ìˆëŠ”ì§€ ì²´í¬
+        Vector3 direction = (targetPosition - transform.position).normalized;
+        float distance = Vector3.Distance(transform.position, targetPosition);
 
-        if (Physics.Raycast(transform.position, dashDirection, out hit, checkDistance))
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, direction, out hit, distance, dashObstacleLayer))
         {
+            // ë²½ì´ë‚˜ ì¥ì• ë¬¼ì— ì¶©ëŒí•˜ë©´ false ë°˜í™˜
             if (hit.collider.CompareTag("Wall") || hit.collider.CompareTag("Obstacle"))
             {
-                EndDash();
+                return false;
             }
         }
+
+        return true;
     }
 
     /// <summary>
-    /// ´ë½¬ Á¾·á
+    /// ëŒ€ì‰¬ ì¢…ë£Œ
     /// </summary>
     private void EndDash()
     {
         isDashing = false;
 
-        // ¼Óµµ ÃÊ±âÈ­
+        // ì†ë„ ì´ˆê¸°í™”
         if (rb != null)
         {
             rb.velocity = Vector3.zero;
         }
 
-        // ½Ã°¢Àû È¿°ú Á¾·á
+        // ì¶©ëŒ ì„¤ì • ë³µêµ¬
+        if (ignoreCollisionDuringDash)
+        {
+            SetCollisionIgnore(false);
+        }
+
+        // ì‹œê°ì  íš¨ê³¼ ì¢…ë£Œ
         EndDashEffects();
 
-        // ´ë½¬ Á¾·á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ëŒ€ì‰¬ ì¢…ë£Œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashEndAnimation();
 
-        // ´ë½¬ Á¾·á »ç¿îµå Àç»ı
+        // ëŒ€ì‰¬ ì¢…ë£Œ ì‚¬ìš´ë“œ ì¬ìƒ
         PlayDashEndSound();
 
-        Debug.Log($"{enemyName}: ´ë½¬ ¿Ï·á!");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì™„ë£Œ! ìµœì¢… ìœ„ì¹˜: {transform.position}");
 
-        // ´ë½¬ ÈÄ Àá±ñ µô·¹ÀÌ ÈÄ °ø°İ °¡´É
+        // ëŒ€ì‰¬ í›„ ì ê¹ ë”œë ˆì´ í›„ ê³µê²© ê°€ëŠ¥
         DelayAction(postDashAttackDelay, () => {
             if (IsPlayerInAttackRange())
             {
@@ -527,21 +571,23 @@ public class Enemy_Assassin : Enemy_Base
     }
 
     /// <summary>
-    /// ´ë½¬ ÈÄ µô·¹ÀÌ (±âÁ¸ ÄÚ·çÆ¾ ´ë½Å DelayAction »ç¿ë)
+    /// ì¶©ëŒ ë¬´ì‹œ ì„¤ì • (ë‹¤ë¥¸ ì ê³¼ì˜ ì¶©ëŒ ë°©ì§€)
     /// </summary>
-    private IEnumerator PostDashDelay()
+    private void SetCollisionIgnore(bool ignore)
     {
-        yield return new WaitForSeconds(postDashAttackDelay);
+        if (enemyColliders == null) return;
 
-        // ´ë½¬ ÈÄ ÇÃ·¹ÀÌ¾î°¡ °ø°İ ¹üÀ§¿¡ ÀÖÀ¸¸é Áï½Ã °ø°İ
-        if (IsPlayerInAttackRange())
+        foreach (Collider col in enemyColliders)
         {
-            TryAttack();
+            if (col != null)
+            {
+                col.isTrigger = ignore;
+            }
         }
     }
 
     /// <summary>
-    /// ´ë½¬ »ç¿ë °¡´É ¿©ºÎ
+    /// ëŒ€ì‰¬ ì‚¬ìš© ê°€ëŠ¥ ì—¬ë¶€
     /// </summary>
     private bool CanUseDash()
     {
@@ -549,16 +595,16 @@ public class Enemy_Assassin : Enemy_Base
     }
 
     /// <summary>
-    /// ´ë½¬ Äğ´Ù¿î ¸®¼Â
+    /// ëŒ€ì‰¬ ì¿¨ë‹¤ìš´ ë¦¬ì…‹
     /// </summary>
     private void ResetDashCooldown()
     {
         canDash = true;
-        Debug.Log($"{enemyName}: ´ë½¬ Äğ´Ù¿î ¿Ï·á!");
+        Debug.Log($"{enemyName}: ëŒ€ì‰¬ ì¿¨ë‹¤ìš´ ì™„ë£Œ!");
     }
 
     /// <summary>
-    /// ¿òÁ÷ÀÓ ¿ÏÀüÈ÷ ¸ØÃã
+    /// ì›€ì§ì„ ì™„ì „íˆ ë©ˆì¶¤
     /// </summary>
     private void StopMovement()
     {
@@ -570,7 +616,7 @@ public class Enemy_Assassin : Enemy_Base
     }
 
     /// <summary>
-    /// µô·¹ÀÌ ¾×¼Ç (°£´ÜÇÑ µô·¹ÀÌ À¯Æ¿¸®Æ¼)
+    /// ë”œë ˆì´ ì•¡ì…˜ (ê°„ë‹¨í•œ ë”œë ˆì´ ìœ í‹¸ë¦¬í‹°)
     /// </summary>
     private void DelayAction(float delay, System.Action action)
     {
@@ -585,14 +631,14 @@ public class Enemy_Assassin : Enemy_Base
 
     #endregion
 
-    #region ½Ã°¢Àû È¿°ú
+    #region ì‹œê°ì  íš¨ê³¼
 
     /// <summary>
-    /// ´ë½¬ ½Ã°¢Àû È¿°ú ½ÃÀÛ
+    /// ëŒ€ì‰¬ ì‹œê°ì  íš¨ê³¼ ì‹œì‘
     /// </summary>
     private void StartDashEffects()
     {
-        // ´ë½¬ ÀÌÆåÆ® »ı¼º
+        // ëŒ€ì‰¬ ì´í™íŠ¸ ìƒì„±
         if (dashEffect != null)
         {
             GameObject effect = Instantiate(dashEffect, transform.position, Quaternion.LookRotation(dashDirection));
@@ -600,7 +646,7 @@ public class Enemy_Assassin : Enemy_Base
             Destroy(effect, 1f);
         }
 
-        // Trail Renderer È°¼ºÈ­
+        // Trail Renderer í™œì„±í™”
         if (dashTrail != null)
         {
             dashTrail.enabled = true;
@@ -609,11 +655,11 @@ public class Enemy_Assassin : Enemy_Base
     }
 
     /// <summary>
-    /// ´ë½¬ ½Ã°¢Àû È¿°ú Á¾·á
+    /// ëŒ€ì‰¬ ì‹œê°ì  íš¨ê³¼ ì¢…ë£Œ
     /// </summary>
     private void EndDashEffects()
     {
-        // Trail Renderer ºñÈ°¼ºÈ­
+        // Trail Renderer ë¹„í™œì„±í™”
         if (dashTrail != null)
         {
             dashTrail.enabled = false;
@@ -629,7 +675,6 @@ public class Enemy_Assassin : Enemy_Base
 
     protected override int GetExperienceReward()
     {
-        return 22; // ´ë½¬ ½ºÅ³·Î ÀÎÇÑ Ãß°¡ °æÇèÄ¡
+        return 22; // ëŒ€ì‰¬ ìŠ¤í‚¬ë¡œ ì¸í•œ ì¶”ê°€ ê²½í—˜ì¹˜
     }
-
 }

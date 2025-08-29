@@ -14607,10 +14607,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 84
   m_CollisionDetection: 0
 --- !u!136 &1294921072
 CapsuleCollider:
@@ -22719,12 +22719,12 @@ MonoBehaviour:
   prefabs:
   - {fileID: 5940234919087153102, guid: d5f87bb6b80801348b98102703ff1d02, type: 3}
   - {fileID: 5940234919087153102, guid: 200f41953998b9c41b24b7465b6e9baa, type: 3}
-  - {fileID: 6510439126391241654, guid: 8224e41150c6df442bd912f4a1a032c5, type: 3}
-  - {fileID: 7385244281545256526, guid: a0c8a9d20580c194bb5c1e8fdc321188, type: 3}
+  - {fileID: 3515715535688806566, guid: 8224e41150c6df442bd912f4a1a032c5, type: 3}
+  - {fileID: 4400830932718545876, guid: a0c8a9d20580c194bb5c1e8fdc321188, type: 3}
   - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
-  - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
+  - {fileID: 4329333406243338668, guid: a2a66b20ccc804a40bd9bace197f1e51, type: 3}
   - {fileID: 3622652429097495255, guid: fe18b59de3a1af148a8b98d18df5fa87, type: 3}
-  - {fileID: 1685836091229231265, guid: 0c62d676bc5c69349a9ef207a614ce5a, type: 3}
+  - {fileID: 4029942277676317784, guid: 0c62d676bc5c69349a9ef207a614ce5a, type: 3}
 --- !u!4 &1917614964
 Transform:
   m_ObjectHideFlags: 0

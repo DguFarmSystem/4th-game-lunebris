@@ -542,10 +542,14 @@ MonoBehaviour:
   dashDistance: 8
   dashSpeed: 20
   dashCooldown: 4
-  dashRange: 12
+  dashRange: 15
   dashStopDistance: 2
   dashPrepareDelay: 0.5
   postDashAttackDelay: 0.2
+  ignoreCollisionDuringDash: 1
+  dashObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
   dashEffect: {fileID: 0}
   dashTrail: {fileID: 0}
   audioSource: {fileID: 0}

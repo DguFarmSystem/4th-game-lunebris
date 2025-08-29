@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1864178119420739903}
   - component: {fileID: 2376177586289632775}
   m_Layer: 0
-  m_Name: Enemy_Tanker_SlowArea
+  m_Name: Enemy_Tanker_SlowArea_Tene
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33,7 +33,7 @@ Transform:
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 5647920585323425643}
+  - {fileID: 6760471305856283836}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &861588285330282213
@@ -131,7 +131,7 @@ MonoBehaviour:
   useRandomPitch: 1
   minPitch: 0.9
   maxPitch: 1.1
---- !u!1001 &8288952340292068551
+--- !u!1001 &6970221130600234768
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -212,8 +212,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
---- !u!4 &5647920585323425643 stripped
+--- !u!4 &6760471305856283836 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4425129568584715180, guid: bbeeb0ddc21369746aaaae5c5c1c09cf, type: 3}
-  m_PrefabInstance: {fileID: 8288952340292068551}
+  m_PrefabInstance: {fileID: 6970221130600234768}
   m_PrefabAsset: {fileID: 0}

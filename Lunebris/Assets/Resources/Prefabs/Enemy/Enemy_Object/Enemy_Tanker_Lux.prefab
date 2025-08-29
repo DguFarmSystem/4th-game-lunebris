@@ -593,7 +593,7 @@ MonoBehaviour:
   destroyDelay: 2
   attackDuration: 0.5
   meleeAttackCooldown: 2
-  slowProjectilePrefab: {fileID: 5858675820620108462, guid: 12ed5d33a65540c43950d2a84f8454d7, type: 3}
+  slowProjectilePrefab: {fileID: 5858675820620108462, guid: 46c36b5b36368c64ebe3c6c998006bb8, type: 3}
   slowAreaPrefab: {fileID: 0}
   projectileSpawnPoint: {fileID: 3705467904533761725}
   projectileAttackRange: 20

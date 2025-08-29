@@ -171,7 +171,7 @@ Transform:
   m_GameObject: {fileID: 3515715535688806566}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 56, y: 1.45, z: 56.4}
+  m_LocalPosition: {x: 56, y: 0, z: 56.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -307,7 +307,7 @@ MonoBehaviour:
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
   ignoreEnemyCollisions: 1
-  destroyDelay: 2
+  destroyDelay: 0.5
   bulletPrefab: {fileID: 3199271071223229155, guid: 87716ae45e4e1e44289c70e0ea032531, type: 3}
   firePoint: {fileID: 782157131679986648}
   attackRange: 15
@@ -899,7 +899,7 @@ Transform:
   m_GameObject: {fileID: 8856969360161136762}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 0.1, y: 1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
