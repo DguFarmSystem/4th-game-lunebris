@@ -4374,8 +4374,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pool: {fileID: 1917614963}
-  timer: {fileID: 0}
-  enemyPrefabID: 1
+  timer: {fileID: 1618951683}
+  middleBoosPrefabID: 8
+  finalBossPrefabID: 0
   spawnPoints:
   - {fileID: 1968337514}
   - {fileID: 1896782426}
@@ -4388,6 +4389,7 @@ MonoBehaviour:
   minSpawnTime: 1
   maxSpawnTime: 3
   phase: 1
+  converPhaseTime: 0
 --- !u!1 &465380407
 GameObject:
   m_ObjectHideFlags: 0
@@ -18900,7 +18902,6 @@ MonoBehaviour:
   timeLimit: 30
   timerTMP: {fileID: 1350407921}
   phaseConvertTime: 0.5
-  elapsedTime: 0
   enemySpawner: {fileID: 465243161}
 --- !u!4 &1618951684
 Transform:
@@ -22716,7 +22717,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabs:
+  - {fileID: 5940234919087153102, guid: d5f87bb6b80801348b98102703ff1d02, type: 3}
+  - {fileID: 5940234919087153102, guid: 200f41953998b9c41b24b7465b6e9baa, type: 3}
+  - {fileID: 6510439126391241654, guid: 8224e41150c6df442bd912f4a1a032c5, type: 3}
+  - {fileID: 7385244281545256526, guid: a0c8a9d20580c194bb5c1e8fdc321188, type: 3}
   - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
+  - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
+  - {fileID: 3622652429097495255, guid: fe18b59de3a1af148a8b98d18df5fa87, type: 3}
+  - {fileID: 1685836091229231265, guid: 0c62d676bc5c69349a9ef207a614ce5a, type: 3}
 --- !u!4 &1917614964
 Transform:
   m_ObjectHideFlags: 0
