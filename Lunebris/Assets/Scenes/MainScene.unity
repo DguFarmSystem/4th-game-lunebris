@@ -19444,23 +19444,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 510202915}
-  player: {fileID: 0}
-  playerAttack: {fileID: 0}
-  skillAreaVFX: {fileID: 0}
-  hitVFX: {fileID: 0}
+  player: {fileID: 1294921068}
+  playerAttack: {fileID: 1294921069}
+  skillAreaVFX: {fileID: 8974203713140315807, guid: 709b0bd6b0b625249a98409dd7a87343, type: 3}
+  hitVFX: {fileID: 2944396702758532163, guid: e190bf97c041e58448af6b043116cba0, type: 3}
   lux1_Radius: 5
   lux2_ShieldAmount: 100
-  lux2_ShieldVFX_Prefab: {fileID: 0}
+  lux2_ShieldVFX_Prefab: {fileID: 6424583148328831481, guid: d2ffbc8b168cdf74a9dbb7c6c1cfdf2f, type: 3}
   lux3_Range: 20
   lux3_Width: 3
   lux3_MinDamageMultiplier: 0.5
-  lux3_VFX_Prefab: {fileID: 0}
-  summonPrefab: {fileID: 0}
+  lux3_VFX_Prefab: {fileID: 3220111211092946588, guid: 13e391146a3125d4680bfb37c924094c, type: 3}
+  summonPrefab: {fileID: 1797647599124509145, guid: 3fecebdfcf5d2a444a3a2487aeb525eb, type: 3}
   summonPoint: {fileID: 0}
+  tenebris1_VFX_Prefab: {fileID: 3220111211092946588, guid: 172b6faaa201f424a9bd3b010bf21e28, type: 3}
   tenebris1_Radius: 7
   tenebris1_Duration: 2
   tenebris1_MaxTargets: 3
   tenebris1_TickRate: 0.2
+  tenebris2_VFX_Prefab: {fileID: 6943035370167284729, guid: 29998cec84e9cbb4ca61b6db389cd2cb, type: 3}
+  tenebris2_Duration: 5
+  tenebris2_Radius: 8
+  tenebris2_PullForce: 50
+  tenebris2_DamagePerTick: 1
+  tenebris2_TickRate: 0.5
+  tenebris3_ClonePrefab: {fileID: 8511014348567843001, guid: b0429aa7e6dca7e439beb985b55e88c3, type: 3}
+  tenebris3_Duration: 5
+  tenebris4_CastVFX_Prefab: {fileID: 2944396702758532163, guid: 9b76204c2352cd94db2c04c2ccd239fc, type: 3}
+  tenebris4_HitVFX_Prefab: {fileID: 2944396702758532163, guid: 9b76204c2352cd94db2c04c2ccd239fc, type: 3}
+  tenebris4_HealthCostPercent: 0.2
+  tenebris4_DamageMultiplier: 1.5
+  tenebris4_SafetyThreshold: 0.25
 --- !u!114 &1664151414
 MonoBehaviour:
   m_ObjectHideFlags: 0
