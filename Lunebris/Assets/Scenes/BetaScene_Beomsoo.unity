@@ -269,8 +269,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac660f32f66cbe247aec0368b6d724a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  time: 30
+  timeLimit: 0
   timerTMP: {fileID: 4294919}
+  phaseConvertTime: 0
+  enemySpawner: {fileID: 0}
 --- !u!1 &5318103
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,7 +1029,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pool: {fileID: 751122659}
-  enemyPrefabID: 2
+  timer: {fileID: 0}
+  middleBoosPrefabID: 0
+  finalBossPrefabID: 0
   spawnPoints:
   - {fileID: 2066216167}
   - {fileID: 1379168527}
@@ -1039,6 +1043,8 @@ MonoBehaviour:
   - {fileID: 694429007}
   minSpawnTime: 1
   maxSpawnTime: 3
+  phase: 0
+  converPhaseTime: 0
 --- !u!1 &90188440
 GameObject:
   m_ObjectHideFlags: 0
@@ -21919,6 +21925,7 @@ MonoBehaviour:
   xpSlider: {fileID: 932262771}
   xpTMP: {fileID: 1380443165}
   levelTMP: {fileID: 801740838}
+  invincibilityDuration: 3
 --- !u!114 &2034578751
 MonoBehaviour:
   m_ObjectHideFlags: 0

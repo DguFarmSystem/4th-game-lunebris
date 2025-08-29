@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 8759619497790049534}
   - component: {fileID: 6138201581558617569}
   m_Layer: 0
-  m_Name: Enemy_Tanker_SlowProjectile
+  m_Name: Enemy_Tanker_SlowProjectile_Tene
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

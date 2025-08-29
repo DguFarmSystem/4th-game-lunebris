@@ -467,6 +467,8 @@ public abstract class Enemy_Base : MonoBehaviour
 
         isDead = true;
 
+        Debug.Log($"{enemyName}: 죽음!");
+
         // 죽음 애니메이션 재생
         PlayDeathAnimation();
 
@@ -481,6 +483,10 @@ public abstract class Enemy_Base : MonoBehaviour
         {
             killDetector.UpdateKillPower(GetElementType());
         }
+
+        Destroy(gameObject, 1f);
+
+        Debug.Log($"{enemyName}: 3초 후 삭제 예정");
     }
 
     protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
@@ -501,6 +507,9 @@ public abstract class Enemy_Base : MonoBehaviour
                 }
             }
         }
+
+        // 애니메이션이 완료될 때까지 대기
+        yield return new WaitForSeconds(deathAnimationLength);
 
         // 설정된 딜레이 후 오브젝트 삭제
         Destroy(gameObject, destroyDelay);
