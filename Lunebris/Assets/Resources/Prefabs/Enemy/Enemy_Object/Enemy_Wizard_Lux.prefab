@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 2796374033946908932}
   m_Layer: 0
   m_Name: Enemy_Wizard_Lux
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -654,7 +654,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5000001
   m_Height: 2
@@ -680,14 +680,16 @@ MonoBehaviour:
   hpText: {fileID: 7469980526727775682}
   hpCanvas: {fileID: 8146026077564149767}
   damageText: {fileID: 5799900247116178635}
-  deathEffect: {fileID: 0}
-  deathSound: {fileID: 0}
+  deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
+  deathSound: {fileID: 8300000, guid: 566d2ea6240b489479a6e9fd608c2621, type: 3}
   damageEffect: {fileID: 0}
   characterAnimator: {fileID: 0}
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
-  magicOrbPrefab: {fileID: 411572275915798111, guid: 69784a6365d5f504ca1c0a65da01dd32, type: 3}
-  meteorPrefab: {fileID: 2636176019396157844, guid: 54d40257b9ddf77479fc65dd532b0f23, type: 3}
+  ignoreEnemyCollisions: 1
+  destroyDelay: 2
+  magicOrbPrefab: {fileID: 8868267741754983239, guid: 69784a6365d5f504ca1c0a65da01dd32, type: 3}
+  meteorPrefab: {fileID: 8273774523043920398, guid: 54d40257b9ddf77479fc65dd532b0f23, type: 3}
   castPoint: {fileID: 8616903191828434406}
   attackRange: 10
   attackCooldown: 2.5
@@ -699,7 +701,18 @@ MonoBehaviour:
   meteorFallSpeed: 20
   meteorDamageRadius: 3
   meteorUseCondition: 3
-  warningIndicator: {fileID: 5539860147688458134, guid: b1cd4fba5d561c545a48340648b1fc69, type: 3}
+  warningIndicator: {fileID: 3280519133390621005, guid: a71be3e7990efb040a07565c43cbb198, type: 3}
+  audioSource: {fileID: 0}
+  orbCastSound: {fileID: 0}
+  orbFireSound: {fileID: 0}
+  meteorCastSound: {fileID: 0}
+  meteorWarningSound: {fileID: 0}
+  meteorImpactSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  soundVolume: 0.8
+  useRandomPitch: 1
+  minPitch: 0.9
+  maxPitch: 1.1
 --- !u!114 &8397029853193708091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -938,7 +951,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2045079878988913867
 RectTransform:
   m_ObjectHideFlags: 0

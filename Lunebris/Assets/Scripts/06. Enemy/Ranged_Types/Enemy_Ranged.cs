@@ -3,7 +3,7 @@ using Enemy;
 
 /// <summary>
 /// 기존 원거리 코드를 Enemy_Base에 통합 (AD형) - 분열형 폭발 탄환 스킬 추가
-/// 일반공격과 폭발탄환 모두 시전시간 적용
+/// 일반공격과 폭발탄환 모두 시전시간 적용 - 사운드 시스템 포함
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Ranged : Enemy_Base
@@ -27,6 +27,18 @@ public class Enemy_Ranged : Enemy_Base
     public float spreadAngle = 45f;          // 분열 각도 (도)
     public int explosiveUseCondition = 4;     // 몇 번째 공격마다 폭발 탄환 사용
     public float explosiveCastTime = 0.8f;    // 폭발 탄환 시전 시간 (일반보다 길게)
+
+    [Header("사운드 효과")]
+    [SerializeField] private AudioSource audioSource; // 오디오 소스
+    [SerializeField] private AudioClip normalCastSound; // 일반 공격 시전 사운드
+    [SerializeField] private AudioClip normalFireSound; // 일반 총알 발사 사운드
+    [SerializeField] private AudioClip explosiveCastSound; // 폭발 탄환 시전 사운드
+    [SerializeField] private AudioClip explosiveFireSound; // 폭발 탄환 발사 사운드
+    [SerializeField] private AudioClip hitSound; // 피격 사운드
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // 사운드 볼륨
+    [SerializeField] private bool useRandomPitch = true; // 랜덤 피치 사용 여부
+    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // 최소 피치
+    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // 최대 피치
 
     private float lastAttackTime;
     private float lastExplosiveTime;
@@ -54,6 +66,9 @@ public class Enemy_Ranged : Enemy_Base
         // 스탯 시스템 설정
         enemyType = EnemyType.RangedAD;
         primaryDamageType = DamageType.Physical; // AD 딜러이므로 물리 데미지
+
+        // AudioSource 자동 설정
+        SetupAudioSource();
 
         // 기본 초기화 로직
         if (firePoint == null)
@@ -105,6 +120,142 @@ public class Enemy_Ranged : Enemy_Base
     {
         // 이동은 Enemy_Ranged_Move에서 처리하므로 비워둠
         // Enemy_Ranged_Move가 IsAttacking 프로퍼티를 참조해서 움직임 제어
+    }
+
+    protected override void OnDamaged()
+    {
+        // 피격 사운드 재생
+        PlayHitSound();
+
+        // 부모 클래스의 기본 피격 처리
+        base.OnDamaged();
+    }
+
+    #endregion
+
+    #region 사운드 시스템
+
+    /// <summary>
+    /// AudioSource 자동 설정
+    /// </summary>
+    private void SetupAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                Debug.Log($"{enemyName}: AudioSource 컴포넌트를 자동으로 추가했습니다.");
+            }
+        }
+
+        // AudioSource 기본 설정 (원거리는 중간 소리)
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.volume = soundVolume;
+            audioSource.spatialBlend = 1f; // 3D 사운드
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.maxDistance = 22f; // 원거리는 중간 거리
+            audioSource.minDistance = 2f;
+        }
+    }
+
+    /// <summary>
+    /// 일반 공격 시전 사운드 재생
+    /// </summary>
+    private void PlayNormalCastSound()
+    {
+        if (normalCastSound != null)
+        {
+            PlaySound(normalCastSound);
+            Debug.Log($"{enemyName}: 일반 공격 시전 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 일반 총알 발사 사운드 재생
+    /// </summary>
+    private void PlayNormalFireSound()
+    {
+        if (normalFireSound != null)
+        {
+            PlaySound(normalFireSound);
+            Debug.Log($"{enemyName}: 일반 총알 발사 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 폭발 탄환 시전 사운드 재생
+    /// </summary>
+    private void PlayExplosiveCastSound()
+    {
+        if (explosiveCastSound != null)
+        {
+            PlaySound(explosiveCastSound);
+            Debug.Log($"{enemyName}: 폭발 탄환 시전 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 폭발 탄환 발사 사운드 재생
+    /// </summary>
+    private void PlayExplosiveFireSound()
+    {
+        if (explosiveFireSound != null)
+        {
+            PlaySound(explosiveFireSound);
+            Debug.Log($"{enemyName}: 폭발 탄환 발사 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 피격 사운드 재생
+    /// </summary>
+    private void PlayHitSound()
+    {
+        if (hitSound != null)
+        {
+            PlaySound(hitSound);
+            Debug.Log($"{enemyName}: 피격 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 사운드 재생 (공통 메서드)
+    /// </summary>
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null) return;
+
+        // 볼륨 설정
+        audioSource.volume = soundVolume;
+
+        // 랜덤 피치 적용
+        if (useRandomPitch)
+        {
+            audioSource.pitch = Random.Range(minPitch, maxPitch);
+        }
+        else
+        {
+            audioSource.pitch = 1f;
+        }
+
+        // 사운드 재생
+        audioSource.PlayOneShot(clip);
+    }
+
+    /// <summary>
+    /// 사운드 즉시 정지
+    /// </summary>
+    private void StopSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     #endregion
@@ -183,6 +334,9 @@ public class Enemy_Ranged : Enemy_Base
             // 일반 공격 시전 애니메이션 재생
             PlayCastNormalAnimation();
 
+            // 일반 공격 시전 사운드 재생
+            PlayNormalCastSound();
+
             Debug.Log($"{enemyName} 일반 공격 시전 시작! 시전시간: {attackCastTime}초");
 
             // 시전 시간 후 발사 애니메이션 재생
@@ -211,6 +365,9 @@ public class Enemy_Ranged : Enemy_Base
     {
         if (bulletPrefab != null && firePoint != null && playerTransform != null)
         {
+            // 일반 총알 발사 사운드 재생
+            PlayNormalFireSound();
+
             // 총알 복제 생성 (애니메이션 이후에)
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
@@ -257,6 +414,9 @@ public class Enemy_Ranged : Enemy_Base
             // 폭발 탄환 시전 애니메이션 재생
             PlayCastExplosiveAnimation();
 
+            // 폭발 탄환 시전 사운드 재생
+            PlayExplosiveCastSound();
+
             Debug.Log($"{enemyName} 폭발 탄환 시전 시작! 시전시간: {explosiveCastTime}초");
 
             // 시전 시간 후 발사 애니메이션 재생
@@ -282,6 +442,9 @@ public class Enemy_Ranged : Enemy_Base
     {
         if (explosiveBulletPrefab != null && firePoint != null && playerTransform != null)
         {
+            // 폭발 탄환 발사 사운드 재생
+            PlayExplosiveFireSound();
+
             // 폭발 탄환 생성 (애니메이션 이후에)
             GameObject explosiveBullet = Instantiate(explosiveBulletPrefab, firePoint.position, firePoint.rotation);
 

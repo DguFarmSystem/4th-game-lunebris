@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 1831714238264432563}
   m_Layer: 0
   m_Name: Enemy_Final_Boss_Neutral
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,10 +32,11 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 52.139267, y: 1, z: 56.46194}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1584231738517497304}
+  - {fileID: 3793334158952344097}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8733997921397141762
@@ -53,7 +54,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3432749387292509026}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -105,7 +106,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5000001
   m_Height: 1
@@ -123,17 +124,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bc6c6207e08a7b41bdc8c9712f22ebf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyType: 0
-  elementType: 0
+  enemyType: 5
+  elementType: 2
   primaryDamageType: 0
   enemyName: Enemy
   hpSlider: {fileID: 9060416261636445019}
   hpText: {fileID: 0}
   hpCanvas: {fileID: 4674530043833959378}
   damageText: {fileID: 0}
-  deathEffect: {fileID: 0}
-  deathSound: {fileID: 0}
+  deathEffect: {fileID: 7226888052703040409, guid: 7ec363c8df426644ea85f8d6d570561c, type: 3}
+  deathSound: {fileID: 8300000, guid: 566d2ea6240b489479a6e9fd608c2621, type: 3}
   damageEffect: {fileID: 0}
+  characterAnimator: {fileID: 0}
+  usePhysicsMovement: 1
+  enemyRotationSpeed: 5
+  ignoreEnemyCollisions: 1
   lightOrbPrefab: {fileID: 6650104745104872665, guid: a0ceec0a13e4e594e94dc3bfe1a6021e, type: 3}
   darkOrbPrefab: {fileID: 4231158396768756967, guid: 913db6cd50cbea84f81d3a5effac3358, type: 3}
   orbSpawnPositions:
@@ -141,11 +146,13 @@ MonoBehaviour:
   - {x: 8, y: 1.5, z: 0}
   orbSpawnDelay: 1
   spawnOrbsOnStart: 1
-  lightModeBoss: {fileID: 3899899079770035942, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
-  darkModeBoss: {fileID: 6945971509939186544, guid: d5f4cbe94249fe848ac1d46511e76ad7, type: 3}
+  lightModeBoss: {fileID: 5155911623667533070, guid: ca94be2d348e0e647b4fe543412446b6, type: 3}
+  darkModeBoss: {fileID: 1752103016276913317, guid: d5f4cbe94249fe848ac1d46511e76ad7, type: 3}
   orbHealthMultiplier: 1
   orbSpeedMultiplier: 1
   rotationSpeed: 10
+  orbRespawnDelay: 3
+  autoRespawnOrbs: 1
 --- !u!114 &3863545674361301548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,6 +197,80 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!1001 &257307675111873007
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5786310202332470888}
+    m_Modifications:
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3978510971641819116, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+      propertyPath: m_Name
+      value: ma040_DarkKnight_3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+--- !u!4 &3793334158952344097 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3978510971641787342, guid: aa7acce1135531e45ad4acf57fd0ad81, type: 3}
+  m_PrefabInstance: {fileID: 257307675111873007}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4037483070237238978
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -213,6 +294,10 @@ PrefabInstance:
     - target: {fileID: 1490054867214302677, guid: a5f1b1e60e93cf644b2b087df57b14eb, type: 3}
       propertyPath: m_Name
       value: Enemy_Final_Boss_HP_Panel
+      objectReference: {fileID: 0}
+    - target: {fileID: 1930120291514498424, guid: a5f1b1e60e93cf644b2b087df57b14eb, type: 3}
+      propertyPath: m_text
+      value: Final_Boss
       objectReference: {fileID: 0}
     - target: {fileID: 1966717871863318255, guid: a5f1b1e60e93cf644b2b087df57b14eb, type: 3}
       propertyPath: m_Name

@@ -14,10 +14,21 @@ public class Enemy_Tanker : Enemy_Base
 
     [Header("투사체 공격 설정")]
     [SerializeField] private GameObject slowProjectilePrefab;
+    [SerializeField] private GameObject slowAreaPrefab; // SlowArea 프리팹 추가
     [SerializeField] private Transform projectileSpawnPoint;
     [SerializeField] private float projectileAttackRange = 10f;
     [SerializeField] private float projectileAttackCooldown = 8f;
     [SerializeField] private float projectileDelay = 0.5f; // 애니메이션 후 실제 발사까지의 딜레이
+
+    [Header("사운드 효과")]
+    [SerializeField] private AudioSource audioSource; // 오디오 소스
+    [SerializeField] private AudioClip meleeAttackSound; // 근접 공격 사운드
+    [SerializeField] private AudioClip projectileAttackSound; // 투사체 공격 준비 사운드
+    [SerializeField] private AudioClip hitSound; // 피격 사운드
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // 사운드 볼륨
+    [SerializeField] private bool useRandomPitch = true; // 랜덤 피치 사용 여부
+    [SerializeField][Range(0.7f, 1.3f)] private float minPitch = 0.8f; // 최소 피치 (탱커는 낮은 음성)
+    [SerializeField][Range(0.7f, 1.3f)] private float maxPitch = 1.0f; // 최대 피치
 
     [Header("디버깅")]
     [SerializeField] private bool enableDebugLogs = true;
@@ -48,6 +59,9 @@ public class Enemy_Tanker : Enemy_Base
         primaryDamageType = DamageType.Physical;
         enemyName = "Dwarf Tanker";
 
+        // AudioSource 자동 설정
+        SetupAudioSource();
+
         base.Awake();
 
         // Move 스크립트 참조
@@ -77,6 +91,109 @@ public class Enemy_Tanker : Enemy_Base
         }
 
         base.InitializeEnemy();
+    }
+
+    #endregion
+
+    #region 사운드 시스템
+
+    /// <summary>
+    /// AudioSource 자동 설정
+    /// </summary>
+    private void SetupAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                DebugLog("AudioSource 컴포넌트를 자동으로 추가했습니다.");
+            }
+        }
+
+        // AudioSource 기본 설정 (탱커는 더 큰 소리)
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.volume = soundVolume;
+            audioSource.spatialBlend = 1f; // 3D 사운드
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.maxDistance = 25f; // 탱커는 더 멀리 들림
+            audioSource.minDistance = 3f;
+        }
+    }
+
+    /// <summary>
+    /// 근접 공격 사운드 재생
+    /// </summary>
+    private void PlayMeleeAttackSound()
+    {
+        if (meleeAttackSound != null)
+        {
+            PlaySound(meleeAttackSound);
+            DebugLog("근접 공격 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 투사체 공격 준비 사운드 재생
+    /// </summary>
+    private void PlayProjectileAttackSound()
+    {
+        if (projectileAttackSound != null)
+        {
+            PlaySound(projectileAttackSound);
+            DebugLog("투사체 공격 준비 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 피격 사운드 재생
+    /// </summary>
+    private void PlayHitSound()
+    {
+        if (hitSound != null)
+        {
+            PlaySound(hitSound);
+            DebugLog("피격 사운드 재생");
+        }
+    }
+
+    /// <summary>
+    /// 사운드 재생 (공통 메서드)
+    /// </summary>
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null) return;
+
+        // 볼륨 설정
+        audioSource.volume = soundVolume;
+
+        // 랜덤 피치 적용 (탱커는 낮은 목소리)
+        if (useRandomPitch)
+        {
+            audioSource.pitch = Random.Range(minPitch, maxPitch);
+        }
+        else
+        {
+            audioSource.pitch = 0.9f; // 탱커 기본 피치 (약간 낮게)
+        }
+
+        // 사운드 재생
+        audioSource.PlayOneShot(clip);
+    }
+
+    /// <summary>
+    /// 사운드 즉시 정지
+    /// </summary>
+    private void StopSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     #endregion
@@ -159,6 +276,9 @@ public class Enemy_Tanker : Enemy_Base
             moveScript.PlayAttackAnimation();
         }
 
+        // 근접 공격 사운드 재생
+        PlayMeleeAttackSound();
+
         DebugLog("근접 공격 시작!");
 
         // 애니메이션 약간 후에 실제 데미지 적용
@@ -209,6 +329,9 @@ public class Enemy_Tanker : Enemy_Base
             moveScript.PlayProjectileAttackAnimation();
         }
 
+        // 투사체 공격 준비 사운드 재생
+        PlayProjectileAttackSound();
+
         DebugLog("투사체 공격 애니메이션 시작!");
 
         // 애니메이션 후에 실제 투사체 발사
@@ -245,6 +368,14 @@ public class Enemy_Tanker : Enemy_Base
                 rb.velocity = direction * 5f; // 기본 속도
             }
         }
+
+        // 모든 투사체에 폭발 처리 컴포넌트 추가
+        var exploder = projectile.GetComponent<ProjectileExploder>();
+        if (exploder == null)
+        {
+            exploder = projectile.AddComponent<ProjectileExploder>();
+        }
+        exploder.SetTanker(this);
 
         DebugLog("투사체 발사 완료!");
     }
@@ -299,6 +430,41 @@ public class Enemy_Tanker : Enemy_Base
         return !isProjectileAttacking && (Time.time - lastProjectileTime >= projectileAttackCooldown);
     }
 
+    /// <summary>
+    /// 투사체 폭발시 SlowArea 생성
+    /// </summary>
+    public void CreateSlowAreaOnExplode(Vector3 position)
+    {
+        // SlowArea 생성
+        CreateSlowAreaAt(position);
+
+        DebugLog($"투사체 폭발! 위치: {position}에 SlowArea 생성");
+    }
+
+    /// <summary>
+    /// 특정 위치에 SlowArea 생성
+    /// </summary>
+    private void CreateSlowAreaAt(Vector3 position)
+    {
+        if (slowAreaPrefab != null)
+        {
+            GameObject slowArea = Instantiate(slowAreaPrefab, position, Quaternion.identity);
+            DebugLog($"SlowArea 생성됨! 위치: {position}");
+
+            // SlowArea 초기화 (필요한 경우)
+            var slowAreaScript = slowArea.GetComponent<Enemy_Tanker_SlowArea>();
+            if (slowAreaScript != null)
+            {
+                // 필요하다면 여기서 Initialize 메서드 호출
+                DebugLog("SlowArea 스크립트 참조 완료");
+            }
+        }
+        else
+        {
+            DebugLog("SlowArea 프리팹이 설정되지 않음", true);
+        }
+    }
+
     #endregion
 
     #region 애니메이션 연동
@@ -308,6 +474,9 @@ public class Enemy_Tanker : Enemy_Base
     /// </summary>
     protected override void OnDamaged()
     {
+        // 피격 사운드 재생
+        PlayHitSound();
+
         // Move 스크립트를 통한 피격 애니메이션
         if (moveScript != null)
         {
@@ -454,4 +623,87 @@ public class Enemy_Tanker : Enemy_Base
     }
 
     #endregion
+}
+
+/// <summary>
+/// 투사체 폭발 처리를 위한 헬퍼 컴포넌트
+/// </summary>
+public class ProjectileExploder : MonoBehaviour
+{
+    private Enemy_Tanker tanker;
+    private bool hasExploded = false;
+
+    public void SetTanker(Enemy_Tanker tankerRef)
+    {
+        tanker = tankerRef;
+        Debug.Log($"ProjectileExploder: 탱커 참조 설정됨 - {tankerRef.name}");
+    }
+
+    private void Start()
+    {
+        Debug.Log($"ProjectileExploder: 시작됨 - {gameObject.name}");
+
+        // 5초 후 자동 폭발 (더 짧게 설정)
+        Invoke(nameof(AutoExplode), 5f);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log($"ProjectileExploder: Trigger 충돌 감지 - {other.name} (태그: {other.tag})");
+
+        if (hasExploded) return;
+
+        // 플레이어나 벽에 충돌하면 폭발
+        if (other.CompareTag("Player") || other.CompareTag("Wall") || other.CompareTag("Obstacle"))
+        {
+            Debug.Log($"ProjectileExploder: {other.tag}와 충돌하여 폭발!");
+            Explode();
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log($"ProjectileExploder: Collision 충돌 감지 - {collision.gameObject.name}");
+
+        if (hasExploded) return;
+
+        // 어떤 것과든 충돌하면 폭발
+        Debug.Log("ProjectileExploder: 충돌하여 폭발!");
+        Explode();
+    }
+
+    private void AutoExplode()
+    {
+        if (hasExploded) return;
+
+        Debug.Log("ProjectileExploder: 시간 초과로 자동 폭발!");
+        Explode();
+    }
+
+    private void Explode()
+    {
+        if (hasExploded) return;
+        hasExploded = true;
+
+        Debug.Log($"ProjectileExploder: 폭발 실행! 위치: {transform.position}");
+
+        // 탱커에게 SlowArea 생성 요청
+        if (tanker != null)
+        {
+            tanker.CreateSlowAreaOnExplode(transform.position);
+            Debug.Log("ProjectileExploder: 탱커에게 SlowArea 생성 요청 완료");
+        }
+        else
+        {
+            Debug.LogWarning("ProjectileExploder: 탱커 참조가 없어서 SlowArea 생성 불가");
+        }
+
+        // 투사체 제거
+        Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        Debug.Log($"ProjectileExploder: 오브젝트 제거됨 - {gameObject.name}");
+    }
 }
