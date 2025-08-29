@@ -8,14 +8,14 @@ public class Inventory : MonoBehaviour
     #region Singleton
     public static Inventory instance;
     private InventoryUI inventoryUI;
-    [SerializeField] private Transform slotParent; // GridLayoutGroup 붙은 Panel
+    //[SerializeField] private Transform slotParent; // GridLayoutGroup 붙은 Panel
     private Slot[] slots;
 
     void Start()
     {
-        slots = slotParent.GetComponentsInChildren<Slot>();
-        Inventory.instance.onItemChangedCallback += UpdateUI;
-        UpdateUI();
+        //slots = slotParent.GetComponentsInChildren<Slot>();
+        //Inventory.instance.onItemChangedCallback += UpdateUI;
+        //UpdateUI();
     }
 
     void Awake()
@@ -58,7 +58,7 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public void UpdateUI()
+    /*public void UpdateUI()
     {
         for (int i = 0; i < slots.Length; i++)
         {
@@ -71,7 +71,7 @@ public class Inventory : MonoBehaviour
                 slots[i].ClearSlot();
             }
         }
-    }
+    }*/
 
     public delegate void OnItemChanged();
     public OnItemChanged onItemChangedCallback;
