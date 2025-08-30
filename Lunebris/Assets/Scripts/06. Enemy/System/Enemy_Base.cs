@@ -390,6 +390,7 @@ public abstract class Enemy_Base : MonoBehaviour
             return;
         }
 
+        /*
         //적 처형 아이템 유무
         if (Inventory.instance.HasItem("InstantDeath")) // 인벤토리에 아이템이 있는지 확인
         {
@@ -405,6 +406,7 @@ public abstract class Enemy_Base : MonoBehaviour
                 return;
             }
         }
+        */
     }
 
     protected virtual void OnDamaged()

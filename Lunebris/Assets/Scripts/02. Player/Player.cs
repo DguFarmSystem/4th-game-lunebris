@@ -282,7 +282,7 @@ namespace Player
                 float remainingDamage = damage - currentShield;
                 currentShield = 0;
                 currentHP -= remainingDamage;
-                Debug.Log($"쉴드 파괴! 체력에 {remainingDamage} 데미지.");
+                Debug.Log($"쉴드 없음 체력에 {remainingDamage} 데미지.");
             }
 
             currentHP = Mathf.Max(currentHP, 0);
