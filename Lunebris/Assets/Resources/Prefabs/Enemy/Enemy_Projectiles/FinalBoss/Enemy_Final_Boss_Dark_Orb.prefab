@@ -120,8 +120,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8560a3f9318c3c24393bcfb1d67accd4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyType: 0
-  elementType: 0
+  enemyType: 1
+  elementType: 1
   primaryDamageType: 0
   enemyName: Enemy
   hpSlider: {fileID: 0}
@@ -135,6 +135,7 @@ MonoBehaviour:
   usePhysicsMovement: 1
   enemyRotationSpeed: 5
   ignoreEnemyCollisions: 1
+  destroyDelay: 2
   heightFixed: 1
   minDistanceToPlayer: 6
   maxDistanceToPlayer: 15

@@ -484,37 +484,73 @@ public abstract class Enemy_Base : MonoBehaviour
             killDetector.UpdateKillPower(GetElementType());
         }
 
-        Destroy(gameObject, 1f);
-
-        Debug.Log($"{enemyName}: 3초 후 삭제 예정");
-    }
-
-    protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
-    {
-        // 죽음 애니메이션 길이만큼 대기
-        float deathAnimationLength = 2f; // 기본값
-
-        if (characterAnimator != null && characterAnimator.runtimeAnimatorController != null)
+        // EnemySpawner에서 제거
+        EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
+        if (spawner != null)
         {
-            // 실제 애니메이션 길이 가져오기
-            AnimationClip[] clips = characterAnimator.runtimeAnimatorController.animationClips;
-            foreach (var clip in clips)
-            {
-                if (clip.name.ToLower().Contains("death") || clip.name.ToLower().Contains("die"))
-                {
-                    deathAnimationLength = clip.length;
-                    break;
-                }
-            }
+            spawner.RemoveEnemy(gameObject);
         }
 
-        // 애니메이션이 완료될 때까지 대기
-        yield return new WaitForSeconds(deathAnimationLength);
+        // 오브젝트 풀로 반환 (Destroy 대신 비활성화)
+        StartCoroutine(DeactivateAfterDelay());
 
-        // 설정된 딜레이 후 오브젝트 삭제
-        Destroy(gameObject, destroyDelay);
+        Debug.Log($"{enemyName}: 풀로 반환 예정");
+    }
 
-        Debug.Log($"{enemyName} 죽음 처리 완료! {destroyDelay}초 후 삭제됩니다.");
+    /// <summary>
+    /// 죽음 애니메이션 후 오브젝트를 비활성화하여 풀로 반환
+    /// </summary>
+    protected virtual System.Collections.IEnumerator DeactivateAfterDelay()
+    {
+        // 죽음 애니메이션과 효과를 위한 대기
+        yield return new WaitForSeconds(destroyDelay);
+
+        // 상태 초기화 (재사용을 위해)
+        ResetForPooling();
+
+        // 오브젝트 비활성화 (풀로 반환)
+        gameObject.SetActive(false);
+
+        Debug.Log($"{enemyName}: 풀로 반환됨");
+    }
+
+    /// <summary>
+    /// 오브젝트 풀링을 위한 상태 초기화
+    /// </summary>
+    protected virtual void ResetForPooling()
+    {
+        // 죽음 상태 초기화
+        isDead = false;
+
+        // HP 초기화
+        currentHp = enemyStats.Get(EnemyStatType.MaxHp);
+
+        // 물리 컴포넌트 초기화
+        if (enemyRigidbody != null)
+        {
+            enemyRigidbody.isKinematic = false;
+            enemyRigidbody.velocity = Vector3.zero;
+        }
+
+        // 콜라이더 다시 활성화
+        if (enemyCollider != null)
+        {
+            enemyCollider.enabled = true;
+        }
+
+        // HP UI 초기화
+        UpdateHpUI();
+        HideHpBar();
+
+        // 애니메이터 상태 초기화
+        if (characterAnimator != null)
+        {
+            characterAnimator.SetBool(ANIM_IS_DEAD, false);
+            characterAnimator.SetBool(ANIM_IS_MOVING, false);
+            characterAnimator.SetFloat(ANIM_MOVE_SPEED, 0f);
+        }
+
+        Debug.Log($"{enemyName}: 재사용을 위한 상태 초기화 완료");
     }
 
     protected virtual void GiveExperience()

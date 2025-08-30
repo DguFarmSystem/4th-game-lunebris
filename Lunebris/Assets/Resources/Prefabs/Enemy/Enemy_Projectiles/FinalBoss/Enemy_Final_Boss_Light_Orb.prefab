@@ -120,12 +120,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f7057318f64b9641948ac0c92e61b3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 200
-  moveSpeed: 10
+  enemyType: 1
+  elementType: 0
+  primaryDamageType: 1
+  enemyName: Enemy
+  hpSlider: {fileID: 0}
+  hpText: {fileID: 0}
+  hpCanvas: {fileID: 0}
+  damageText: {fileID: 0}
+  deathEffect: {fileID: 0}
+  deathSound: {fileID: 0}
+  damageEffect: {fileID: 0}
+  characterAnimator: {fileID: 0}
+  usePhysicsMovement: 1
+  enemyRotationSpeed: 5
+  ignoreEnemyCollisions: 1
+  destroyDelay: 2
   heightFixed: 1
   minDistanceToPlayer: 1
   maxDistanceToPlayer: 3
   randomMoveInterval: 5
+  orbMoveSpeed: 3
   railgunBeamPrefab: {fileID: 4564901195515845974, guid: 4a9fa4887c200864f97716aa133f382f, type: 3}
   railgunDamage: 120
   railgunChargeTime: 1.5
@@ -134,7 +149,6 @@ MonoBehaviour:
   orbColor: {r: 1, g: 1, b: 1, a: 1}
   emissionIntensity: 0.5
   chargingEffect: {fileID: 0}
-  invulnerabilityDuration: 0.5
 --- !u!54 &227823278827938470
 Rigidbody:
   m_ObjectHideFlags: 0
