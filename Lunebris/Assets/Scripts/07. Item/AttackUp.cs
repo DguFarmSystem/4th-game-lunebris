@@ -23,12 +23,16 @@ public class AttackUp : Item
     {
         if (other.CompareTag("Player"))
         {
+            /*
             bool wasPickedUp = Inventory.instance.Add(this);
             if (wasPickedUp)
             {
                 CancelInvoke("DestroyObject");
                 gameObject.SetActive(false);
             }
+            */
+            ApplyEffect();
+            Debug.Log("아이템 습득 후 공격력 증가 시킴");
         }
     }
 

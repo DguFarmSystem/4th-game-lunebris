@@ -22,6 +22,7 @@ public class HpRegeneration : Item
     {
         if (other.CompareTag("Player"))
         {
+            /*
             bool wasPickedUp = Inventory.instance.Add(this);
             if (wasPickedUp)
             {
@@ -29,6 +30,9 @@ public class HpRegeneration : Item
                 gameObject.SetActive(false);
                 Debug.Log("아이템 습득");
             }
+            */
+            ApplyEffect();
+            Debug.Log("아이템 습득 후 체력 재생력 증가 시킴");
         }
     }
 
