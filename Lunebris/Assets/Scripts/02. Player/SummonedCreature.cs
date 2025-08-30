@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using Enemy; // Enemy 네임스페이스 추가
 
 public enum SummonState
 {
@@ -94,23 +95,20 @@ public class SummonedCreature : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-        // [수정] 플레이어가 추적 시작 거리(파란 원) 안으로 들어오면 바로 이동을 멈춥니다.
         if (distanceToPlayer <= followStartDistance)
         {
             rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.deltaTime * 10f);
 
-            // [수정] 대기 거리(녹색 원) 안으로 완전히 들어왔을 때만 Idle 상태로 전환합니다.
             if (distanceToPlayer <= idleDistance)
             {
                 currentState = SummonState.Idle;
             }
         }
-        else // 플레이어가 추적 시작 거리 밖에 있을 때만 이동합니다.
+        else
         {
             Vector3 direction = (playerTransform.position - transform.position).normalized;
             rb.velocity = direction * moveSpeed;
 
-            // 이동할 때만 부드럽게 회전합니다.
             Quaternion targetRotation = Quaternion.LookRotation(playerTransform.position - transform.position);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
@@ -129,36 +127,43 @@ public class SummonedCreature : MonoBehaviour
         }
     }
 
+    // [최종 수정] 적 탐지 로직을 GetComponentInParent를 사용하도록 전체 수정
     private void FindClosestEnemy(int count)
     {
-        float closestDistance = float.MaxValue;
+        float closestDistanceSqr = float.MaxValue;
         Transform newTarget = null;
+        Enemy_Base newTargetScript = null; // 찾은 스크립트를 임시 저장
+
         for (int i = 0; i < count; i++)
         {
-            if (nearbyEnemies[i].CompareTag("Enemy"))
+            // 1. 콜라이더의 부모까지 거슬러 올라가 Enemy_Base 스크립트를 찾습니다.
+            Enemy_Base enemy = nearbyEnemies[i].GetComponentInParent<Enemy_Base>();
+
+            // 2. 스크립트가 있고, 살아있는 적인지 확인합니다.
+            if (enemy != null && !enemy.IsDead())
             {
-                float distance = Vector3.Distance(transform.position, nearbyEnemies[i].transform.position);
-                if (distance < closestDistance)
+                // 3. 기존에 찾은 가장 가까운 적보다 더 가까운지 확인합니다.
+                float distanceSqr = (transform.position - enemy.transform.position).sqrMagnitude;
+                if (distanceSqr < closestDistanceSqr)
                 {
-                    Enemy_Base enemy = nearbyEnemies[i].GetComponent<Enemy_Base>();
-                    if (enemy != null && !enemy.IsDead())
-                    {
-                        closestDistance = distance;
-                        newTarget = nearbyEnemies[i].transform;
-                    }
+                    closestDistanceSqr = distanceSqr;
+                    newTarget = enemy.transform; // 타겟의 transform을 저장
+                    newTargetScript = enemy;     // 타겟의 스크립트를 저장
                 }
             }
         }
+
+        // 4. 가장 가까운 적을 찾았다면, 최종 타겟으로 설정합니다.
         if (newTarget != null)
         {
             currentTarget = newTarget;
-            targetEnemyScript = currentTarget.GetComponent<Enemy_Base>();
+            targetEnemyScript = newTargetScript; // 저장해둔 스크립트를 할당 (GetComponent를 또 호출할 필요 없음)
         }
     }
 
     private void AttackTarget()
     {
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy || targetEnemyScript.IsDead() || Vector3.Distance(transform.position, currentTarget.position) > detectionRadius)
+        if (currentTarget == null || targetEnemyScript == null || !currentTarget.gameObject.activeInHierarchy || targetEnemyScript.IsDead() || Vector3.Distance(transform.position, currentTarget.position) > detectionRadius)
         {
             currentTarget = null;
             targetEnemyScript = null;
@@ -194,7 +199,8 @@ public class SummonedCreature : MonoBehaviour
         if (currentTarget != null && !targetEnemyScript.IsDead() && Vector3.Distance(transform.position, currentTarget.position) <= attackRange)
         {
             transform.LookAt(currentTarget);
-            targetEnemyScript.TakeDamage(attackDamage, Enemy.DamageType.Magical, ElementType.Lux);
+            // ElementType은 소환수의 속성에 맞게 Lux 또는 다른 것으로 지정해야 할 수 있습니다.
+            targetEnemyScript.TakeDamage(attackDamage, DamageType.Magical, ElementType.Lux);
 
             if (attackEffectPrefab != null)
             {
@@ -210,10 +216,13 @@ public class SummonedCreature : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, idleDistance);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, followStartDistance);
+        if (playerTransform != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(playerTransform.position, idleDistance);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(playerTransform.position, followStartDistance);
+        }
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Enemy;
 
-
 // Unity
 using UnityEngine;
 
@@ -17,55 +16,55 @@ namespace Player
         [SerializeField] private Player player;
         [SerializeField] private PlayerAttack playerAttack; // 마우스 방향을 얻어오기 위한 참조
 
-        [Header("VFX Prefabs")]
+        [Header("VFX Prefabs")]
         [SerializeField] private GameObject skillAreaVFX;
         [SerializeField] private GameObject hitVFX; // Lux1, Lux3 등 범용 피격 이펙트
 
-        [Header("Lux1 Skill Settings")]
+        [Header("Lux1 Skill Settings")]
         [SerializeField] private float lux1_Radius = 5f; // Lux1 스킬의 범위를 설정하는 변수
 
-        [Header("Lux2 Skill Settings")]
+        [Header("Lux2 Skill Settings")]
         [SerializeField] private float lux2_ShieldAmount = 100f; // 부여할 쉴드 양
-        [SerializeField] private GameObject lux2_ShieldVFX_Prefab; // 쉴드 시각 효과
+        [SerializeField] private GameObject lux2_ShieldVFX_Prefab; // 쉴드 시각 효과
 
-        [Header("Lux3 Skill Settings")]
+        [Header("Lux3 Skill Settings")]
         [SerializeField] private float lux3_Range = 20f; // 레이저 사거리
-        [SerializeField] private float lux3_Width = 3f;  // 레이저 폭
-        [SerializeField] private float lux3_MinDamageMultiplier = 0.5f; // 가장자리 최소 데미지 배율 (50%)
-        [SerializeField] private GameObject lux3_VFX_Prefab; // 레이저 시각 효과 프리팹
+        [SerializeField] private float lux3_Width = 3f;  // 레이저 폭
+        [SerializeField] private float lux3_MinDamageMultiplier = 0.5f; // 가장자리 최소 데미지 배율 (50%)
+        [SerializeField] private GameObject lux3_VFX_Prefab; // 레이저 시각 효과 프리팹
 
-        [Header("Lux4 Skill Settings")]
+        [Header("Lux4 Skill Settings")]
         [SerializeField] private GameObject summonPrefab;
         [SerializeField] private Transform summonPoint;
 
         [Header("Tenebris1 Skill Settings")]
-        [SerializeField] private GameObject tenebris1_VFX_Prefab; //  vfx
-        [SerializeField] private float tenebris1_Radius = 7f; // 흡혈 범위
-        [SerializeField] private float tenebris1_Duration = 2f; // 총 지속 시간
-        [SerializeField] private int tenebris1_MaxTargets = 3; // 최대 대상 수
-        [SerializeField] private float tenebris1_TickRate = 0.2f; // 데미지 및 흡혈
+        [SerializeField] private GameObject tenebris1_VFX_Prefab; //  vfx
+        [SerializeField] private float tenebris1_Radius = 7f; // 흡혈 범위
+        [SerializeField] private float tenebris1_Duration = 2f; // 총 지속 시간
+        [SerializeField] private int tenebris1_MaxTargets = 3; // 최대 대상 수
+        [SerializeField] private float tenebris1_TickRate = 0.2f; // 데미지 및 흡혈
 
-        [Header("Tenebris2 Skill Settings")]
-        [SerializeField] private GameObject tenebris2_VFX_Prefab;  // 블랙홀 시각효과 프리팹
-        [SerializeField] private float tenebris2_Duration = 5f;     // 지속 시간
-        [SerializeField] private float tenebris2_Radius = 8f;       // 효과 반경
-        [SerializeField] private float tenebris2_PullForce = 50f;   // 끌어당기는 힘
-        [SerializeField] private float tenebris2_DamagePerTick = 1f;    // 틱당 데미지
-        [SerializeField] private float tenebris2_TickRate = 0.5f;
+        [Header("Tenebris2 Skill Settings")]
+        [SerializeField] private GameObject tenebris2_VFX_Prefab;  // 블랙홀 시각효과 프리팹
+        [SerializeField] private float tenebris2_Duration = 5f;      // 지속 시간
+        [SerializeField] private float tenebris2_Radius = 8f;        // 효과 반경
+        [SerializeField] private float tenebris2_PullForce = 50f;    // 끌어당기는 힘
+        [SerializeField] private float tenebris2_DamagePerTick = 1f;     // 틱당 데미지
+        [SerializeField] private float tenebris2_TickRate = 0.5f;
 
         [Header("Tenebris3 Skill Settings")]
         [SerializeField] private GameObject tenebris3_ClonePrefab; // 위에서 만든 분신 프리팹
-        [SerializeField] private float tenebris3_Duration = 5f;     // 분신 지속 시간
-        private GameObject activeClone; // 현재 활성화된 분신을 추적
+        [SerializeField] private float tenebris3_Duration = 5f;      // 분신 지속 시간
+        private GameObject activeClone; // 현재 활성화된 분신을 추적
 
-        [Header("Tenebris4 Skill Settings")]
-        [SerializeField] private GameObject tenebris4_CastVFX_Prefab;     // 스킬 '시전' 시 사용될 화면 전체 파동 이펙트
-        [SerializeField] private GameObject tenebris4_HitVFX_Prefab;      // 각 적에게 '피격' 시 나타날 이펙트
-        [SerializeField] private float tenebris4_HealthCostPercent = 0.2f; // 현재 체력의 20% 소모
-        [SerializeField] private float tenebris4_DamageMultiplier = 1.5f;  // 최대 체력의 150% 만큼 피해
-        [SerializeField] private float tenebris4_SafetyThreshold = 0.25f; // 체력이 25% 초과일 때만 사용 가능
+        [Header("Tenebris4 Skill Settings")]
+        [SerializeField] private GameObject tenebris4_CastVFX_Prefab;      // 스킬 '시전' 시 사용될 화면 전체 파동 이펙트
+        [SerializeField] private GameObject tenebris4_HitVFX_Prefab;       // 각 적에게 '피격' 시 나타날 이펙트
+        [SerializeField] private float tenebris4_HealthCostPercent = 0.2f; // 현재 체력의 20% 소모
+        [SerializeField] private float tenebris4_DamageMultiplier = 1.5f;  // 최대 체력의 150% 만큼 피해
+        [SerializeField] private float tenebris4_SafetyThreshold = 0.25f; // 체력이 25% 초과일 때만 사용 가능
 
-        private void Awake()
+        private void Awake()
         {
             if (player == null) player = GetComponentInParent<Player>();
             if (playerAttack == null) playerAttack = GetComponentInParent<PlayerAttack>();
@@ -99,21 +98,19 @@ namespace Player
             Collider[] hitColliders = Physics.OverlapSphere(transform.position, lux1_Radius);
             foreach (var hitCollider in hitColliders)
             {
-                if (hitCollider.CompareTag("Enemy"))
+                // [최종 수정] GetComponentInParent를 사용하여 부모 오브젝트의 스크립트까지 탐색
+                Enemy_Base enemy = hitCollider.GetComponentInParent<Enemy_Base>();
+                if (enemy != null && !enemy.IsDead())
                 {
-                    Enemy_Base enemy = hitCollider.GetComponent<Enemy_Base>();
-                    if (enemy != null && !enemy.IsDead())
-                    {
-                        // [데미지 공식 수정]
-                        float totalSkillDamage = _skill.damage + player.GetSkillDamage();
-                        enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Lux);
+                    // 데미지 공식 수정
+                    float totalSkillDamage = _skill.damage + player.GetSkillDamage();
+                    enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Lux);
 
-                        if (hitVFX != null)
-                        {
-                            Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
-                        }
-                        Debug.Log($"[[LUX1]]{hitCollider.name}에게 {totalSkillDamage}의 빛 속성 마법 데미지를 입혔습니다.");
+                    if (hitVFX != null)
+                    {
+                        Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
                     }
+                    Debug.Log($"[[LUX1]]{enemy.name}에게 {totalSkillDamage}의 빛 속성 마법 데미지를 입혔습니다.");
                 }
             }
         }
@@ -134,33 +131,31 @@ namespace Player
             Vector3 rawDirection = playerAttack.GetLookDirection();
             if (rawDirection == Vector3.zero) return;
 
-            rawDirection.y = 0;
+            rawDirection.y = 0;
             Vector3 direction = rawDirection.normalized;
-            Vector3 boxHalfExtents = new Vector3(lux3_Width / 2f, 2f, 0.1f);
+            Vector3 boxHalfExtents = new Vector3(lux3_Width / 2f, 2f, 0.1f);
             Quaternion orientation = Quaternion.LookRotation(direction);
             RaycastHit[] hits = Physics.BoxCastAll(startPoint, boxHalfExtents, direction, orientation, lux3_Range);
 
             foreach (var hit in hits)
             {
-                if (hit.collider.CompareTag("Enemy"))
+                // [최종 수정] GetComponentInParent를 사용하여 부모 오브젝트의 스크립트까지 탐색
+                Enemy_Base enemy = hit.collider.GetComponentInParent<Enemy_Base>();
+                if (enemy != null && !enemy.IsDead())
                 {
-                    Enemy_Base enemy = hit.collider.GetComponent<Enemy_Base>();
-                    if (enemy != null && !enemy.IsDead())
+                    Vector3 vectorToEnemy = enemy.transform.position - startPoint;
+                    Vector3 projectedVector = Vector3.Project(vectorToEnemy, direction);
+                    Vector3 closestPointOnLine = startPoint + projectedVector;
+                    float distanceFromCenter = Vector3.Distance(enemy.transform.position, closestPointOnLine);
+
+                    float damageMultiplier = Mathf.Lerp(1f, lux3_MinDamageMultiplier, Mathf.Clamp01(distanceFromCenter / (lux3_Width / 2f)));
+                    float baseSkillDamage = _skill.damage + player.GetSkillDamage();
+                    float finalDamage = baseSkillDamage * damageMultiplier;
+                    enemy.TakeDamage(finalDamage, DamageType.Magical, ElementType.Lux);
+
+                    if (hitVFX != null)
                     {
-                        Vector3 vectorToEnemy = enemy.transform.position - startPoint;
-                        Vector3 projectedVector = Vector3.Project(vectorToEnemy, direction);
-                        Vector3 closestPointOnLine = startPoint + projectedVector;
-                        float distanceFromCenter = Vector3.Distance(enemy.transform.position, closestPointOnLine);
-
-                        float damageMultiplier = Mathf.Lerp(1f, lux3_MinDamageMultiplier, Mathf.Clamp01(distanceFromCenter / (lux3_Width / 2f)));
-                        float baseSkillDamage = _skill.damage + player.GetSkillDamage();
-                        float finalDamage = baseSkillDamage * damageMultiplier;
-                        enemy.TakeDamage(finalDamage, DamageType.Magical, ElementType.Lux);
-
-                        if (hitVFX != null)
-                        {
-                            Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
-                        }
+                        Instantiate(hitVFX, enemy.transform.position, Quaternion.identity);
                     }
                 }
             }
@@ -174,7 +169,7 @@ namespace Player
 
         private IEnumerator Lux3_LineVFXCoroutine(Vector3 startPoint, Vector3 endPoint)
         {
-            GameObject vfxInstance = Instantiate(lux3_VFX_Prefab, startPoint, Quaternion.identity);
+            GameObject vfxInstance = Instantiate(lux3_VFX_Prefab, startPoint, Quaternion.identity);
             LineRenderer lineRenderer = vfxInstance.GetComponent<LineRenderer>();
 
             if (lineRenderer != null)
@@ -220,13 +215,11 @@ namespace Player
             List<Enemy_Base> validEnemies = new List<Enemy_Base>();
             foreach (var hitCollider in hitColliders)
             {
-                if (hitCollider.CompareTag("Enemy"))
+                // [최종 수정] GetComponentInParent를 사용하여 부모 오브젝트의 스크립트까지 탐색
+                Enemy_Base enemy = hitCollider.GetComponentInParent<Enemy_Base>();
+                if (enemy != null && !enemy.IsDead())
                 {
-                    Enemy_Base enemy = hitCollider.GetComponent<Enemy_Base>();
-                    if (enemy != null && !enemy.IsDead())
-                    {
-                        validEnemies.Add(enemy);
-                    }
+                    validEnemies.Add(enemy);
                 }
             }
             List<Enemy_Base> finalTargets = validEnemies
@@ -297,7 +290,7 @@ namespace Player
                             continue;
                         }
 
-                        // [데미지 공식 수정]
+                        // 데미지 공식 수정
                         float totalDamage = _skill.damage + player.GetSkillDamage();
                         float damagePerTick = totalDamage / (tenebris1_Duration / tenebris1_TickRate);
                         enemy.TakeDamage(damagePerTick, DamageType.Magical, ElementType.Tenebris);
@@ -359,22 +352,20 @@ namespace Player
                     Collider[] colliders = Physics.OverlapSphere(center, tenebris2_Radius);
                     foreach (var col in colliders)
                     {
-                        if (col.CompareTag("Enemy"))
+                        // [최종 수정] GetComponentInParent를 사용하여 부모 오브젝트의 스크립트까지 탐색
+                        Enemy_Base enemy = col.GetComponentInParent<Enemy_Base>();
+                        if (enemy != null && !enemy.IsDead())
                         {
-                            Enemy_Base enemy = col.GetComponent<Enemy_Base>();
-                            if (enemy != null && !enemy.IsDead())
+                            Rigidbody enemyRb = col.GetComponent<Rigidbody>();
+                            if (enemyRb != null)
                             {
-                                Rigidbody enemyRb = col.GetComponent<Rigidbody>();
-                                if (enemyRb != null)
-                                {
-                                    Vector3 direction = (center - col.transform.position).normalized;
-                                    enemyRb.AddForce(direction * tenebris2_PullForce);
-                                }
-
-                                // [데미지 공식 수정]
-                                float totalSkillDamage = tenebris2_DamagePerTick + player.GetSkillDamage();
-                                enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Tenebris);
+                                Vector3 direction = (center - col.transform.position).normalized;
+                                enemyRb.AddForce(direction * tenebris2_PullForce);
                             }
+
+                            // 데미지 공식 수정
+                            float totalSkillDamage = tenebris2_DamagePerTick + player.GetSkillDamage();
+                            enemy.TakeDamage(totalSkillDamage, DamageType.Magical, ElementType.Tenebris);
                         }
                     }
                     tickTimer = 0f;
@@ -448,10 +439,11 @@ namespace Player
                     Instantiate(tenebris4_CastVFX_Prefab, player.transform.position, Quaternion.identity);
                 }
 
+                // [참고] 이 스킬은 이미 Enemy_Base 타입으로 모든 적을 찾고 있으므로 수정할 필요가 없습니다.
                 Enemy_Base[] allEnemies = FindObjectsOfType<Enemy_Base>();
 
-                // [데미지 공식 수정]
-                float damage = (maxHealth * tenebris4_DamageMultiplier) + player.GetSkillDamage();
+                // 데미지 공식 수정
+                float damage = (maxHealth * tenebris4_DamageMultiplier) + player.GetSkillDamage();
 
                 foreach (Enemy_Base enemy in allEnemies)
                 {

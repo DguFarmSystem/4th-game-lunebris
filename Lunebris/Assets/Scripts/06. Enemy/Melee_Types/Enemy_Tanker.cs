@@ -653,12 +653,14 @@ public class ProjectileExploder : MonoBehaviour
 
         if (hasExploded) return;
 
+        /*
         // 플레이어나 벽에 충돌하면 폭발
         if (other.CompareTag("Player") || other.CompareTag("Wall") || other.CompareTag("Obstacle"))
         {
             Debug.Log($"ProjectileExploder: {other.tag}와 충돌하여 폭발!");
             Explode();
         }
+        */
     }
 
     private void OnCollisionEnter(Collision collision)
