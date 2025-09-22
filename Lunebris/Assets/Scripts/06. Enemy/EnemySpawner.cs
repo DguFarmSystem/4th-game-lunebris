@@ -30,8 +30,8 @@ public class EnemySpawner : MonoBehaviour
     private int teneAssassin = 5;
 
     // Mage
-    private int luxMageDealerID = 4;
-    private int teneMageDealerID = 5;
+    private int luxMageDealerID = 6;
+    private int teneMageDealerID = 7;
 
     [Range(8,9)]
     [SerializeField] private int middleBoosPrefabID;
@@ -150,6 +150,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         int rand = Random.Range(0, candidateIDs.Count);
+        Debug.Log(rand);
         return candidateIDs[rand];
     }
 }

@@ -8,6 +8,8 @@ TagManager:
   - Attack
   - Wall
   - Item
+  - Obstacle
+  - Ground
   layers:
   - Default
   - TransparentFX
