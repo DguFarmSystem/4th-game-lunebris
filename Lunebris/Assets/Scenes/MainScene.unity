@@ -4375,8 +4375,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pool: {fileID: 1917614963}
   timer: {fileID: 1618951683}
-  middleBoosPrefabID: 8
-  finalBossPrefabID: 0
+  middleBoss1PrefabID: 8
+  middleBoss2PrefabID: 9
+  finalBossPrefabID: 10
   spawnPoints:
   - {fileID: 1968337514}
   - {fileID: 1896782426}
@@ -4386,10 +4387,10 @@ MonoBehaviour:
   - {fileID: 1952602436}
   - {fileID: 1339571475}
   - {fileID: 1503743158}
+  bossSpawnPoint: {fileID: 0}
   minSpawnTime: 1
   maxSpawnTime: 3
   phase: 1
-  converPhaseTime: 0
 --- !u!1 &465380407
 GameObject:
   m_ObjectHideFlags: 0
@@ -7992,8 +7993,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d911ced9afb92542b389c791bc14cb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabs:
+  enemyPrefabs: []
+  bulletPrefabs:
   - {fileID: 5413666472578828671, guid: f437e013be0fce44b856b85a964eef73, type: 3}
+  midBoss1Prefab: {fileID: 0}
+  midBoss2Prefab: {fileID: 0}
+  finalBossPrefab: {fileID: 0}
+  midBoss1Pool: []
+  midBoss2Pool: []
+  finalBossPool: []
 --- !u!4 &734504200
 Transform:
   m_ObjectHideFlags: 0
@@ -22821,15 +22829,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d911ced9afb92542b389c791bc14cb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabs:
+  enemyPrefabs:
   - {fileID: 5940234919087153102, guid: d5f87bb6b80801348b98102703ff1d02, type: 3}
   - {fileID: 5940234919087153102, guid: 200f41953998b9c41b24b7465b6e9baa, type: 3}
   - {fileID: 3515715535688806566, guid: 8224e41150c6df442bd912f4a1a032c5, type: 3}
   - {fileID: 4400830932718545876, guid: a0c8a9d20580c194bb5c1e8fdc321188, type: 3}
-  - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
   - {fileID: 4329333406243338668, guid: a2a66b20ccc804a40bd9bace197f1e51, type: 3}
+  - {fileID: 4329333406243338668, guid: bb9505b3f40307e4bac3ce9079d144dd, type: 3}
   - {fileID: 3622652429097495255, guid: fe18b59de3a1af148a8b98d18df5fa87, type: 3}
   - {fileID: 4029942277676317784, guid: 0c62d676bc5c69349a9ef207a614ce5a, type: 3}
+  bulletPrefabs: []
+  midBoss1Prefab: {fileID: 1330477988217960268, guid: 8b436578c653edb4cbce3ef85b4c6700, type: 3}
+  midBoss2Prefab: {fileID: 1016061353934347890, guid: 3ee240d8bc60606499409e679d06a718, type: 3}
+  finalBossPrefab: {fileID: 3432749387292509026, guid: d3024e592c03eef42b61fb35936d3558, type: 3}
+  midBoss1Pool: []
+  midBoss2Pool: []
+  finalBossPool: []
 --- !u!4 &1917614964
 Transform:
   m_ObjectHideFlags: 0

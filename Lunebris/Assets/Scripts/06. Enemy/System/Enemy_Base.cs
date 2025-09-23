@@ -24,7 +24,7 @@ public abstract class Enemy_Base : MonoBehaviour
     [SerializeField] protected GameObject damageEffect; // 피격 이펙트
 
     [Header("애니메이션 설정")]
-    [SerializeField] protected Animator characterAnimator; // 자식 캐릭터의 Animator
+    [SerializeField] protected Animator characterAnimator; // 자신 캐릭터의 Animator
     [SerializeField] protected bool usePhysicsMovement = true; // Rigidbody 사용 여부
     [SerializeField] protected float enemyRotationSpeed = 5f; // 회전 속도
 
@@ -134,6 +134,21 @@ public abstract class Enemy_Base : MonoBehaviour
         {
             UpdateBehavior();
         }
+    }
+
+    protected virtual void OnEnable()
+    {
+        // 풀에서 재활성화될 때 호출
+        if (isDead) // 죽음 상태에서 재활성화되는 경우
+        {
+            ResetForPooling();
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        // 비활성화될 때 모든 코루틴 정리
+        StopAllCoroutines();
     }
 
     #endregion
@@ -389,24 +404,6 @@ public abstract class Enemy_Base : MonoBehaviour
             Die();
             return;
         }
-
-        /*
-        //적 처형 아이템 유무
-        if (Inventory.instance.HasItem("InstantDeath")) // 인벤토리에 아이템이 있는지 확인
-        {
-            if (currentHp <= enemyStats.Get(EnemyStatType.MaxHp) * 0.1f)  // 10% 미만
-            {
-                Debug.Log("적이 처형당했습니다.");
-                currentHp = 0;
-
-                ShowHpBar();
-                UpdateHpUI();
-
-                Die();
-                return;
-            }
-        }
-        */
     }
 
     protected virtual void OnDamaged()
@@ -480,6 +477,7 @@ public abstract class Enemy_Base : MonoBehaviour
         }
     }
 
+    // MODIFIED: 풀링에 호환되는 죽음 처리
     protected virtual void Die()
     {
         if (isDead) return;
@@ -503,12 +501,14 @@ public abstract class Enemy_Base : MonoBehaviour
             killDetector.UpdateKillPower(GetElementType());
         }
 
-        Destroy(gameObject, 1f);
+        // CHANGED: Destroy 대신 풀로 반환하는 코루틴 시작
+        StartCoroutine(ReturnToPoolAfterDeath());
 
-        Debug.Log($"{enemyName}: 3초 후 삭제 예정");
+        Debug.Log($"{enemyName}: 풀로 반환 예정");
     }
 
-    protected virtual System.Collections.IEnumerator DeactivateAfterDeathAnimation()
+    // NEW: 죽음 후 풀로 반환하는 코루틴
+    protected virtual System.Collections.IEnumerator ReturnToPoolAfterDeath()
     {
         // 죽음 애니메이션 길이만큼 대기
         float deathAnimationLength = 2f; // 기본값
@@ -530,10 +530,62 @@ public abstract class Enemy_Base : MonoBehaviour
         // 애니메이션이 완료될 때까지 대기
         yield return new WaitForSeconds(deathAnimationLength);
 
-        // 설정된 딜레이 후 오브젝트 삭제
-        Destroy(gameObject, destroyDelay);
+        // 추가 지연시간 (이펙트를 위해)
+        yield return new WaitForSeconds(destroyDelay);
 
-        Debug.Log($"{enemyName} 죽음 처리 완료! {destroyDelay}초 후 삭제됩니다.");
+        // 풀링을 위한 상태 리셋
+        ResetForPooling();
+
+        // Destroy 대신 비활성화
+        gameObject.SetActive(false);
+
+        Debug.Log($"{enemyName} 풀로 반환 완료!");
+    }
+
+    // NEW: 풀링을 위한 상태 리셋
+    protected virtual void ResetForPooling()
+    {
+        // 기본 상태 리셋
+        isDead = false;
+        currentHp = enemyStats.Get(EnemyStatType.MaxHp);
+
+        // 물리 및 콜라이더 리셋
+        if (enemyRigidbody != null)
+        {
+            enemyRigidbody.isKinematic = false;
+            enemyRigidbody.velocity = Vector3.zero;
+            enemyRigidbody.angularVelocity = Vector3.zero;
+        }
+
+        if (enemyCollider != null)
+        {
+            enemyCollider.enabled = true;
+        }
+
+        // 애니메이터 상태 리셋
+        if (characterAnimator != null)
+        {
+            characterAnimator.SetBool(ANIM_IS_DEAD, false);
+            characterAnimator.SetBool(ANIM_IS_MOVING, false);
+            characterAnimator.SetFloat(ANIM_MOVE_SPEED, 0f);
+        }
+
+        // 색상 리셋
+        if (enemyRenderer != null)
+        {
+            enemyRenderer.material.color = originalColor;
+        }
+
+        // HP바 숨기기
+        if (hpCanvas != null)
+        {
+            hpCanvas.gameObject.SetActive(false);
+        }
+
+        // 다음 사용을 위한 HP UI 업데이트
+        UpdateHpUI();
+
+        Debug.Log($"{enemyName} 상태 리셋 완료 - 재사용 준비됨");
     }
 
     protected virtual void GiveExperience()
@@ -724,6 +776,23 @@ public abstract class Enemy_Base : MonoBehaviour
     public void Death()
     {
         Die();
+    }
+
+    /// <summary>
+    /// 풀에서 재활성화될 때 호출되는 메서드
+    /// </summary>
+    public virtual void OnPoolReactivated()
+    {
+        // PoolManager에서 적을 재사용할 때 호출
+        // 필요한 특별한 초기화가 있다면 여기에 추가
+
+        // 다른 적들과의 충돌 무시 설정
+        if (ignoreEnemyCollisions)
+        {
+            SetupCollisionIgnoringForNewEnemy(this);
+        }
+
+        Debug.Log($"{enemyName} 풀에서 재활성화됨");
     }
 
     #endregion
