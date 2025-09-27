@@ -48,6 +48,16 @@ public class EnemyKillDetector : MonoBehaviour
 
     public void IncreaseTenePower()
     {
+        currentTenePower += increment;
 
+        if (currentTenePower >= maxTenePower)
+        {
+            augmentation.OpenAugmentationUI();
+            currentTenePower = currentTenePower - maxTenePower;
+        }
+
+        tenePowerSlider.value = (float)currentTenePower / (float)maxTenePower;
+
+        Debug.Log("어둠 에너지 증가");
     }
 }
