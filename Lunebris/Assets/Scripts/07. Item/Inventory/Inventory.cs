@@ -6,16 +6,6 @@ public class Inventory : MonoBehaviour
 {
     #region Singleton
     public static Inventory instance;
-    private InventoryUI inventoryUI;
-    //[SerializeField] private Transform slotParent; // GridLayoutGroup 붙은 Panel
-    private Slot[] slots;
-
-    void Start()
-    {
-        //slots = slotParent.GetComponentsInChildren<Slot>();
-        //Inventory.instance.onItemChangedCallback += UpdateUI;
-        //UpdateUI();
-    }
 
     void Awake()
     {
@@ -56,21 +46,6 @@ public class Inventory : MonoBehaviour
             Debug.Log("해당 슬롯에 아이템이 없습니다.");
         }
     }
-
-    /*public void UpdateUI()
-    {
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (i < Inventory.instance.items.Count && Inventory.instance.items[i] != null)
-            {
-                slots[i].SetItem(Inventory.instance.items[i]);
-            }
-            else
-            {
-                slots[i].ClearSlot();
-            }
-        }
-    }*/
 
     public delegate void OnItemChanged();
     public OnItemChanged onItemChangedCallback;

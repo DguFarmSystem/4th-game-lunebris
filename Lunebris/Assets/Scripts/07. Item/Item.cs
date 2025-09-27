@@ -7,7 +7,6 @@ using UnityEngine;
 public abstract class Item : MonoBehaviour
 {
     public int itemID;
-    public Sprite icon;
     public string itemName;
     public bool applyCondition;
 
