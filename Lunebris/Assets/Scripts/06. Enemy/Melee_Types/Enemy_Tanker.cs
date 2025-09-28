@@ -2,50 +2,50 @@ using UnityEngine;
 using Enemy;
 
 /// <summary>
-/// ¿Ï¼ºµÈ ±ÙÁ¢ ÅÊÄ¿ - ¾Ö´Ï¸ŞÀÌ¼Ç ¿¬µ¿ ¹× Åõ»çÃ¼ °ø°İ Æ÷ÇÔ
-/// ³ôÀº Ã¼·Â°ú ¹æ¾î·ÂÀ» °¡Áø ³»±¸Çü Àû
+/// ì™„ì„±ëœ ê·¼ì ‘ íƒ±ì»¤ - ì• ë‹ˆë©”ì´ì…˜ ì—°ë™ ë° íˆ¬ì‚¬ì²´ ê³µê²© í¬í•¨
+/// ë†’ì€ ì²´ë ¥ê³¼ ë°©ì–´ë ¥ì„ ê°€ì§„ ë‚´êµ¬í˜• ì 
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Tanker : Enemy_Base
 {
-    [Header("±âº» °ø°İ ¼³Á¤")]
+    [Header("ê¸°ë³¸ ê³µê²© ì„¤ì •")]
     [SerializeField] private float attackDuration = 0.5f;
-    [SerializeField] private float meleeAttackCooldown = 2f; // ±ÙÁ¢ °ø°İ Äğ´Ù¿î
+    [SerializeField] private float meleeAttackCooldown = 2f; // ê·¼ì ‘ ê³µê²© ì¿¨ë‹¤ìš´
 
-    [Header("Åõ»çÃ¼ °ø°İ ¼³Á¤")]
+    [Header("íˆ¬ì‚¬ì²´ ê³µê²© ì„¤ì •")]
     [SerializeField] private GameObject slowProjectilePrefab;
-    [SerializeField] private GameObject slowAreaPrefab; // SlowArea ÇÁ¸®ÆÕ Ãß°¡
+    [SerializeField] private GameObject slowAreaPrefab; // SlowArea í”„ë¦¬íŒ¹ ì¶”ê°€
     [SerializeField] private Transform projectileSpawnPoint;
     [SerializeField] private float projectileAttackRange = 10f;
     [SerializeField] private float projectileAttackCooldown = 8f;
-    [SerializeField] private float projectileDelay = 0.5f; // ¾Ö´Ï¸ŞÀÌ¼Ç ÈÄ ½ÇÁ¦ ¹ß»ç±îÁöÀÇ µô·¹ÀÌ
+    [SerializeField] private float projectileDelay = 0.5f; // ì• ë‹ˆë©”ì´ì…˜ í›„ ì‹¤ì œ ë°œì‚¬ê¹Œì§€ì˜ ë”œë ˆì´
 
-    [Header("»ç¿îµå È¿°ú")]
-    [SerializeField] private AudioSource audioSource; // ¿Àµğ¿À ¼Ò½º
-    [SerializeField] private AudioClip meleeAttackSound; // ±ÙÁ¢ °ø°İ »ç¿îµå
-    [SerializeField] private AudioClip projectileAttackSound; // Åõ»çÃ¼ °ø°İ ÁØºñ »ç¿îµå
-    [SerializeField] private AudioClip hitSound; // ÇÇ°İ »ç¿îµå
-    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // »ç¿îµå º¼·ı
-    [SerializeField] private bool useRandomPitch = true; // ·£´ı ÇÇÄ¡ »ç¿ë ¿©ºÎ
-    [SerializeField][Range(0.7f, 1.3f)] private float minPitch = 0.8f; // ÃÖ¼Ò ÇÇÄ¡ (ÅÊÄ¿´Â ³·Àº À½¼º)
-    [SerializeField][Range(0.7f, 1.3f)] private float maxPitch = 1.0f; // ÃÖ´ë ÇÇÄ¡
+    [Header("ì‚¬ìš´ë“œ íš¨ê³¼")]
+    [SerializeField] private AudioSource audioSource; // ì˜¤ë””ì˜¤ ì†ŒìŠ¤
+    [SerializeField] private AudioClip meleeAttackSound; // ê·¼ì ‘ ê³µê²© ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip projectileAttackSound; // íˆ¬ì‚¬ì²´ ê³µê²© ì¤€ë¹„ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip hitSound; // í”¼ê²© ì‚¬ìš´ë“œ
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // ì‚¬ìš´ë“œ ë³¼ë¥¨
+    [SerializeField] private bool useRandomPitch = true; // ëœë¤ í”¼ì¹˜ ì‚¬ìš© ì—¬ë¶€
+    [SerializeField][Range(0.7f, 1.3f)] private float minPitch = 0.8f; // ìµœì†Œ í”¼ì¹˜ (íƒ±ì»¤ëŠ” ë‚®ì€ ìŒì„±)
+    [SerializeField][Range(0.7f, 1.3f)] private float maxPitch = 1.0f; // ìµœëŒ€ í”¼ì¹˜
 
-    [Header("µğ¹ö±ë")]
+    [Header("ë””ë²„ê¹…")]
     [SerializeField] private bool enableDebugLogs = true;
 
-    // »óÅÂ °ü¸®
+    // ìƒíƒœ ê´€ë¦¬
     private bool isAttacking = false;
     private bool isProjectileAttacking = false;
     private float lastMeleeAttackTime;
     private float lastProjectileTime;
 
-    // ÄÄÆ÷³ÍÆ® ÂüÁ¶
+    // ì»´í¬ë„ŒíŠ¸ ì°¸ì¡°
     private Enemy_Tanker_Move moveScript;
 
-    // °ø°İ °ü·Ã »óÅÂ
+    // ê³µê²© ê´€ë ¨ ìƒíƒœ
     private bool waitingToFireProjectile = false;
 
-    // Move ½ºÅ©¸³Æ®¿¡¼­ ÂüÁ¶ÇÒ ¼ö ÀÖ´Â ÇÁ·ÎÆÛÆ¼µé
+    // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì°¸ì¡°í•  ìˆ˜ ìˆëŠ” í”„ë¡œí¼í‹°ë“¤
     public bool IsAttacking => isAttacking;
     public bool IsProjectileAttacking => isProjectileAttacking;
 
@@ -53,41 +53,41 @@ public class Enemy_Tanker : Enemy_Base
 
     protected override void Awake()
     {
-        // ÅÊÄ¿ ±âº» ¼³Á¤
+        // íƒ±ì»¤ ê¸°ë³¸ ì„¤ì •
         enemyType = EnemyType.MeleeTanker;
         elementType = ElementType.Neutral;
         primaryDamageType = DamageType.Physical;
         enemyName = "Dwarf Tanker";
 
-        // AudioSource ÀÚµ¿ ¼³Á¤
+        // AudioSource ìë™ ì„¤ì •
         SetupAudioSource();
 
         base.Awake();
 
-        // Move ½ºÅ©¸³Æ® ÂüÁ¶
+        // Move ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡°
         moveScript = GetComponent<Enemy_Tanker_Move>();
         if (moveScript == null)
         {
-            Debug.LogWarning($"{name}: Enemy_Tanker_Move ÄÄÆ÷³ÍÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù!");
+            Debug.LogWarning($"{name}: Enemy_Tanker_Move ì»´í¬ë„ŒíŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
         }
     }
 
     protected override void InitializeEnemy()
     {
-        // °ø°İ Áö¼Ó½Ã°£À» °ø°İ¼Óµµ¿¡ µû¶ó Á¶Á¤
+        // ê³µê²© ì§€ì†ì‹œê°„ì„ ê³µê²©ì†ë„ì— ë”°ë¼ ì¡°ì •
         if (enemyStats != null)
         {
             attackDuration = 1f / enemyStats.Get(EnemyStatType.AttackSpeed) * 0.5f;
         }
 
-        // Åõ»çÃ¼ ¹ß»ç À§Ä¡°¡ ¾øÀ¸¸é ÀÚµ¿À¸·Î »ı¼º
+        // íˆ¬ì‚¬ì²´ ë°œì‚¬ ìœ„ì¹˜ê°€ ì—†ìœ¼ë©´ ìë™ìœ¼ë¡œ ìƒì„±
         if (projectileSpawnPoint == null)
         {
             GameObject spawnPoint = new GameObject("ProjectileSpawnPoint");
             spawnPoint.transform.SetParent(transform);
             spawnPoint.transform.localPosition = Vector3.up * 1.5f;
             projectileSpawnPoint = spawnPoint.transform;
-            DebugLog("Åõ»çÃ¼ ¹ß»ç À§Ä¡ ÀÚµ¿ »ı¼ºµÊ");
+            DebugLog("íˆ¬ì‚¬ì²´ ë°œì‚¬ ìœ„ì¹˜ ìë™ ìƒì„±ë¨");
         }
 
         base.InitializeEnemy();
@@ -95,10 +95,10 @@ public class Enemy_Tanker : Enemy_Base
 
     #endregion
 
-    #region »ç¿îµå ½Ã½ºÅÛ
+    #region ì‚¬ìš´ë“œ ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// AudioSource ÀÚµ¿ ¼³Á¤
+    /// AudioSource ìë™ ì„¤ì •
     /// </summary>
     private void SetupAudioSource()
     {
@@ -109,84 +109,84 @@ public class Enemy_Tanker : Enemy_Base
             if (audioSource == null)
             {
                 audioSource = gameObject.AddComponent<AudioSource>();
-                DebugLog("AudioSource ÄÄÆ÷³ÍÆ®¸¦ ÀÚµ¿À¸·Î Ãß°¡Çß½À´Ï´Ù.");
+                DebugLog("AudioSource ì»´í¬ë„ŒíŠ¸ë¥¼ ìë™ìœ¼ë¡œ ì¶”ê°€í–ˆìŠµë‹ˆë‹¤.");
             }
         }
 
-        // AudioSource ±âº» ¼³Á¤ (ÅÊÄ¿´Â ´õ Å« ¼Ò¸®)
+        // AudioSource ê¸°ë³¸ ì„¤ì • (íƒ±ì»¤ëŠ” ë” í° ì†Œë¦¬)
         if (audioSource != null)
         {
             audioSource.playOnAwake = false;
             audioSource.volume = soundVolume;
-            audioSource.spatialBlend = 1f; // 3D »ç¿îµå
+            audioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œ
             audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-            audioSource.maxDistance = 25f; // ÅÊÄ¿´Â ´õ ¸Ö¸® µé¸²
+            audioSource.maxDistance = 25f; // íƒ±ì»¤ëŠ” ë” ë©€ë¦¬ ë“¤ë¦¼
             audioSource.minDistance = 3f;
         }
     }
 
     /// <summary>
-    /// ±ÙÁ¢ °ø°İ »ç¿îµå Àç»ı
+    /// ê·¼ì ‘ ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayMeleeAttackSound()
     {
         if (meleeAttackSound != null)
         {
             PlaySound(meleeAttackSound);
-            DebugLog("±ÙÁ¢ °ø°İ »ç¿îµå Àç»ı");
+            DebugLog("ê·¼ì ‘ ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// Åõ»çÃ¼ °ø°İ ÁØºñ »ç¿îµå Àç»ı
+    /// íˆ¬ì‚¬ì²´ ê³µê²© ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayProjectileAttackSound()
     {
         if (projectileAttackSound != null)
         {
             PlaySound(projectileAttackSound);
-            DebugLog("Åõ»çÃ¼ °ø°İ ÁØºñ »ç¿îµå Àç»ı");
+            DebugLog("íˆ¬ì‚¬ì²´ ê³µê²© ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ÇÇ°İ »ç¿îµå Àç»ı
+    /// í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayHitSound()
     {
         if (hitSound != null)
         {
             PlaySound(hitSound);
-            DebugLog("ÇÇ°İ »ç¿îµå Àç»ı");
+            DebugLog("í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// »ç¿îµå Àç»ı (°øÅë ¸Ş¼­µå)
+    /// ì‚¬ìš´ë“œ ì¬ìƒ (ê³µí†µ ë©”ì„œë“œ)
     /// </summary>
     private void PlaySound(AudioClip clip)
     {
         if (audioSource == null || clip == null) return;
 
-        // º¼·ı ¼³Á¤
+        // ë³¼ë¥¨ ì„¤ì •
         audioSource.volume = soundVolume;
 
-        // ·£´ı ÇÇÄ¡ Àû¿ë (ÅÊÄ¿´Â ³·Àº ¸ñ¼Ò¸®)
+        // ëœë¤ í”¼ì¹˜ ì ìš© (íƒ±ì»¤ëŠ” ë‚®ì€ ëª©ì†Œë¦¬)
         if (useRandomPitch)
         {
             audioSource.pitch = Random.Range(minPitch, maxPitch);
         }
         else
         {
-            audioSource.pitch = 0.9f; // ÅÊÄ¿ ±âº» ÇÇÄ¡ (¾à°£ ³·°Ô)
+            audioSource.pitch = 0.9f; // íƒ±ì»¤ ê¸°ë³¸ í”¼ì¹˜ (ì•½ê°„ ë‚®ê²Œ)
         }
 
-        // »ç¿îµå Àç»ı
+        // ì‚¬ìš´ë“œ ì¬ìƒ
         audioSource.PlayOneShot(clip);
     }
 
     /// <summary>
-    /// »ç¿îµå Áï½Ã Á¤Áö
+    /// ì‚¬ìš´ë“œ ì¦‰ì‹œ ì •ì§€
     /// </summary>
     private void StopSound()
     {
@@ -198,46 +198,46 @@ public class Enemy_Tanker : Enemy_Base
 
     #endregion
 
-    #region Çàµ¿ ÆĞÅÏ
+    #region í–‰ë™ íŒ¨í„´
 
     protected override void UpdateBehavior()
     {
-        // °ø°İ ÁßÀÎÁö Ã¼Å©
+        // ê³µê²© ì¤‘ì¸ì§€ ì²´í¬
         if (isAttacking)
         {
             if (Time.time - lastMeleeAttackTime >= attackDuration)
             {
                 EndMeleeAttack();
             }
-            return; // °ø°İ ÁßÀÌ¸é ´Ù¸¥ Çàµ¿ ÇÏÁö ¾ÊÀ½
+            return; // ê³µê²© ì¤‘ì´ë©´ ë‹¤ë¥¸ í–‰ë™ í•˜ì§€ ì•ŠìŒ
         }
 
         if (playerTransform == null) return;
 
         float distanceToPlayer = GetDistanceToPlayer();
-        DebugLog($"ÇÃ·¹ÀÌ¾î¿ÍÀÇ °Å¸®: {distanceToPlayer:F1}m");
+        
 
-        // 1. ±ÙÁ¢ °ø°İ ¹üÀ§ ³»¸é ±ÙÁ¢ °ø°İ
+        // 1. ê·¼ì ‘ ê³µê²© ë²”ìœ„ ë‚´ë©´ ê·¼ì ‘ ê³µê²©
         if (IsPlayerInAttackRange())
         {
             TryMeleeAttack();
         }
-        // 2. Åõ»çÃ¼ °ø°İ ¹üÀ§ ³»¸é Åõ»çÃ¼ °ø°İ ½Ãµµ
+        // 2. íˆ¬ì‚¬ì²´ ê³µê²© ë²”ìœ„ ë‚´ë©´ íˆ¬ì‚¬ì²´ ê³µê²© ì‹œë„
         else if (distanceToPlayer <= projectileAttackRange && CanUseProjectileAttack())
         {
             TryProjectileAttack();
         }
-        // 3. °¨Áö ¹üÀ§ ³»¸é ÀÌµ¿
+        // 3. ê°ì§€ ë²”ìœ„ ë‚´ë©´ ì´ë™
         else if (IsPlayerInDetectionRange())
         {
-            // ÀÌµ¿Àº Enemy_Tanker_Move¿¡¼­ Ã³¸®
+            // ì´ë™ì€ Enemy_Tanker_Moveì—ì„œ ì²˜ë¦¬
         }
     }
 
     protected override void UpdateMovement()
     {
-        // Enemy_Tanker_Move ½ºÅ©¸³Æ®°¡ ÀÌµ¿À» Ã³¸®
-        // ¿©±â¼­´Â °ø°İ »óÅÂ¸¸ Ã¼Å©
+        // Enemy_Tanker_Move ìŠ¤í¬ë¦½íŠ¸ê°€ ì´ë™ì„ ì²˜ë¦¬
+        // ì—¬ê¸°ì„œëŠ” ê³µê²© ìƒíƒœë§Œ ì²´í¬
         return;
     }
 
@@ -245,17 +245,17 @@ public class Enemy_Tanker : Enemy_Base
     {
         if (playerScript == null) return;
 
-        // °­·ÂÇÑ ¹°¸® °ø°İ
+        // ê°•ë ¥í•œ ë¬¼ë¦¬ ê³µê²©
         DealDamageToPlayer(DamageType.Physical);
-        DebugLog($"±ÙÁ¢ °ø°İ ½ÇÇà! µ¥¹ÌÁö Å¸ÀÔ: {DamageType.Physical}");
+        DebugLog($"ê·¼ì ‘ ê³µê²© ì‹¤í–‰! ë°ë¯¸ì§€ íƒ€ì…: {DamageType.Physical}");
     }
 
     #endregion
 
-    #region ±ÙÁ¢ °ø°İ ½Ã½ºÅÛ
+    #region ê·¼ì ‘ ê³µê²© ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// ±ÙÁ¢ °ø°İ ½Ãµµ
+    /// ê·¼ì ‘ ê³µê²© ì‹œë„
     /// </summary>
     private void TryMeleeAttack()
     {
@@ -270,24 +270,24 @@ public class Enemy_Tanker : Enemy_Base
         isAttacking = true;
         lastMeleeAttackTime = Time.time;
 
-        // ±ÙÁ¢ °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+        // ê·¼ì ‘ ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
         if (moveScript != null)
         {
             moveScript.PlayAttackAnimation();
         }
 
-        // ±ÙÁ¢ °ø°İ »ç¿îµå Àç»ı
+        // ê·¼ì ‘ ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
         PlayMeleeAttackSound();
 
-        DebugLog("±ÙÁ¢ °ø°İ ½ÃÀÛ!");
+        DebugLog("ê·¼ì ‘ ê³µê²© ì‹œì‘!");
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç ¾à°£ ÈÄ¿¡ ½ÇÁ¦ µ¥¹ÌÁö Àû¿ë
+        // ì• ë‹ˆë©”ì´ì…˜ ì•½ê°„ í›„ì— ì‹¤ì œ ë°ë¯¸ì§€ ì ìš©
         Invoke(nameof(ExecuteMeleeAttack), 0.3f);
     }
 
     private void ExecuteMeleeAttack()
     {
-        if (IsPlayerInAttackRange()) // ¿©ÀüÈ÷ ¹üÀ§ ³»¿¡ ÀÖ´ÂÁö È®ÀÎ
+        if (IsPlayerInAttackRange()) // ì—¬ì „íˆ ë²”ìœ„ ë‚´ì— ìˆëŠ”ì§€ í™•ì¸
         {
             PerformAttack();
         }
@@ -296,21 +296,21 @@ public class Enemy_Tanker : Enemy_Base
     private void EndMeleeAttack()
     {
         isAttacking = false;
-        DebugLog("±ÙÁ¢ °ø°İ ¿Ï·á");
+        DebugLog("ê·¼ì ‘ ê³µê²© ì™„ë£Œ");
     }
 
     #endregion
 
-    #region Åõ»çÃ¼ °ø°İ ½Ã½ºÅÛ
+    #region íˆ¬ì‚¬ì²´ ê³µê²© ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// Åõ»çÃ¼ °ø°İ ½Ãµµ
+    /// íˆ¬ì‚¬ì²´ ê³µê²© ì‹œë„
     /// </summary>
     private void TryProjectileAttack()
     {
         if (slowProjectilePrefab == null)
         {
-            DebugLog("Åõ»çÃ¼ ÇÁ¸®ÆÕÀÌ ¾ø¾î¼­ Áï½Ã ¿ø°Å¸® °ø°İ ½ÇÇà", true);
+            DebugLog("íˆ¬ì‚¬ì²´ í”„ë¦¬íŒ¹ì´ ì—†ì–´ì„œ ì¦‰ì‹œ ì›ê±°ë¦¬ ê³µê²© ì‹¤í–‰", true);
             ExecuteInstantRangedAttack();
             return;
         }
@@ -323,18 +323,18 @@ public class Enemy_Tanker : Enemy_Base
         isProjectileAttacking = true;
         lastProjectileTime = Time.time;
 
-        // Åõ»çÃ¼ °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+        // íˆ¬ì‚¬ì²´ ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
         if (moveScript != null)
         {
             moveScript.PlayProjectileAttackAnimation();
         }
 
-        // Åõ»çÃ¼ °ø°İ ÁØºñ »ç¿îµå Àç»ı
+        // íˆ¬ì‚¬ì²´ ê³µê²© ì¤€ë¹„ ì‚¬ìš´ë“œ ì¬ìƒ
         PlayProjectileAttackSound();
 
-        DebugLog("Åõ»çÃ¼ °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ!");
+        DebugLog("íˆ¬ì‚¬ì²´ ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘!");
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç ÈÄ¿¡ ½ÇÁ¦ Åõ»çÃ¼ ¹ß»ç
+        // ì• ë‹ˆë©”ì´ì…˜ í›„ì— ì‹¤ì œ íˆ¬ì‚¬ì²´ ë°œì‚¬
         waitingToFireProjectile = true;
         Invoke(nameof(FireProjectile), projectileDelay);
         Invoke(nameof(EndProjectileAttack), 1.5f);
@@ -346,14 +346,14 @@ public class Enemy_Tanker : Enemy_Base
 
         waitingToFireProjectile = false;
 
-        // ÇÃ·¹ÀÌ¾î ¹æÇâ °è»ê
+        // í”Œë ˆì´ì–´ ë°©í–¥ ê³„ì‚°
         Vector3 direction = (playerTransform.position - projectileSpawnPoint.position).normalized;
-        direction.y = 0f; // ¼öÆòÀ¸·Î¸¸ ¹ß»ç
+        direction.y = 0f; // ìˆ˜í‰ìœ¼ë¡œë§Œ ë°œì‚¬
 
-        // Åõ»çÃ¼ »ı¼º ¹× ¹ß»ç
+        // íˆ¬ì‚¬ì²´ ìƒì„± ë° ë°œì‚¬
         GameObject projectile = Instantiate(slowProjectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(direction));
 
-        // Åõ»çÃ¼ ½ºÅ©¸³Æ®°¡ ÀÖ´Ù¸é ¹ß»ç
+        // íˆ¬ì‚¬ì²´ ìŠ¤í¬ë¦½íŠ¸ê°€ ìˆë‹¤ë©´ ë°œì‚¬
         var projectileScript = projectile.GetComponent<Enemy_Tanker_SlowProjectile>();
         if (projectileScript != null)
         {
@@ -361,15 +361,15 @@ public class Enemy_Tanker : Enemy_Base
         }
         else
         {
-            // ±âº» Rigidbody ¹ß»ç
+            // ê¸°ë³¸ Rigidbody ë°œì‚¬
             var rb = projectile.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.velocity = direction * 5f; // ±âº» ¼Óµµ
+                rb.velocity = direction * 5f; // ê¸°ë³¸ ì†ë„
             }
         }
 
-        // ¸ğµç Åõ»çÃ¼¿¡ Æø¹ß Ã³¸® ÄÄÆ÷³ÍÆ® Ãß°¡
+        // ëª¨ë“  íˆ¬ì‚¬ì²´ì— í­ë°œ ì²˜ë¦¬ ì»´í¬ë„ŒíŠ¸ ì¶”ê°€
         var exploder = projectile.GetComponent<ProjectileExploder>();
         if (exploder == null)
         {
@@ -377,24 +377,24 @@ public class Enemy_Tanker : Enemy_Base
         }
         exploder.SetTanker(this);
 
-        DebugLog("Åõ»çÃ¼ ¹ß»ç ¿Ï·á!");
+        DebugLog("íˆ¬ì‚¬ì²´ ë°œì‚¬ ì™„ë£Œ!");
     }
 
     /// <summary>
-    /// Åõ»çÃ¼ ÇÁ¸®ÆÕÀÌ ¾øÀ» ¶§ Áï½Ã ¿ø°Å¸® °ø°İ
+    /// íˆ¬ì‚¬ì²´ í”„ë¦¬íŒ¹ì´ ì—†ì„ ë•Œ ì¦‰ì‹œ ì›ê±°ë¦¬ ê³µê²©
     /// </summary>
     private void ExecuteInstantRangedAttack()
     {
         isProjectileAttacking = true;
         lastProjectileTime = Time.time;
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+        // ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
         if (moveScript != null)
         {
             moveScript.PlayProjectileAttackAnimation();
         }
 
-        // ·¹ÀÌÄ³½ºÆ®·Î Áï½Ã °ø°İ
+        // ë ˆì´ìºìŠ¤íŠ¸ë¡œ ì¦‰ì‹œ ê³µê²©
         Vector3 direction = (playerTransform.position - transform.position).normalized;
         RaycastHit hit;
 
@@ -405,9 +405,9 @@ public class Enemy_Tanker : Enemy_Base
                 Player.Player player = hit.collider.GetComponent<Player.Player>();
                 if (player != null)
                 {
-                    float rangedDamage = enemyStats.Get(EnemyStatType.MagicalDamage); // ¿ø°Å¸®´Â ¸¶¹ı µ¥¹ÌÁö
+                    float rangedDamage = enemyStats.Get(EnemyStatType.MagicalDamage); // ì›ê±°ë¦¬ëŠ” ë§ˆë²• ë°ë¯¸ì§€
                     player.DecreaseHP(rangedDamage);
-                    DebugLog($"Áï½Ã ¿ø°Å¸® °ø°İ ÀûÁß! {rangedDamage} ¸¶¹ı µ¥¹ÌÁö");
+                    DebugLog($"ì¦‰ì‹œ ì›ê±°ë¦¬ ê³µê²© ì ì¤‘! {rangedDamage} ë§ˆë²• ë°ë¯¸ì§€");
                 }
             }
         }
@@ -419,11 +419,11 @@ public class Enemy_Tanker : Enemy_Base
     {
         isProjectileAttacking = false;
         waitingToFireProjectile = false;
-        DebugLog("Åõ»çÃ¼ °ø°İ ¿Ï·á");
+        DebugLog("íˆ¬ì‚¬ì²´ ê³µê²© ì™„ë£Œ");
     }
 
     /// <summary>
-    /// Åõ»çÃ¼ °ø°İÀÌ °¡´ÉÇÑÁö È®ÀÎ
+    /// íˆ¬ì‚¬ì²´ ê³µê²©ì´ ê°€ëŠ¥í•œì§€ í™•ì¸
     /// </summary>
     private bool CanUseProjectileAttack()
     {
@@ -431,105 +431,105 @@ public class Enemy_Tanker : Enemy_Base
     }
 
     /// <summary>
-    /// Åõ»çÃ¼ Æø¹ß½Ã SlowArea »ı¼º
+    /// íˆ¬ì‚¬ì²´ í­ë°œì‹œ SlowArea ìƒì„±
     /// </summary>
     public void CreateSlowAreaOnExplode(Vector3 position)
     {
-        // SlowArea »ı¼º
+        // SlowArea ìƒì„±
         CreateSlowAreaAt(position);
 
-        DebugLog($"Åõ»çÃ¼ Æø¹ß! À§Ä¡: {position}¿¡ SlowArea »ı¼º");
+        DebugLog($"íˆ¬ì‚¬ì²´ í­ë°œ! ìœ„ì¹˜: {position}ì— SlowArea ìƒì„±");
     }
 
     /// <summary>
-    /// Æ¯Á¤ À§Ä¡¿¡ SlowArea »ı¼º
+    /// íŠ¹ì • ìœ„ì¹˜ì— SlowArea ìƒì„±
     /// </summary>
     private void CreateSlowAreaAt(Vector3 position)
     {
         if (slowAreaPrefab != null)
         {
             GameObject slowArea = Instantiate(slowAreaPrefab, position, Quaternion.identity);
-            DebugLog($"SlowArea »ı¼ºµÊ! À§Ä¡: {position}");
+            DebugLog($"SlowArea ìƒì„±ë¨! ìœ„ì¹˜: {position}");
 
-            // SlowArea ÃÊ±âÈ­ (ÇÊ¿äÇÑ °æ¿ì)
+            // SlowArea ì´ˆê¸°í™” (í•„ìš”í•œ ê²½ìš°)
             var slowAreaScript = slowArea.GetComponent<Enemy_Tanker_SlowArea>();
             if (slowAreaScript != null)
             {
-                // ÇÊ¿äÇÏ´Ù¸é ¿©±â¼­ Initialize ¸Ş¼­µå È£Ãâ
-                DebugLog("SlowArea ½ºÅ©¸³Æ® ÂüÁ¶ ¿Ï·á");
+                // í•„ìš”í•˜ë‹¤ë©´ ì—¬ê¸°ì„œ Initialize ë©”ì„œë“œ í˜¸ì¶œ
+                DebugLog("SlowArea ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡° ì™„ë£Œ");
             }
         }
         else
         {
-            DebugLog("SlowArea ÇÁ¸®ÆÕÀÌ ¼³Á¤µÇÁö ¾ÊÀ½", true);
+            DebugLog("SlowArea í”„ë¦¬íŒ¹ì´ ì„¤ì •ë˜ì§€ ì•ŠìŒ", true);
         }
     }
 
     #endregion
 
-    #region ¾Ö´Ï¸ŞÀÌ¼Ç ¿¬µ¿
+    #region ì• ë‹ˆë©”ì´ì…˜ ì—°ë™
 
     /// <summary>
-    /// ÇÇ°İ½Ã Ã³¸® ¿À¹ö¶óÀÌµå
+    /// í”¼ê²©ì‹œ ì²˜ë¦¬ ì˜¤ë²„ë¼ì´ë“œ
     /// </summary>
     protected override void OnDamaged()
     {
-        // ÇÇ°İ »ç¿îµå Àç»ı
+        // í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ
         PlayHitSound();
 
-        // Move ½ºÅ©¸³Æ®¸¦ ÅëÇÑ ÇÇ°İ ¾Ö´Ï¸ŞÀÌ¼Ç
+        // Move ìŠ¤í¬ë¦½íŠ¸ë¥¼ í†µí•œ í”¼ê²© ì• ë‹ˆë©”ì´ì…˜
         if (moveScript != null)
         {
             moveScript.PlayHitAnimation();
         }
 
-        // ºÎ¸ğ Å¬·¡½ºÀÇ ±âº» ÇÇ°İ Ã³¸® (»ö»ó È¿°ú, ÀÌÆåÆ® µî)
+        // ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ê¸°ë³¸ í”¼ê²© ì²˜ë¦¬ (ìƒ‰ìƒ íš¨ê³¼, ì´í™íŠ¸ ë“±)
         base.OnDamaged();
     }
 
     /// <summary>
-    /// Á×À½ Ã³¸® ¿À¹ö¶óÀÌµå
+    /// ì£½ìŒ ì²˜ë¦¬ ì˜¤ë²„ë¼ì´ë“œ
     /// </summary>
     protected override void Die()
     {
-        DebugLog($"Enemy_Tanker.Die() È£ÃâµÊ");
+        DebugLog($"Enemy_Tanker.Die() í˜¸ì¶œë¨");
 
         if (IsDead())
         {
-            DebugLog("ÀÌ¹Ì Á×Àº »óÅÂ");
+            DebugLog("ì´ë¯¸ ì£½ì€ ìƒíƒœ");
             return;
         }
 
-        // Move ½ºÅ©¸³Æ®¸¦ ÅëÇÑ Á×À½ ¾Ö´Ï¸ŞÀÌ¼Ç
+        // Move ìŠ¤í¬ë¦½íŠ¸ë¥¼ í†µí•œ ì£½ìŒ ì• ë‹ˆë©”ì´ì…˜
         if (moveScript != null)
         {
             moveScript.PlayDeathAnimation();
         }
 
-        // ÁøÇà ÁßÀÎ °ø°İµé Ãë¼Ò
+        // ì§„í–‰ ì¤‘ì¸ ê³µê²©ë“¤ ì·¨ì†Œ
         CancelInvoke();
         isAttacking = false;
         isProjectileAttacking = false;
         waitingToFireProjectile = false;
 
-        // ºÎ¸ğ Å¬·¡½ºÀÇ Á×À½ Ã³¸®
+        // ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ì£½ìŒ ì²˜ë¦¬
         base.Die();
     }
 
     #endregion
 
-    #region À¯Æ¿¸®Æ¼ ¸Ş¼­µå
+    #region ìœ í‹¸ë¦¬í‹° ë©”ì„œë“œ
 
     /// <summary>
-    /// °æÇèÄ¡ º¸»ó ¼³Á¤
+    /// ê²½í—˜ì¹˜ ë³´ìƒ ì„¤ì •
     /// </summary>
     protected override int GetExperienceReward()
     {
-        return 25; // ÅÊÄ¿´Â ´õ ¸¹Àº °æÇèÄ¡ (Åõ»çÃ¼ °ø°İ Ãß°¡·Î ÀÎÇÑ Áõ°¡)
+        return 25; // íƒ±ì»¤ëŠ” ë” ë§ì€ ê²½í—˜ì¹˜ (íˆ¬ì‚¬ì²´ ê³µê²© ì¶”ê°€ë¡œ ì¸í•œ ì¦ê°€)
     }
 
     /// <summary>
-    /// µğ¹ö±× ·Î±× Ãâ·Â
+    /// ë””ë²„ê·¸ ë¡œê·¸ ì¶œë ¥
     /// </summary>
     private void DebugLog(string message, bool forceLog = false)
     {
@@ -540,45 +540,74 @@ public class Enemy_Tanker : Enemy_Base
     }
 
     /// <summary>
-    /// Ãæµ¹ Ã³¸® ¿À¹ö¶óÀÌµå
+    /// ì¶©ëŒ ì²˜ë¦¬ ì˜¤ë²„ë¼ì´ë“œ
     /// </summary>
     protected override void OnTriggerEnter(Collider other)
     {
-        DebugLog($"Ãæµ¹ °¨Áö: {other.name} (ÅÂ±×: {other.tag})");
+        DebugLog($"ì¶©ëŒ ê°ì§€: {other.name} (íƒœê·¸: {other.tag})");
+
+        // Enemy íƒœê·¸ì¸ ê²½ìš° ì¶©ëŒì„ ë¬´ì‹œ (í†µê³¼)
+        if (other.CompareTag("Enemy") && ignoreEnemyCollisions)
+        {
+            return;
+        }
 
         if (other.CompareTag("Attack"))
         {
+            // BaseAttack ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
+            Player.BaseAttack baseAttack = other.GetComponent<Player.BaseAttack>();
+
+            if (baseAttack != null)
+            {
+                // ì§ì ‘ ë°ë¯¸ì§€ ì ìš© (BaseAttackì—ì„œ ê°€ì ¸ì˜¨ ì‹¤ì œ ë°ë¯¸ì§€)
+                float directDamage = baseAttack.GetBaseDamage();
+                TakeDamage(directDamage, DamageType.Physical, ElementType.Neutral);
+
+                //  ìŠ¤í”Œë˜ì‰¬ íš¨ê³¼ê°€ ìˆë‹¤ë©´ ì‹¤í–‰ (ì§ì ‘ ë§ì€ ì  ì œì™¸)
+                if (baseAttack.HasSplashEffect())
+                {
+                    baseAttack.ExecuteSplashEffect(transform.position, this);
+                }
+
+                DebugLog($"í”Œë ˆì´ì–´ ê³µê²©ì— í”¼ê²©ë¨! ë°ë¯¸ì§€: {directDamage}");
+            }
+            else
+            {
+                // ê¸°ì¡´ ë¡œì§ (BaseAttackì´ ì—†ì„ ê²½ìš° ëŒ€ë¹„)
+                TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
+                DebugLog("í”Œë ˆì´ì–´ ê³µê²©ì— í”¼ê²©ë¨! (ê¸°ë³¸ ë°ë¯¸ì§€)");
+            }
+
+            // ì´ì•Œ ë¹„í™œì„±í™”
             other.gameObject.SetActive(false);
-            TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
-            DebugLog("ÇÃ·¹ÀÌ¾î °ø°İ¿¡ ÇÇ°İµÊ!");
         }
     }
 
     #endregion
 
-    #region µğ¹ö±×¿ë ±âÁî¸ğ
+    #region ë””ë²„ê·¸ìš© ê¸°ì¦ˆëª¨
 
     private void OnDrawGizmosSelected()
     {
-        // Åõ»çÃ¼ °ø°İ ¹üÀ§ Ç¥½Ã
+        // íˆ¬ì‚¬ì²´ ê³µê²© ë²”ìœ„ í‘œì‹œ
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, projectileAttackRange);
 
-        // ±ÙÁ¢ °ø°İ ¹üÀ§ Ç¥½Ã
+        // ê·¼ì ‘ ê³µê²© ë²”ìœ„ í‘œì‹œ
         if (enemyStats != null)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, enemyStats.Get(EnemyStatType.AttackRange));
         }
 
-        // °¨Áö ¹üÀ§ Ç¥½Ã
+        // ê°ì§€ ë²”ìœ„ í‘œì‹œ
         if (enemyStats != null)
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(transform.position, enemyStats.Get(EnemyStatType.DetectionRange));
         }
 
-        // Åõ»çÃ¼ ¹ß»ç ÁöÁ¡ Ç¥½Ã
+        // íˆ¬ì‚¬ì²´ ë°œì‚¬ ì§€ì  í‘œì‹œ
         if (projectileSpawnPoint != null)
         {
             Gizmos.color = Color.green;
@@ -588,10 +617,10 @@ public class Enemy_Tanker : Enemy_Base
 
     #endregion
 
-    #region °ø°³ ¸Ş¼­µå (¿ÜºÎ È£Ãâ¿ë)
+    #region ê³µê°œ ë©”ì„œë“œ (ì™¸ë¶€ í˜¸ì¶œìš©)
 
     /// <summary>
-    /// °­Á¦·Î ±ÙÁ¢ °ø°İ ½ÇÇà (µğ¹ö±×/Å×½ºÆ®¿ë)
+    /// ê°•ì œë¡œ ê·¼ì ‘ ê³µê²© ì‹¤í–‰ (ë””ë²„ê·¸/í…ŒìŠ¤íŠ¸ìš©)
     /// </summary>
     public void ForceAttack()
     {
@@ -602,7 +631,7 @@ public class Enemy_Tanker : Enemy_Base
     }
 
     /// <summary>
-    /// °­Á¦·Î Åõ»çÃ¼ °ø°İ ½ÇÇà (µğ¹ö±×/Å×½ºÆ®¿ë)
+    /// ê°•ì œë¡œ íˆ¬ì‚¬ì²´ ê³µê²© ì‹¤í–‰ (ë””ë²„ê·¸/í…ŒìŠ¤íŠ¸ìš©)
     /// </summary>
     public void ForceProjectileAttack()
     {
@@ -613,20 +642,20 @@ public class Enemy_Tanker : Enemy_Base
     }
 
     /// <summary>
-    /// ÇöÀç »óÅÂ Á¤º¸ ¹İÈ¯ (µğ¹ö±×¿ë)
+    /// í˜„ì¬ ìƒíƒœ ì •ë³´ ë°˜í™˜ (ë””ë²„ê·¸ìš©)
     /// </summary>
     public string GetStatusInfo()
     {
-        return $"°ø°İÁß: {isAttacking}, Åõ»çÃ¼°ø°İÁß: {isProjectileAttacking}, " +
-               $"±ÙÁ¢Äğ´Ù¿î: {meleeAttackCooldown - (Time.time - lastMeleeAttackTime):F1}s, " +
-               $"Åõ»çÃ¼Äğ´Ù¿î: {projectileAttackCooldown - (Time.time - lastProjectileTime):F1}s";
+        return $"ê³µê²©ì¤‘: {isAttacking}, íˆ¬ì‚¬ì²´ê³µê²©ì¤‘: {isProjectileAttacking}, " +
+               $"ê·¼ì ‘ì¿¨ë‹¤ìš´: {meleeAttackCooldown - (Time.time - lastMeleeAttackTime):F1}s, " +
+               $"íˆ¬ì‚¬ì²´ì¿¨ë‹¤ìš´: {projectileAttackCooldown - (Time.time - lastProjectileTime):F1}s";
     }
 
     #endregion
 }
 
 /// <summary>
-/// Åõ»çÃ¼ Æø¹ß Ã³¸®¸¦ À§ÇÑ ÇïÆÛ ÄÄÆ÷³ÍÆ®
+/// íˆ¬ì‚¬ì²´ í­ë°œ ì²˜ë¦¬ë¥¼ ìœ„í•œ í—¬í¼ ì»´í¬ë„ŒíŠ¸
 /// </summary>
 public class ProjectileExploder : MonoBehaviour
 {
@@ -636,28 +665,28 @@ public class ProjectileExploder : MonoBehaviour
     public void SetTanker(Enemy_Tanker tankerRef)
     {
         tanker = tankerRef;
-        Debug.Log($"ProjectileExploder: ÅÊÄ¿ ÂüÁ¶ ¼³Á¤µÊ - {tankerRef.name}");
+        Debug.Log($"ProjectileExploder: íƒ±ì»¤ ì°¸ì¡° ì„¤ì •ë¨ - {tankerRef.name}");
     }
 
     private void Start()
     {
-        Debug.Log($"ProjectileExploder: ½ÃÀÛµÊ - {gameObject.name}");
+        Debug.Log($"ProjectileExploder: ì‹œì‘ë¨ - {gameObject.name}");
 
-        // 5ÃÊ ÈÄ ÀÚµ¿ Æø¹ß (´õ Âª°Ô ¼³Á¤)
+        // 5ì´ˆ í›„ ìë™ í­ë°œ (ë” ì§§ê²Œ ì„¤ì •)
         Invoke(nameof(AutoExplode), 5f);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"ProjectileExploder: Trigger Ãæµ¹ °¨Áö - {other.name} (ÅÂ±×: {other.tag})");
+        Debug.Log($"ProjectileExploder: Trigger ì¶©ëŒ ê°ì§€ - {other.name} (íƒœê·¸: {other.tag})");
 
         if (hasExploded) return;
 
         /*
-        // ÇÃ·¹ÀÌ¾î³ª º®¿¡ Ãæµ¹ÇÏ¸é Æø¹ß
+        // í”Œë ˆì´ì–´ë‚˜ ë²½ì— ì¶©ëŒí•˜ë©´ í­ë°œ
         if (other.CompareTag("Player") || other.CompareTag("Wall") || other.CompareTag("Obstacle"))
         {
-            Debug.Log($"ProjectileExploder: {other.tag}¿Í Ãæµ¹ÇÏ¿© Æø¹ß!");
+            Debug.Log($"ProjectileExploder: {other.tag}ì™€ ì¶©ëŒí•˜ì—¬ í­ë°œ!");
             Explode();
         }
         */
@@ -665,12 +694,12 @@ public class ProjectileExploder : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log($"ProjectileExploder: Collision Ãæµ¹ °¨Áö - {collision.gameObject.name}");
+        Debug.Log($"ProjectileExploder: Collision ì¶©ëŒ ê°ì§€ - {collision.gameObject.name}");
 
         if (hasExploded) return;
 
-        // ¾î¶² °Í°úµç Ãæµ¹ÇÏ¸é Æø¹ß
-        Debug.Log("ProjectileExploder: Ãæµ¹ÇÏ¿© Æø¹ß!");
+        // ì–´ë–¤ ê²ƒê³¼ë“  ì¶©ëŒí•˜ë©´ í­ë°œ
+        Debug.Log("ProjectileExploder: ì¶©ëŒí•˜ì—¬ í­ë°œ!");
         Explode();
     }
 
@@ -678,7 +707,7 @@ public class ProjectileExploder : MonoBehaviour
     {
         if (hasExploded) return;
 
-        Debug.Log("ProjectileExploder: ½Ã°£ ÃÊ°ú·Î ÀÚµ¿ Æø¹ß!");
+        Debug.Log("ProjectileExploder: ì‹œê°„ ì´ˆê³¼ë¡œ ìë™ í­ë°œ!");
         Explode();
     }
 
@@ -687,25 +716,25 @@ public class ProjectileExploder : MonoBehaviour
         if (hasExploded) return;
         hasExploded = true;
 
-        Debug.Log($"ProjectileExploder: Æø¹ß ½ÇÇà! À§Ä¡: {transform.position}");
+        Debug.Log($"ProjectileExploder: í­ë°œ ì‹¤í–‰! ìœ„ì¹˜: {transform.position}");
 
-        // ÅÊÄ¿¿¡°Ô SlowArea »ı¼º ¿äÃ»
+        // íƒ±ì»¤ì—ê²Œ SlowArea ìƒì„± ìš”ì²­
         if (tanker != null)
         {
             tanker.CreateSlowAreaOnExplode(transform.position);
-            Debug.Log("ProjectileExploder: ÅÊÄ¿¿¡°Ô SlowArea »ı¼º ¿äÃ» ¿Ï·á");
+            Debug.Log("ProjectileExploder: íƒ±ì»¤ì—ê²Œ SlowArea ìƒì„± ìš”ì²­ ì™„ë£Œ");
         }
         else
         {
-            Debug.LogWarning("ProjectileExploder: ÅÊÄ¿ ÂüÁ¶°¡ ¾ø¾î¼­ SlowArea »ı¼º ºÒ°¡");
+            Debug.LogWarning("ProjectileExploder: íƒ±ì»¤ ì°¸ì¡°ê°€ ì—†ì–´ì„œ SlowArea ìƒì„± ë¶ˆê°€");
         }
 
-        // Åõ»çÃ¼ Á¦°Å
+        // íˆ¬ì‚¬ì²´ ì œê±°
         Destroy(gameObject);
     }
 
     private void OnDestroy()
     {
-        Debug.Log($"ProjectileExploder: ¿ÀºêÁ§Æ® Á¦°ÅµÊ - {gameObject.name}");
+        Debug.Log($"ProjectileExploder: ì˜¤ë¸Œì íŠ¸ ì œê±°ë¨ - {gameObject.name}");
     }
 }
