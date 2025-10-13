@@ -2,75 +2,75 @@ using UnityEngine;
 using Enemy;
 
 /// <summary>
-/// ±âÁ¸ ¿ø°Å¸® ÄÚµå¸¦ Enemy_Base¿¡ ÅëÇÕ (ADÇü) - ºĞ¿­Çü Æø¹ß ÅºÈ¯ ½ºÅ³ Ãß°¡
-/// ÀÏ¹İ°ø°İ°ú Æø¹ßÅºÈ¯ ¸ğµÎ ½ÃÀü½Ã°£ Àû¿ë - »ç¿îµå ½Ã½ºÅÛ Æ÷ÇÔ
+/// ê¸°ì¡´ ì›ê±°ë¦¬ ì½”ë“œë¥¼ Enemy_Baseì— í†µí•© (ADí˜•) - ë¶„ì—´í˜• í­ë°œ íƒ„í™˜ ìŠ¤í‚¬ ì¶”ê°€
+/// ì¼ë°˜ê³µê²©ê³¼ í­ë°œíƒ„í™˜ ëª¨ë‘ ì‹œì „ì‹œê°„ ì ìš© - ì‚¬ìš´ë“œ ì‹œìŠ¤í…œ í¬í•¨ - ì£½ìŒ ìƒíƒœ ì²´í¬ ì¶”ê°€
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Ranged : Enemy_Base
 {
-    [Header("¿ø°Å¸® °ø°İ ¼³Á¤")]
-    public GameObject bulletPrefab;      // ÀÏ¹İ ÃÑ¾Ë ÇÁ¸®ÆÕ
-    public Transform firePoint;          // ÃÑ¾Ë ¹ß»ç À§Ä¡
-    public float attackRange = 18f;       // °ø°İ »ç°Å¸®
-    public float attackCooldown = 2f;    // °ø°İ Äğ´Ù¿î
-    public float attackDuration = 0.5f;  // °ø°İ Áö¼Ó ½Ã°£ (¸ØÃçÀÖ´Â ½Ã°£)
-    public float attackCastTime = 0.5f;    // ÀÏ¹İ °ø°İ ½ÃÀü ½Ã°£
+    [Header("ì›ê±°ë¦¬ ê³µê²© ì„¤ì •")]
+    public GameObject bulletPrefab;      // ì¼ë°˜ ì´ì•Œ í”„ë¦¬íŒ¹
+    public Transform firePoint;          // ì´ì•Œ ë°œì‚¬ ìœ„ì¹˜
+    public float attackRange = 18f;       // ê³µê²© ì‚¬ê±°ë¦¬
+    public float attackCooldown = 2f;    // ê³µê²© ì¿¨ë‹¤ìš´
+    public float attackDuration = 0.5f;  // ê³µê²© ì§€ì† ì‹œê°„ (ë©ˆì¶°ìˆëŠ” ì‹œê°„)
+    public float attackCastTime = 0.5f;    // ì¼ë°˜ ê³µê²© ì‹œì „ ì‹œê°„
 
-    [Header("Æø¹ß ÅºÈ¯ ½ºÅ³ ¼³Á¤")]
-    public GameObject explosiveBulletPrefab;  // Æø¹ß ÅºÈ¯ ÇÁ¸®ÆÕ (ºĞ¿­µÇ´Â ¸ŞÀÎ ÅºÈ¯)
-    public GameObject subBulletPrefab;        // ºĞ¿­µÈ ÀÛÀº ÅºÈ¯ ÇÁ¸®ÆÕ
-    public float explosiveCooldown = 6f;      // Æø¹ß ÅºÈ¯ Äğ´Ù¿î
-    public float explosiveRange = 12f;        // Æø¹ß ÅºÈ¯ »ç°Å¸® (ÀÏ¹İº¸´Ù ±æ°Ô)
-    public float explosiveDamageMultiplier = 1.2f; // °¢ ºĞ¿­ ÅºÈ¯ µ¥¹ÌÁö ¹èÀ²
-    public float explodeTime = 1f;            // ÅºÈ¯ÀÌ ¸î ÃÊ ÈÄ¿¡ ºĞ¿­ÇÏ´ÂÁö
-    public int subBulletCount = 5;           // ºĞ¿­µÇ´Â ÅºÈ¯ °³¼ö
-    public float spreadAngle = 45f;          // ºĞ¿­ °¢µµ (µµ)
-    public int explosiveUseCondition = 4;     // ¸î ¹øÂ° °ø°İ¸¶´Ù Æø¹ß ÅºÈ¯ »ç¿ë
-    public float explosiveCastTime = 0.8f;    // Æø¹ß ÅºÈ¯ ½ÃÀü ½Ã°£ (ÀÏ¹İº¸´Ù ±æ°Ô)
+    [Header("í­ë°œ íƒ„í™˜ ìŠ¤í‚¬ ì„¤ì •")]
+    public GameObject explosiveBulletPrefab;  // í­ë°œ íƒ„í™˜ í”„ë¦¬íŒ¹ (ë¶„ì—´ë˜ëŠ” ë©”ì¸ íƒ„í™˜)
+    public GameObject subBulletPrefab;        // ë¶„ì—´ëœ ì‘ì€ íƒ„í™˜ í”„ë¦¬íŒ¹
+    public float explosiveCooldown = 6f;      // í­ë°œ íƒ„í™˜ ì¿¨ë‹¤ìš´
+    public float explosiveRange = 12f;        // í­ë°œ íƒ„í™˜ ì‚¬ê±°ë¦¬ (ì¼ë°˜ë³´ë‹¤ ê¸¸ê²Œ)
+    public float explosiveDamageMultiplier = 1.2f; // ê° ë¶„ì—´ íƒ„í™˜ ë°ë¯¸ì§€ ë°°ìœ¨
+    public float explodeTime = 1f;            // íƒ„í™˜ì´ ëª‡ ì´ˆ í›„ì— ë¶„ì—´í•˜ëŠ”ì§€
+    public int subBulletCount = 5;           // ë¶„ì—´ë˜ëŠ” íƒ„í™˜ ê°œìˆ˜
+    public float spreadAngle = 45f;          // ë¶„ì—´ ê°ë„ (ë„)
+    public int explosiveUseCondition = 4;     // ëª‡ ë²ˆì§¸ ê³µê²©ë§ˆë‹¤ í­ë°œ íƒ„í™˜ ì‚¬ìš©
+    public float explosiveCastTime = 0.8f;    // í­ë°œ íƒ„í™˜ ì‹œì „ ì‹œê°„ (ì¼ë°˜ë³´ë‹¤ ê¸¸ê²Œ)
 
-    [Header("»ç¿îµå È¿°ú")]
-    [SerializeField] private AudioSource audioSource; // ¿Àµğ¿À ¼Ò½º
-    [SerializeField] private AudioClip normalCastSound; // ÀÏ¹İ °ø°İ ½ÃÀü »ç¿îµå
-    [SerializeField] private AudioClip normalFireSound; // ÀÏ¹İ ÃÑ¾Ë ¹ß»ç »ç¿îµå
-    [SerializeField] private AudioClip explosiveCastSound; // Æø¹ß ÅºÈ¯ ½ÃÀü »ç¿îµå
-    [SerializeField] private AudioClip explosiveFireSound; // Æø¹ß ÅºÈ¯ ¹ß»ç »ç¿îµå
-    [SerializeField] private AudioClip hitSound; // ÇÇ°İ »ç¿îµå
-    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // »ç¿îµå º¼·ı
-    [SerializeField] private bool useRandomPitch = true; // ·£´ı ÇÇÄ¡ »ç¿ë ¿©ºÎ
-    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // ÃÖ¼Ò ÇÇÄ¡
-    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // ÃÖ´ë ÇÇÄ¡
+    [Header("ì‚¬ìš´ë“œ íš¨ê³¼")]
+    [SerializeField] private AudioSource audioSource; // ì˜¤ë””ì˜¤ ì†ŒìŠ¤
+    [SerializeField] private AudioClip normalCastSound; // ì¼ë°˜ ê³µê²© ì‹œì „ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip normalFireSound; // ì¼ë°˜ ì´ì•Œ ë°œì‚¬ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip explosiveCastSound; // í­ë°œ íƒ„í™˜ ì‹œì „ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip explosiveFireSound; // í­ë°œ íƒ„í™˜ ë°œì‚¬ ì‚¬ìš´ë“œ
+    [SerializeField] private AudioClip hitSound; // í”¼ê²© ì‚¬ìš´ë“œ
+    [SerializeField][Range(0f, 1f)] private float soundVolume = 0.8f; // ì‚¬ìš´ë“œ ë³¼ë¥¨
+    [SerializeField] private bool useRandomPitch = true; // ëœë¤ í”¼ì¹˜ ì‚¬ìš© ì—¬ë¶€
+    [SerializeField][Range(0.8f, 1.2f)] private float minPitch = 0.9f; // ìµœì†Œ í”¼ì¹˜
+    [SerializeField][Range(0.8f, 1.2f)] private float maxPitch = 1.1f; // ìµœëŒ€ í”¼ì¹˜
 
     private float lastAttackTime;
     private float lastExplosiveTime;
-    private bool isAttacking = false;         // ÀÏ¹İ °ø°İ ÁßÀÎÁö ¿©ºÎ
-    private bool isCastingNormal = false;     // ÀÏ¹İ °ø°İ ½ÃÀü ÁßÀÎÁö ¿©ºÎ
-    private bool isCastingExplosive = false;  // Æø¹ß ÅºÈ¯ ½ÃÀü ÁßÀÎÁö ¿©ºÎ
-    private int attackCount = 0;              // °ø°İ È½¼ö Ä«¿îÅÍ
+    private bool isAttacking = false;         // ì¼ë°˜ ê³µê²© ì¤‘ì¸ì§€ ì—¬ë¶€
+    private bool isCastingNormal = false;     // ì¼ë°˜ ê³µê²© ì‹œì „ ì¤‘ì¸ì§€ ì—¬ë¶€
+    private bool isCastingExplosive = false;  // í­ë°œ íƒ„í™˜ ì‹œì „ ì¤‘ì¸ì§€ ì—¬ë¶€
+    private int attackCount = 0;              // ê³µê²© íšŸìˆ˜ ì¹´ìš´í„°
 
-    // ÀÏ¹İ °ø°İ Àü¿ë ¾Ö´Ï¸ŞÀÌ¼Ç ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé
+    // ì¼ë°˜ ê³µê²© ì „ìš© ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤
     private readonly string ANIM_CAST_NORMAL = "castNormal";
     private readonly string ANIM_IS_CASTING_NORMAL = "isCastingNormal";
 
-    // Æø¹ß ÅºÈ¯ Àü¿ë ¾Ö´Ï¸ŞÀÌ¼Ç ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé
+    // í­ë°œ íƒ„í™˜ ì „ìš© ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤
     private readonly string ANIM_CAST_EXPLOSIVE = "castExplosive";
     private readonly string ANIM_IS_CASTING_EXPLOSIVE = "isCastingExplosive";
 
-    // Move ½ºÅ©¸³Æ®¿¡¼­ ÂüÁ¶ÇÒ ¼ö ÀÖ´Â ÇÁ·ÎÆÛÆ¼
+    // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì°¸ì¡°í•  ìˆ˜ ìˆëŠ” í”„ë¡œí¼í‹°
     public bool IsAttacking => isAttacking || isCastingNormal || isCastingExplosive;
     public bool IsCastingAny => isCastingNormal || isCastingExplosive;
 
-    #region Enemy_Base ¿À¹ö¶óÀÌµå
+    #region Enemy_Base ì˜¤ë²„ë¼ì´ë“œ
 
     protected override void InitializeEnemy()
     {
-        // ½ºÅÈ ½Ã½ºÅÛ ¼³Á¤
+        // ìŠ¤íƒ¯ ì‹œìŠ¤í…œ ì„¤ì •
         enemyType = EnemyType.RangedAD;
-        primaryDamageType = DamageType.Physical; // AD µô·¯ÀÌ¹Ç·Î ¹°¸® µ¥¹ÌÁö
+        primaryDamageType = DamageType.Physical; // AD ë”œëŸ¬ì´ë¯€ë¡œ ë¬¼ë¦¬ ë°ë¯¸ì§€
 
-        // AudioSource ÀÚµ¿ ¼³Á¤
+        // AudioSource ìë™ ì„¤ì •
         SetupAudioSource();
 
-        // ±âº» ÃÊ±âÈ­ ·ÎÁ÷
+        // ê¸°ë³¸ ì´ˆê¸°í™” ë¡œì§
         if (firePoint == null)
         {
             Transform childFirePoint = transform.Find("FirePoint");
@@ -80,7 +80,7 @@ public class Enemy_Ranged : Enemy_Base
             }
         }
 
-        // ½ºÅÈ ½Ã½ºÅÛÀÇ °ªÀ¸·Î ±âº» ¼³Á¤ ¾÷µ¥ÀÌÆ®
+        // ìŠ¤íƒ¯ ì‹œìŠ¤í…œì˜ ê°’ìœ¼ë¡œ ê¸°ë³¸ ì„¤ì • ì—…ë°ì´íŠ¸
         attackRange = enemyStats.Get(EnemyStatType.AttackRange);
         attackCooldown = 1f / enemyStats.Get(EnemyStatType.AttackSpeed);
 
@@ -89,27 +89,33 @@ public class Enemy_Ranged : Enemy_Base
 
     protected override void UpdateBehavior()
     {
+        // ì£½ì€ ìƒíƒœë©´ ëª¨ë“  í–‰ë™ ì¤‘ë‹¨
+        if (isDead) return;
+
         if (playerTransform == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         HandleCombat(distanceToPlayer);
 
-        // ½ÃÀü »óÅÂ ¾Ö´Ï¸ŞÀÌ¼Ç ¾÷µ¥ÀÌÆ®
+        // ì‹œì „ ìƒíƒœ ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸
         UpdateCastingAnimations();
     }
 
     protected override void PerformAttack()
     {
+        // ì£½ì€ ìƒíƒœë©´ ê³µê²©í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         attackCount++;
 
-        // Æø¹ß ÅºÈ¯ ½ºÅ³ »ç¿ë Á¶°Ç Ã¼Å©
+        // í­ë°œ íƒ„í™˜ ìŠ¤í‚¬ ì‚¬ìš© ì¡°ê±´ ì²´í¬
         if (ShouldUseExplosiveBullet())
         {
             CastExplosiveBullet();
         }
         else
         {
-            // ÀÏ¹İ ÃÑ¾Ë °ø°İ (½ÃÀü½Ã°£ Æ÷ÇÔ)
+            // ì¼ë°˜ ì´ì•Œ ê³µê²© (ì‹œì „ì‹œê°„ í¬í•¨)
             CastNormalBullet();
         }
 
@@ -118,25 +124,56 @@ public class Enemy_Ranged : Enemy_Base
 
     protected override void UpdateMovement()
     {
-        // ÀÌµ¿Àº Enemy_Ranged_Move¿¡¼­ Ã³¸®ÇÏ¹Ç·Î ºñ¿öµÒ
-        // Enemy_Ranged_Move°¡ IsAttacking ÇÁ·ÎÆÛÆ¼¸¦ ÂüÁ¶ÇØ¼­ ¿òÁ÷ÀÓ Á¦¾î
+        // ì´ë™ì€ Enemy_Ranged_Moveì—ì„œ ì²˜ë¦¬í•˜ë¯€ë¡œ ë¹„ì›Œë‘ 
+        // Enemy_Ranged_Moveê°€ IsAttacking í”„ë¡œí¼í‹°ë¥¼ ì°¸ì¡°í•´ì„œ ì›€ì§ì„ ì œì–´
     }
 
     protected override void OnDamaged()
     {
-        // ÇÇ°İ »ç¿îµå Àç»ı
+        // í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ
         PlayHitSound();
 
-        // ºÎ¸ğ Å¬·¡½ºÀÇ ±âº» ÇÇ°İ Ã³¸®
+        // ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ê¸°ë³¸ í”¼ê²© ì²˜ë¦¬
         base.OnDamaged();
+    }
+
+    // ì£½ìŒ ì²˜ë¦¬ ì‹œ ëª¨ë“  ê³µê²© ê´€ë ¨ Invoke ì·¨ì†Œ
+    protected override void Die()
+    {
+        // ëª¨ë“  ì§€ì—° ì‹¤í–‰ ë©”ì„œë“œë“¤ ì·¨ì†Œ
+        CancelAllAttackInvokes();
+
+        // ê³µê²© ìƒíƒœë“¤ ì´ˆê¸°í™”
+        ResetAttackStates();
+
+        // ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ì£½ìŒ ì²˜ë¦¬
+        base.Die();
+    }
+
+    // í’€ë§ì„ ìœ„í•œ ê³µê²© ìƒíƒœ ë¦¬ì…‹ ì˜¤ë²„ë¼ì´ë“œ
+    protected override void ResetForPooling()
+    {
+        // ê³µê²© ê´€ë ¨ ìƒíƒœ ë¦¬ì…‹
+        CancelAllAttackInvokes();
+        ResetAttackStates();
+
+        // ê³µê²© ì¹´ìš´í„° ë¦¬ì…‹
+        attackCount = 0;
+        lastAttackTime = 0f;
+        lastExplosiveTime = 0f;
+
+        // ë¶€ëª¨ í´ë˜ìŠ¤ì˜ ë¦¬ì…‹
+        base.ResetForPooling();
+
+        Debug.Log($"{enemyName}: Enemy_Ranged ì „ìš© ìƒíƒœ ë¦¬ì…‹ ì™„ë£Œ");
     }
 
     #endregion
 
-    #region »ç¿îµå ½Ã½ºÅÛ
+    #region ì‚¬ìš´ë“œ ì‹œìŠ¤í…œ
 
     /// <summary>
-    /// AudioSource ÀÚµ¿ ¼³Á¤
+    /// AudioSource ìë™ ì„¤ì •
     /// </summary>
     private void SetupAudioSource()
     {
@@ -147,93 +184,93 @@ public class Enemy_Ranged : Enemy_Base
             if (audioSource == null)
             {
                 audioSource = gameObject.AddComponent<AudioSource>();
-                Debug.Log($"{enemyName}: AudioSource ÄÄÆ÷³ÍÆ®¸¦ ÀÚµ¿À¸·Î Ãß°¡Çß½À´Ï´Ù.");
+                Debug.Log($"{enemyName}: AudioSource ì»´í¬ë„ŒíŠ¸ë¥¼ ìë™ìœ¼ë¡œ ì¶”ê°€í–ˆìŠµë‹ˆë‹¤.");
             }
         }
 
-        // AudioSource ±âº» ¼³Á¤ (¿ø°Å¸®´Â Áß°£ ¼Ò¸®)
+        // AudioSource ê¸°ë³¸ ì„¤ì • (ì›ê±°ë¦¬ëŠ” ì¤‘ê°„ ì†Œë¦¬)
         if (audioSource != null)
         {
             audioSource.playOnAwake = false;
             audioSource.volume = soundVolume;
-            audioSource.spatialBlend = 1f; // 3D »ç¿îµå
+            audioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œ
             audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-            audioSource.maxDistance = 22f; // ¿ø°Å¸®´Â Áß°£ °Å¸®
+            audioSource.maxDistance = 22f; // ì›ê±°ë¦¬ëŠ” ì¤‘ê°„ ê±°ë¦¬
             audioSource.minDistance = 2f;
         }
     }
 
     /// <summary>
-    /// ÀÏ¹İ °ø°İ ½ÃÀü »ç¿îµå Àç»ı
+    /// ì¼ë°˜ ê³µê²© ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayNormalCastSound()
     {
         if (normalCastSound != null)
         {
             PlaySound(normalCastSound);
-            Debug.Log($"{enemyName}: ÀÏ¹İ °ø°İ ½ÃÀü »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ì¼ë°˜ ê³µê²© ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ÀÏ¹İ ÃÑ¾Ë ¹ß»ç »ç¿îµå Àç»ı
+    /// ì¼ë°˜ ì´ì•Œ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayNormalFireSound()
     {
         if (normalFireSound != null)
         {
             PlaySound(normalFireSound);
-            Debug.Log($"{enemyName}: ÀÏ¹İ ÃÑ¾Ë ¹ß»ç »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: ì¼ë°˜ ì´ì•Œ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// Æø¹ß ÅºÈ¯ ½ÃÀü »ç¿îµå Àç»ı
+    /// í­ë°œ íƒ„í™˜ ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayExplosiveCastSound()
     {
         if (explosiveCastSound != null)
         {
             PlaySound(explosiveCastSound);
-            Debug.Log($"{enemyName}: Æø¹ß ÅºÈ¯ ½ÃÀü »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: í­ë°œ íƒ„í™˜ ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// Æø¹ß ÅºÈ¯ ¹ß»ç »ç¿îµå Àç»ı
+    /// í­ë°œ íƒ„í™˜ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayExplosiveFireSound()
     {
         if (explosiveFireSound != null)
         {
             PlaySound(explosiveFireSound);
-            Debug.Log($"{enemyName}: Æø¹ß ÅºÈ¯ ¹ß»ç »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: í­ë°œ íƒ„í™˜ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// ÇÇ°İ »ç¿îµå Àç»ı
+    /// í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ
     /// </summary>
     private void PlayHitSound()
     {
         if (hitSound != null)
         {
             PlaySound(hitSound);
-            Debug.Log($"{enemyName}: ÇÇ°İ »ç¿îµå Àç»ı");
+            Debug.Log($"{enemyName}: í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ");
         }
     }
 
     /// <summary>
-    /// »ç¿îµå Àç»ı (°øÅë ¸Ş¼­µå)
+    /// ì‚¬ìš´ë“œ ì¬ìƒ (ê³µí†µ ë©”ì„œë“œ)
     /// </summary>
     private void PlaySound(AudioClip clip)
     {
         if (audioSource == null || clip == null) return;
 
-        // º¼·ı ¼³Á¤
+        // ë³¼ë¥¨ ì„¤ì •
         audioSource.volume = soundVolume;
 
-        // ·£´ı ÇÇÄ¡ Àû¿ë
+        // ëœë¤ í”¼ì¹˜ ì ìš©
         if (useRandomPitch)
         {
             audioSource.pitch = Random.Range(minPitch, maxPitch);
@@ -243,12 +280,12 @@ public class Enemy_Ranged : Enemy_Base
             audioSource.pitch = 1f;
         }
 
-        // »ç¿îµå Àç»ı
+        // ì‚¬ìš´ë“œ ì¬ìƒ
         audioSource.PlayOneShot(clip);
     }
 
     /// <summary>
-    /// »ç¿îµå Áï½Ã Á¤Áö
+    /// ì‚¬ìš´ë“œ ì¦‰ì‹œ ì •ì§€
     /// </summary>
     private void StopSound()
     {
@@ -260,53 +297,56 @@ public class Enemy_Ranged : Enemy_Base
 
     #endregion
 
-    #region ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç °ü¸®
+    #region ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ê´€ë¦¬
 
     /// <summary>
-    /// ÀÏ¹İ °ø°İ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ì¼ë°˜ ê³µê²© ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     private void PlayCastNormalAnimation()
     {
         if (characterAnimator == null) return;
 
         characterAnimator.SetTrigger(ANIM_CAST_NORMAL);
-        Debug.Log($"{enemyName} ÀÏ¹İ °ø°İ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log($"{enemyName} ì¼ë°˜ ê³µê²© ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     /// <summary>
-    /// Æø¹ß ÅºÈ¯ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// í­ë°œ íƒ„í™˜ ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     private void PlayCastExplosiveAnimation()
     {
         if (characterAnimator == null) return;
 
         characterAnimator.SetTrigger(ANIM_CAST_EXPLOSIVE);
-        Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     /// <summary>
-    /// ¸ğµç ½ÃÀü »óÅÂ ¾Ö´Ï¸ŞÀÌ¼Ç ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+    /// ëª¨ë“  ì‹œì „ ìƒíƒœ ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
     /// </summary>
     private void UpdateCastingAnimations()
     {
         if (characterAnimator == null) return;
 
-        // ÀÏ¹İ °ø°İ ½ÃÀü »óÅÂ Bool ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì¼ë°˜ ê³µê²© ì‹œì „ ìƒíƒœ Bool íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         characterAnimator.SetBool(ANIM_IS_CASTING_NORMAL, isCastingNormal);
 
-        // Æø¹ß ÅºÈ¯ ½ÃÀü »óÅÂ Bool ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // í­ë°œ íƒ„í™˜ ì‹œì „ ìƒíƒœ Bool íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         characterAnimator.SetBool(ANIM_IS_CASTING_EXPLOSIVE, isCastingExplosive);
     }
 
     #endregion
 
-    #region °ø°İ ½Ã½ºÅÛ
+    #region ê³µê²© ì‹œìŠ¤í…œ
 
     private void HandleCombat(float distanceToPlayer)
     {
+        // ì£½ì€ ìƒíƒœë©´ ì „íˆ¬í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         LookAtPlayer();
 
-        // Æø¹ß ÅºÈ¯ÀÇ °æ¿ì ´õ ±ä »ç°Å¸® Ã¼Å©
+        // í­ë°œ íƒ„í™˜ì˜ ê²½ìš° ë” ê¸´ ì‚¬ê±°ë¦¬ ì²´í¬
         float currentRange = ShouldUseExplosiveBullet() ? explosiveRange : attackRange;
 
         if (distanceToPlayer <= currentRange && Time.time > lastAttackTime + attackCooldown && !IsAttacking)
@@ -317,177 +357,210 @@ public class Enemy_Ranged : Enemy_Base
 
     private bool ShouldUseExplosiveBullet()
     {
+        // ì£½ì€ ìƒíƒœë©´ ìŠ¤í‚¬ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ
+        if (isDead) return false;
+
         return attackCount % explosiveUseCondition == 0 &&
                Time.time > lastExplosiveTime + explosiveCooldown &&
                playerTransform != null;
     }
 
-    #region ÀÏ¹İ °ø°İ ½Ã½ºÅÛ
+    #region ì¼ë°˜ ê³µê²© ì‹œìŠ¤í…œ
 
     private void CastNormalBullet()
     {
+        // ì£½ì€ ìƒíƒœë©´ ì‹œì „í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         if (bulletPrefab != null && firePoint != null && playerTransform != null)
         {
-            // ÀÏ¹İ °ø°İ ½ÃÀü ½ÃÀÛ
+            // ì¼ë°˜ ê³µê²© ì‹œì „ ì‹œì‘
             isCastingNormal = true;
 
-            // ÀÏ¹İ °ø°İ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+            // ì¼ë°˜ ê³µê²© ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
             PlayCastNormalAnimation();
 
-            // ÀÏ¹İ °ø°İ ½ÃÀü »ç¿îµå Àç»ı
+            // ì¼ë°˜ ê³µê²© ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ
             PlayNormalCastSound();
 
-            Debug.Log($"{enemyName} ÀÏ¹İ °ø°İ ½ÃÀü ½ÃÀÛ! ½ÃÀü½Ã°£: {attackCastTime}ÃÊ");
+            Debug.Log($"{enemyName} ì¼ë°˜ ê³µê²© ì‹œì „ ì‹œì‘! ì‹œì „ì‹œê°„: {attackCastTime}ì´ˆ");
 
-            // ½ÃÀü ½Ã°£ ÈÄ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+            // ì‹œì „ ì‹œê°„ í›„ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
             Invoke(nameof(StartNormalAttackAnimation), attackCastTime);
-            // ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ÈÄ ½ÇÁ¦ ÅºÈ¯ ¹ß»ç (¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı ½Ã°£ °í·Á)
-            Invoke(nameof(FireNormalBullet), attackCastTime + 0.2f); // 0.2ÃÊ´Â ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ½Ã°£
+            // ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ í›„ ì‹¤ì œ íƒ„í™˜ ë°œì‚¬ (ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ ì‹œê°„ ê³ ë ¤)
+            Invoke(nameof(FireNormalBullet), attackCastTime + 0.2f); // 0.2ì´ˆëŠ” ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì‹œê°„
             Invoke(nameof(EndNormalCasting), attackCastTime);
         }
     }
 
     /// <summary>
-    /// ÀÏ¹İ °ø°İ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ
+    /// ì¼ë°˜ ê³µê²© ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘
     /// </summary>
     private void StartNormalAttackAnimation()
     {
-        // ½ÇÁ¦ °ø°İ »óÅÂ·Î ÀüÈ¯
+        // ì£½ì€ ìƒíƒœë©´ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒí•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
+        // ì‹¤ì œ ê³µê²© ìƒíƒœë¡œ ì „í™˜
         isAttacking = true;
 
-        // ½ÇÁ¦ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ì‹¤ì œ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayAttackAnimation();
 
-        Debug.Log($"{enemyName} ÀÏ¹İ °ø°İ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı!");
+        Debug.Log($"{enemyName} ì¼ë°˜ ê³µê²© ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ!");
     }
 
     private void FireNormalBullet()
     {
+        // ì£½ì€ ìƒíƒœë©´ ì´ì•Œ ë°œì‚¬í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         if (bulletPrefab != null && firePoint != null && playerTransform != null)
         {
-            // ÀÏ¹İ ÃÑ¾Ë ¹ß»ç »ç¿îµå Àç»ı
+            // ì¼ë°˜ ì´ì•Œ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ
             PlayNormalFireSound();
 
-            // ÃÑ¾Ë º¹Á¦ »ı¼º (¾Ö´Ï¸ŞÀÌ¼Ç ÀÌÈÄ¿¡)
+            // ì´ì•Œ ë³µì œ ìƒì„± (ì• ë‹ˆë©”ì´ì…˜ ì´í›„ì—)
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
-            // ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î ÃÑ¾Ë È¸Àü
+            // í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ ì´ì•Œ íšŒì „
             Vector3 targetPos = playerTransform.position;
             targetPos.y = firePoint.position.y;
             bullet.transform.LookAt(targetPos);
 
-            // ÃÑ¾Ë ÄÄÆ÷³ÍÆ®¿¡ ½ºÅÈ Àû¿ë
-            // TODO: Enemy_Ranged_Bullet ÄÄÆ÷³ÍÆ® ±¸Çö ÇÊ¿ä
+            // ì´ì•Œ ì»´í¬ë„ŒíŠ¸ì— ìŠ¤íƒ¯ ì ìš©
+            // TODO: Enemy_Ranged_Bullet ì»´í¬ë„ŒíŠ¸ êµ¬í˜„ í•„ìš”
             // var bulletComponent = bullet.GetComponent<Enemy_Ranged_Bullet>();
 
-            // ÀÏÁ¤ ½Ã°£ ÈÄ °ø°İ »óÅÂ ÇØÁ¦
+            // ì¼ì • ì‹œê°„ í›„ ê³µê²© ìƒíƒœ í•´ì œ
             Invoke(nameof(EndNormalAttack), attackDuration);
 
-            Debug.Log($"{enemyName} ÀÏ¹İ ÃÑ¾Ë ¹ß»ç! ¹°¸® µ¥¹ÌÁö: {GetMainDamage()}");
+            Debug.Log($"{enemyName} ì¼ë°˜ ì´ì•Œ ë°œì‚¬! ë¬¼ë¦¬ ë°ë¯¸ì§€: {GetMainDamage()}");
         }
     }
 
     private void EndNormalCasting()
     {
+        // ì£½ì€ ìƒíƒœë©´ ìƒíƒœ ë³€ê²½í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         isCastingNormal = false;
-        Debug.Log($"{enemyName} ÀÏ¹İ °ø°İ ½ÃÀü ¿Ï·á");
+        Debug.Log($"{enemyName} ì¼ë°˜ ê³µê²© ì‹œì „ ì™„ë£Œ");
     }
 
     private void EndNormalAttack()
     {
+        // ì£½ì€ ìƒíƒœë©´ ìƒíƒœ ë³€ê²½í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         isAttacking = false;
-        Debug.Log($"{enemyName} ÀÏ¹İ °ø°İ ¿Ï·á");
+        Debug.Log($"{enemyName} ì¼ë°˜ ê³µê²© ì™„ë£Œ");
     }
 
     #endregion
 
-    #region Æø¹ß ÅºÈ¯ ½Ã½ºÅÛ
+    #region í­ë°œ íƒ„í™˜ ì‹œìŠ¤í…œ
 
     private void CastExplosiveBullet()
     {
+        // ì£½ì€ ìƒíƒœë©´ ì‹œì „í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         if (explosiveBulletPrefab != null && firePoint != null && playerTransform != null)
         {
-            // Æø¹ß ÅºÈ¯ ½ÃÀü ½ÃÀÛ
+            // í­ë°œ íƒ„í™˜ ì‹œì „ ì‹œì‘
             isCastingExplosive = true;
             lastExplosiveTime = Time.time;
 
-            // Æø¹ß ÅºÈ¯ ½ÃÀü ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+            // í­ë°œ íƒ„í™˜ ì‹œì „ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
             PlayCastExplosiveAnimation();
 
-            // Æø¹ß ÅºÈ¯ ½ÃÀü »ç¿îµå Àç»ı
+            // í­ë°œ íƒ„í™˜ ì‹œì „ ì‚¬ìš´ë“œ ì¬ìƒ
             PlayExplosiveCastSound();
 
-            Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ½ÃÀü ½ÃÀÛ! ½ÃÀü½Ã°£: {explosiveCastTime}ÃÊ");
+            Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ì‹œì „ ì‹œì‘! ì‹œì „ì‹œê°„: {explosiveCastTime}ì´ˆ");
 
-            // ½ÃÀü ½Ã°£ ÈÄ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+            // ì‹œì „ ì‹œê°„ í›„ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
             Invoke(nameof(StartExplosiveAttackAnimation), explosiveCastTime);
-            // ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ÈÄ ½ÇÁ¦ ÅºÈ¯ ¹ß»ç (¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı ½Ã°£ °í·Á)
-            Invoke(nameof(FireExplosiveBullet), explosiveCastTime + 0.2f); // 0.2ÃÊ´Â ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ½Ã°£
+            // ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ í›„ ì‹¤ì œ íƒ„í™˜ ë°œì‚¬ (ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ ì‹œê°„ ê³ ë ¤)
+            Invoke(nameof(FireExplosiveBullet), explosiveCastTime + 0.2f); // 0.2ì´ˆëŠ” ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì‹œê°„
             Invoke(nameof(EndExplosiveCasting), explosiveCastTime);
         }
     }
 
     /// <summary>
-    /// Æø¹ß ÅºÈ¯ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ
+    /// í­ë°œ íƒ„í™˜ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘
     /// </summary>
     private void StartExplosiveAttackAnimation()
     {
-        // ½ÇÁ¦ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ì£½ì€ ìƒíƒœë©´ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒí•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
+        // ì‹¤ì œ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayAttackAnimation();
 
-        Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ¹ß»ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı!");
+        Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ë°œì‚¬ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ!");
     }
 
     private void FireExplosiveBullet()
     {
+        // ì£½ì€ ìƒíƒœë©´ íƒ„í™˜ ë°œì‚¬í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         if (explosiveBulletPrefab != null && firePoint != null && playerTransform != null)
         {
-            // Æø¹ß ÅºÈ¯ ¹ß»ç »ç¿îµå Àç»ı
+            // í­ë°œ íƒ„í™˜ ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ
             PlayExplosiveFireSound();
 
-            // Æø¹ß ÅºÈ¯ »ı¼º (¾Ö´Ï¸ŞÀÌ¼Ç ÀÌÈÄ¿¡)
+            // í­ë°œ íƒ„í™˜ ìƒì„± (ì• ë‹ˆë©”ì´ì…˜ ì´í›„ì—)
             GameObject explosiveBullet = Instantiate(explosiveBulletPrefab, firePoint.position, firePoint.rotation);
 
-            // ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î Æø¹ß ÅºÈ¯ È¸Àü
+            // í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ í­ë°œ íƒ„í™˜ íšŒì „
             Vector3 targetPos = playerTransform.position;
             targetPos.y = firePoint.position.y;
             explosiveBullet.transform.LookAt(targetPos);
 
-            // Æø¹ß ÅºÈ¯ ÄÄÆ÷³ÍÆ® ¼³Á¤ (ºĞ¿­ ½Ã½ºÅÛ)
+            // í­ë°œ íƒ„í™˜ ì»´í¬ë„ŒíŠ¸ ì„¤ì • (ë¶„ì—´ ì‹œìŠ¤í…œ)
             var explosiveComponent = explosiveBullet.GetComponent<Enemy_Ranged_ExplosiveBullet>();
             if (explosiveComponent != null)
             {
                 explosiveComponent.Initialize(
-                    GetMainDamage() * explosiveDamageMultiplier, // °¢ ºĞ¿­ ÅºÈ¯ µ¥¹ÌÁö
-                    explodeTime, // Æø¹ß ½Ã°£ (¸î ÃÊ ÈÄ¿¡ ÅÍÁúÁö)
-                    subBulletPrefab, // ºĞ¿­µÉ ÀÛÀº ÅºÈ¯ ÇÁ¸®ÆÕ
-                    subBulletCount, // ºĞ¿­ ÅºÈ¯ °³¼ö
-                    spreadAngle, // ÆÛÁü °¢µµ
-                    this.elementType, // ¿ø°Å¸® ÀûÀÇ ¼Ó¼º
-                    primaryDamageType // ¹°¸® µ¥¹ÌÁö
+                    GetMainDamage() * explosiveDamageMultiplier, // ê° ë¶„ì—´ íƒ„í™˜ ë°ë¯¸ì§€
+                    explodeTime, // í­ë°œ ì‹œê°„ (ëª‡ ì´ˆ í›„ì— í„°ì§ˆì§€)
+                    subBulletPrefab, // ë¶„ì—´ë  ì‘ì€ íƒ„í™˜ í”„ë¦¬íŒ¹
+                    subBulletCount, // ë¶„ì—´ íƒ„í™˜ ê°œìˆ˜
+                    spreadAngle, // í¼ì§ ê°ë„
+                    this.elementType, // ì›ê±°ë¦¬ ì ì˜ ì†ì„±
+                    primaryDamageType // ë¬¼ë¦¬ ë°ë¯¸ì§€
                 );
 
-                Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ÃÊ±âÈ­ ¿Ï·á! Æø¹ß½Ã°£: {explodeTime}ÃÊ, ºĞ¿­°³¼ö: {subBulletCount}°³");
+                Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ì´ˆê¸°í™” ì™„ë£Œ! í­ë°œì‹œê°„: {explodeTime}ì´ˆ, ë¶„ì—´ê°œìˆ˜: {subBulletCount}ê°œ");
             }
             else
             {
-                Debug.LogError($"{enemyName} Æø¹ß ÅºÈ¯¿¡ Enemy_Ranged_ExplosiveBullet ÄÄÆ÷³ÍÆ®°¡ ¾ø½À´Ï´Ù!");
+                Debug.LogError($"{enemyName} í­ë°œ íƒ„í™˜ì— Enemy_Ranged_ExplosiveBullet ì»´í¬ë„ŒíŠ¸ê°€ ì—†ìŠµë‹ˆë‹¤!");
             }
 
-            Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ¹ß»ç! Æø¹ß½Ã°£: {explodeTime}ÃÊ, ºĞ¿­ °³¼ö: {subBulletCount}°³, °¢ ÅºÈ¯ µ¥¹ÌÁö: {GetMainDamage() * explosiveDamageMultiplier}");
+            Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ë°œì‚¬! í­ë°œì‹œê°„: {explodeTime}ì´ˆ, ë¶„ì—´ ê°œìˆ˜: {subBulletCount}ê°œ, ê° íƒ„í™˜ ë°ë¯¸ì§€: {GetMainDamage() * explosiveDamageMultiplier}");
         }
     }
 
     private void EndExplosiveCasting()
     {
+        // ì£½ì€ ìƒíƒœë©´ ìƒíƒœ ë³€ê²½í•˜ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         isCastingExplosive = false;
-        Debug.Log($"{enemyName} Æø¹ß ÅºÈ¯ ½ÃÀü ¿Ï·á");
+        Debug.Log($"{enemyName} í­ë°œ íƒ„í™˜ ì‹œì „ ì™„ë£Œ");
     }
 
     #endregion
 
     private void LookAtPlayer()
     {
+        // ì£½ì€ ìƒíƒœë©´ í”Œë ˆì´ì–´ë¥¼ ë°”ë¼ë³´ì§€ ì•ŠìŒ
+        if (isDead) return;
+
         if (playerTransform == null) return;
 
         Vector3 direction = (playerTransform.position - transform.position).normalized;
@@ -501,36 +574,75 @@ public class Enemy_Ranged : Enemy_Base
 
     #endregion
 
-    #region ±âÁî¸ğ
+    #region ì£½ìŒ ì²˜ë¦¬ ìœ í‹¸ë¦¬í‹°
+
+    /// <summary>
+    /// ëª¨ë“  ê³µê²© ê´€ë ¨ Invoke ë©”ì„œë“œë“¤ ì·¨ì†Œ
+    /// </summary>
+    private void CancelAllAttackInvokes()
+    {
+        CancelInvoke(nameof(StartNormalAttackAnimation));
+        CancelInvoke(nameof(FireNormalBullet));
+        CancelInvoke(nameof(EndNormalCasting));
+        CancelInvoke(nameof(EndNormalAttack));
+        CancelInvoke(nameof(StartExplosiveAttackAnimation));
+        CancelInvoke(nameof(FireExplosiveBullet));
+        CancelInvoke(nameof(EndExplosiveCasting));
+
+        Debug.Log($"{enemyName}: ëª¨ë“  ê³µê²© ê´€ë ¨ ì§€ì—° ì‹¤í–‰ ë©”ì„œë“œë“¤ ì·¨ì†Œ ì™„ë£Œ");
+    }
+
+    /// <summary>
+    /// ê³µê²© ìƒíƒœë“¤ ì´ˆê¸°í™”
+    /// </summary>
+    private void ResetAttackStates()
+    {
+        isAttacking = false;
+        isCastingNormal = false;
+        isCastingExplosive = false;
+
+        // ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„°ë„ ì´ˆê¸°í™”
+        if (characterAnimator != null)
+        {
+            characterAnimator.SetBool(ANIM_IS_CASTING_NORMAL, false);
+            characterAnimator.SetBool(ANIM_IS_CASTING_EXPLOSIVE, false);
+        }
+
+        Debug.Log($"{enemyName}: ëª¨ë“  ê³µê²© ìƒíƒœ ì´ˆê¸°í™” ì™„ë£Œ");
+    }
+
+    #endregion
+
+    #region ê¸°ì¦ˆëª¨
 
     private void OnDrawGizmosSelected()
     {
-        // ÀÏ¹İ °ø°İ ¹üÀ§
+        // ì¼ë°˜ ê³µê²© ë²”ìœ„
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Æø¹ß ÅºÈ¯ °ø°İ ¹üÀ§
-        Gizmos.color = new Color(1f, 0.5f, 0f); // ÁÖÈ²»ö
+        // í­ë°œ íƒ„í™˜ ê³µê²© ë²”ìœ„
+        Gizmos.color = new Color(1f, 0.5f, 0f); // ì£¼í™©ìƒ‰
         Gizmos.DrawWireSphere(transform.position, explosiveRange);
 
-        // ½ºÅÈ ½Ã½ºÅÛ: °¨Áö ¹üÀ§ Ç¥½Ã
+        // ìŠ¤íƒ¯ ì‹œìŠ¤í…œ: ê°ì§€ ë²”ìœ„ í‘œì‹œ
         if (enemyStats != null)
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, enemyStats.Get(EnemyStatType.DetectionRange));
         }
 
-        // Æø¹ß ÅºÈ¯ ¿¹»ó ±Ëµµ (ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î)
+        // í­ë°œ íƒ„í™˜ ì˜ˆìƒ ê¶¤ë„ (í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ)
         if (playerTransform != null)
         {
             Vector3 direction = (playerTransform.position - transform.position).normalized;
-            Vector3 endPoint = transform.position + direction * (explodeTime * 15f); // ¿¹»ó ºñÇà°Å¸®
+            Vector3 endPoint = transform.position + direction * (explodeTime * 15f); // ì˜ˆìƒ ë¹„í–‰ê±°ë¦¬
 
             Gizmos.color = Color.magenta;
             Gizmos.DrawLine(transform.position, endPoint);
-            Gizmos.DrawWireSphere(endPoint, 0.5f); // ºĞ¿­ ¿¹»ó ÁöÁ¡
+            Gizmos.DrawWireSphere(endPoint, 0.5f); // ë¶„ì—´ ì˜ˆìƒ ì§€ì 
 
-            // ºĞ¿­ ÅºÈ¯µéÀÇ ¿¹»ó ±Ëµµ
+            // ë¶„ì—´ íƒ„í™˜ë“¤ì˜ ì˜ˆìƒ ê¶¤ë„
             Gizmos.color = Color.cyan;
             for (int i = 0; i < subBulletCount; i++)
             {
@@ -543,10 +655,10 @@ public class Enemy_Ranged : Enemy_Base
 
     #endregion
 
-    #region ½Ç½Ã°£ ½ºÅÈ È®ÀÎ
+    #region ì‹¤ì‹œê°„ ìŠ¤íƒ¯ í™•ì¸
 
     /// <summary>
-    /// ÀÎ½ºÆåÅÍ¿¡¼­ ½Ç½Ã°£À¸·Î ½ºÅÈ È®ÀÎ °¡´É
+    /// ì¸ìŠ¤í™í„°ì—ì„œ ì‹¤ì‹œê°„ìœ¼ë¡œ ìŠ¤íƒ¯ í™•ì¸ ê°€ëŠ¥
     /// </summary>
     [System.Serializable]
     public class RuntimeStats
@@ -584,14 +696,14 @@ public class Enemy_Ranged : Enemy_Base
         }
     }
 
-    [Header("½Ç½Ã°£ ½ºÅÈ È®ÀÎ (ÀĞ±âÀü¿ë)")]
+    [Header("ì‹¤ì‹œê°„ ìŠ¤íƒ¯ í™•ì¸ (ì½ê¸°ì „ìš©)")]
     [SerializeField] private RuntimeStats runtimeStats = new RuntimeStats();
 
     protected override void Update()
     {
         base.Update();
 
-        // µğ¹ö±×¿ë: ½Ç½Ã°£ ½ºÅÈ ¾÷µ¥ÀÌÆ®
+        // ë””ë²„ê·¸ìš©: ì‹¤ì‹œê°„ ìŠ¤íƒ¯ ì—…ë°ì´íŠ¸
         if (Application.isEditor)
         {
             runtimeStats.UpdateStats(this);

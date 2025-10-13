@@ -590,9 +590,9 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5000001
   m_Height: 2
@@ -964,12 +964,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 8190592246163898981}
     m_Modifications:
     - target: {fileID: 7592419149211803940, guid: 67413ff6b9d11924ea6e2fc080dc6556, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7592419149211803940, guid: 67413ff6b9d11924ea6e2fc080dc6556, type: 3}
       propertyPath: m_IsTrigger
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7592419149283544687, guid: 67413ff6b9d11924ea6e2fc080dc6556, type: 3}
       propertyPath: m_Name
       value: ms04_04_Dragon_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7592419149283544687, guid: 67413ff6b9d11924ea6e2fc080dc6556, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 7592419149283643981, guid: 67413ff6b9d11924ea6e2fc080dc6556, type: 3}
       propertyPath: m_LocalPosition.x

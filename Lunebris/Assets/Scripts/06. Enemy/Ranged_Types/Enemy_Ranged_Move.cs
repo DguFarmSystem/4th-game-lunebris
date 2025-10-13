@@ -4,43 +4,60 @@ using UnityEngine;
 public class Enemy_Ranged_Move : MonoBehaviour
 {
     [SerializeField] private float speed = 2f;
-    [SerializeField] private string idleStateName = "Idle"; // Idle ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ÀÌ¸§
-    [SerializeField] private string[] movingStateNames = { "Walk", "Run", "Move" }; // ¿òÁ÷ÀÌ´Â ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ÀÌ¸§µé
+    [SerializeField] private string idleStateName = "Idle"; // Idle ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì´ë¦„
+    [SerializeField] private string[] movingStateNames = { "Walk", "Run", "Move" }; // ì›€ì§ì´ëŠ” ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì´ë¦„ë“¤
 
     private Transform target;
     private Rigidbody rigid;
-    private Enemy_Ranged enemyRanged; // Enemy_Ranged ÂüÁ¶ Ãß°¡
-    private Animator characterAnimator; // ¾Ö´Ï¸ŞÀÌÅÍ ÂüÁ¶ Ãß°¡
+    private Enemy_Ranged enemyRanged; // Enemy_Ranged ì°¸ì¡° ì¶”ê°€
+    private Enemy_Base enemyBase; // Enemy_Base ì°¸ì¡° ì¶”ê°€ (ì£½ìŒ ìƒíƒœ í™•ì¸ìš©)
+    private Animator characterAnimator; // ì• ë‹ˆë©”ì´í„° ì°¸ì¡° ì¶”ê°€
 
     private void Start()
     {
         target = GameObject.Find("Player").transform;
         rigid = GetComponent<Rigidbody>();
-        enemyRanged = GetComponent<Enemy_Ranged>(); // ÂüÁ¶ °¡Á®¿À±â
+        enemyRanged = GetComponent<Enemy_Ranged>(); // ì°¸ì¡° ê°€ì ¸ì˜¤ê¸°
+        enemyBase = GetComponent<Enemy_Base>(); // Enemy_Base ì°¸ì¡° ê°€ì ¸ì˜¤ê¸°
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ Ã£±â (ÀÚ½Ä¿¡¼­µµ Ã£±â)
+        // ì• ë‹ˆë©”ì´í„° ì°¾ê¸° (ìì‹ì—ì„œë„ ì°¾ê¸°)
         characterAnimator = GetComponent<Animator>();
         if (characterAnimator == null)
         {
             characterAnimator = GetComponentInChildren<Animator>();
         }
+
+        // Enemy_Baseê°€ ì—†ìœ¼ë©´ ê²½ê³  ë©”ì‹œì§€ ì¶œë ¥
+        if (enemyBase == null)
+        {
+            Debug.LogWarning($"{name}: Enemy_Base ì»´í¬ë„ŒíŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì£½ìŒ ìƒíƒœ ì²´í¬ê°€ ë¶ˆê°€ëŠ¥í•©ë‹ˆë‹¤.");
+        }
     }
 
     private void FixedUpdate()
     {
-        // ÇöÀç ¿òÁ÷ÀÌ´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ı ÁßÀÎÁö È®ÀÎ
+        // ì£½ì€ ìƒíƒœë©´ ëª¨ë“  ì›€ì§ì„ ì¤‘ë‹¨
+        if (enemyBase != null && enemyBase.IsDead())
+        {
+            StopMovement();
+            UpdateMovementAnimation(false);
+            return;
+        }
+
+        // í˜„ì¬ ì›€ì§ì´ëŠ” ì• ë‹ˆë©”ì´ì…˜ì´ ì¬ìƒ ì¤‘ì¸ì§€ í™•ì¸
         bool isPlayingMovingAnimation = IsPlayingMovingAnimation();
 
-        // ¿òÁ÷ÀÌ´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ı ÁßÀÌ¸é ¹«Á¶°Ç ¿òÁ÷ÀÓ (Idle »óÅÂ ¹«½Ã)
+        // ì›€ì§ì´ëŠ” ì• ë‹ˆë©”ì´ì…˜ì´ ì¬ìƒ ì¤‘ì´ë©´ ë¬´ì¡°ê±´ ì›€ì§ì„ (Idle ìƒíƒœ ë¬´ì‹œ)
+        // í•˜ì§€ë§Œ ì£½ì—ˆìœ¼ë©´ ì›€ì§ì´ì§€ ì•ŠìŒ (ìœ„ì—ì„œ ì´ë¯¸ ì²´í¬í–ˆìœ¼ë¯€ë¡œ ì—¬ê¸°ì„œëŠ” ì•ˆì „)
         if (isPlayingMovingAnimation)
         {
             Move();
             return;
         }
 
-        // ¿òÁ÷ÀÌ´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ¾Æ´Ò ¶§¸¸ ´Ù¸¥ Á¶°Çµé È®ÀÎ
+        // ì›€ì§ì´ëŠ” ì• ë‹ˆë©”ì´ì…˜ì´ ì•„ë‹ ë•Œë§Œ ë‹¤ë¥¸ ì¡°ê±´ë“¤ í™•ì¸
 
-        // Idle ¸ğ¼Ç ÁßÀÌ¸é ¿òÁ÷ÀÌÁö ¾ÊÀ½
+        // Idle ëª¨ì…˜ ì¤‘ì´ë©´ ì›€ì§ì´ì§€ ì•ŠìŒ
         bool isInIdleState = IsPlayingIdleAnimation();
         if (isInIdleState)
         {
@@ -49,7 +66,7 @@ public class Enemy_Ranged_Move : MonoBehaviour
             return;
         }
 
-        // °ø°İ ÁßÀÌ ¾Æ´Ò ¶§¸¸ ÀÌµ¿
+        // ê³µê²© ì¤‘ì´ ì•„ë‹ ë•Œë§Œ ì´ë™
         if (enemyRanged == null || !enemyRanged.IsAttacking)
         {
             Move();
@@ -57,23 +74,23 @@ public class Enemy_Ranged_Move : MonoBehaviour
         }
         else
         {
-            // °ø°İ ÁßÀÏ ¶§´Â ¸ØÃã
+            // ê³µê²© ì¤‘ì¼ ë•ŒëŠ” ë©ˆì¶¤
             StopMovement();
             UpdateMovementAnimation(false);
         }
     }
 
     /// <summary>
-    /// ÇöÀç ¿òÁ÷ÀÌ´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ı ÁßÀÎÁö È®ÀÎ
+    /// í˜„ì¬ ì›€ì§ì´ëŠ” ì• ë‹ˆë©”ì´ì…˜ì´ ì¬ìƒ ì¤‘ì¸ì§€ í™•ì¸
     /// </summary>
     private bool IsPlayingMovingAnimation()
     {
         if (characterAnimator == null) return false;
 
-        // ÇöÀç ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ Á¤º¸ °¡Á®¿À±â
+        // í˜„ì¬ ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
         AnimatorStateInfo stateInfo = characterAnimator.GetCurrentAnimatorStateInfo(0);
 
-        // ¿òÁ÷ÀÌ´Â »óÅÂµé Áß ÇÏ³ªÀÎÁö È®ÀÎ
+        // ì›€ì§ì´ëŠ” ìƒíƒœë“¤ ì¤‘ í•˜ë‚˜ì¸ì§€ í™•ì¸
         foreach (string movingState in movingStateNames)
         {
             if (stateInfo.IsName(movingState))
@@ -82,7 +99,7 @@ public class Enemy_Ranged_Move : MonoBehaviour
             }
         }
 
-        // ÅÂ±×·Îµµ È®ÀÎ (Movement ÅÂ±×°¡ ÀÖ´Â »óÅÂµé)
+        // íƒœê·¸ë¡œë„ í™•ì¸ (Movement íƒœê·¸ê°€ ìˆëŠ” ìƒíƒœë“¤)
         if (stateInfo.IsTag("Movement") || stateInfo.IsTag("Moving"))
         {
             return true;
@@ -92,26 +109,26 @@ public class Enemy_Ranged_Move : MonoBehaviour
     }
 
     /// <summary>
-    /// ÇöÀç Idle ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ı ÁßÀÎÁö È®ÀÎ
+    /// í˜„ì¬ Idle ì• ë‹ˆë©”ì´ì…˜ì´ ì¬ìƒ ì¤‘ì¸ì§€ í™•ì¸
     /// </summary>
     private bool IsPlayingIdleAnimation()
     {
         if (characterAnimator == null) return false;
 
-        // ÇöÀç ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ Á¤º¸ °¡Á®¿À±â
+        // í˜„ì¬ ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
         AnimatorStateInfo stateInfo = characterAnimator.GetCurrentAnimatorStateInfo(0);
 
-        // Idle »óÅÂÀÎÁö È®ÀÎ (»óÅÂ ÀÌ¸§ ¶Ç´Â ÅÂ±×·Î È®ÀÎ)
+        // Idle ìƒíƒœì¸ì§€ í™•ì¸ (ìƒíƒœ ì´ë¦„ ë˜ëŠ” íƒœê·¸ë¡œ í™•ì¸)
         bool isIdleState = stateInfo.IsName(idleStateName) || stateInfo.IsTag("Idle");
 
-        // ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ÁøÇà ÁßÀÎÁö È®ÀÎ (normalizedTime < 1ÀÌ¸é ¾ÆÁ÷ ÁøÇà Áß)
+        // ì• ë‹ˆë©”ì´ì…˜ì´ ì§„í–‰ ì¤‘ì¸ì§€ í™•ì¸ (normalizedTime < 1ì´ë©´ ì•„ì§ ì§„í–‰ ì¤‘)
         bool isAnimationPlaying = stateInfo.normalizedTime < 1.0f;
 
         return isIdleState && isAnimationPlaying;
     }
 
     /// <summary>
-    /// ÀÌµ¿ Á¤Áö
+    /// ì´ë™ ì •ì§€
     /// </summary>
     private void StopMovement()
     {
@@ -132,13 +149,13 @@ public class Enemy_Ranged_Move : MonoBehaviour
     }
 
     /// <summary>
-    /// ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+    /// ì´ë™ ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
     /// </summary>
     private void UpdateMovementAnimation(bool isMoving)
     {
         if (characterAnimator == null) return;
 
-        // ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç Á¦¾î
+        // ì´ë™ ì• ë‹ˆë©”ì´ì…˜ ì œì–´
         characterAnimator.SetBool("isMoving", isMoving);
         characterAnimator.SetFloat("moveSpeed", isMoving ? speed : 0f);
     }
