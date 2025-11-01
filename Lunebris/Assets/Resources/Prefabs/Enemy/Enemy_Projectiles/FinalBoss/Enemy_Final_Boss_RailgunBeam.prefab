@@ -505,7 +505,7 @@ MonoBehaviour:
   leftBeam2: {fileID: 910642908633759075}
   rightBeam2: {fileID: 8178853866069340406}
   chargingParticle: {fileID: 6880681000764928544}
-  fireSound: {fileID: 0}
+  fireSound: {fileID: 8300000, guid: f1cb5d83282f2904a85f73111d068616, type: 3}
 --- !u!1 &5239892399859434059
 GameObject:
   m_ObjectHideFlags: 0

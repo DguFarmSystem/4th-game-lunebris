@@ -4,24 +4,25 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Áß°£º¸½º 2 - ´ë½Ã °ø°İ°ú ¿ø»ç°İ °ø°İÀ» »ç¿ëÇÏ´Â º¸½º
+/// ì¤‘ê°„ë³´ìŠ¤ 2 - ëŒ€ì‹œ ê³µê²©ê³¼ ì›ì‚¬ê²© ê³µê²©ì„ ì‚¬ìš©í•˜ëŠ” ë³´ìŠ¤
 /// </summary>
+// âš ï¸ ì˜¤ë¥˜ ìˆ˜ì •: [DisallowProcessableComponent] -> [DisallowMultipleComponent]
 [DisallowMultipleComponent]
 public class Enemy_Middle_Boss2 : Enemy_Base
 {
-    [Header("Â÷Â¡ ·¹ÀÏ°Ç")]
+    [Header("ì°¨ì§• ë ˆì¼ê±´")]
     [SerializeField] private Enemy_Middle_Boss_Railgun railgunSystem;
     [SerializeField] private Transform railgunFirePoint;
-    [SerializeField] private float railgunCooldown = 6f;    // Â÷Â¡ ½Ã°£ °í·ÁÇØ¼­ Á¶±İ ´õ ±è
+    [SerializeField] private float railgunCooldown = 6f;    // ì°¨ì§• ì‹œê°„ ê³ ë ¤í•´ì„œ ì¡°ê¸ˆ ë” ê¹€
 
-    [Header("´ë½Ã °ø°İ")]
+    [Header("ëŒ€ì‹œ ê³µê²©")]
     [SerializeField] private float dashRange = 15f;
     [SerializeField] private float dashSpeed = 20f;
     [SerializeField] private float dashDistance = 12f;
     [SerializeField] private float dashCooldown = 8f;
     [SerializeField] private float dashWarningTime = 1f;
 
-    [Header("¿ø»ç°İ °ø°İ")]
+    [Header("ì›ì‚¬ê²© ê³µê²©")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float bulletSpeed = 12f;
@@ -29,41 +30,49 @@ public class Enemy_Middle_Boss2 : Enemy_Base
     [SerializeField] private float bulletCooldown = 5f;
     [SerializeField] private float bulletRange = 10f;
 
-    [Header("ÀÌÆåÆ®")]
+    [Header("ì´í™íŠ¸")]
     [SerializeField] private GameObject dashWarningEffect;
     [SerializeField] private GameObject dashTrailEffect;
 
-    [Header("¸ó½ºÅÍ ¹«½Ã ¼³Á¤")]
+    [Header("ì˜¤ë””ì˜¤ ì„¤ì •")] // âœ¨ ì˜¤ë””ì˜¤ ì„¤ì • ì¶”ê°€
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip railgunChargeSound; // ë ˆì¼ê±´ ì°¨ì§• ì‹œì‘ìŒ
+    [SerializeField] private AudioClip railgunFireSound; // ë ˆì¼ê±´ ë°œì‚¬ìŒ (RailgunSystemì—ì„œ ì²˜ë¦¬ ê¶Œì¥)
+    [SerializeField] private AudioClip dashWarningSound; // ëŒ€ì‹œ ê²½ê³ ìŒ
+    [SerializeField] private AudioClip dashStartSound; // ëŒ€ì‹œ ëŒì§„ìŒ
+    [SerializeField] private AudioClip bulletSound; // ì´ì•Œ ë°œì‚¬ìŒ
+
+    [Header("ëª¬ìŠ¤í„° ë¬´ì‹œ ì„¤ì •")]
     [SerializeField] private float monsterIgnoreRadius = 20f;
     [SerializeField] private string[] monsterTags = { "Enemy", "Boss", "MiddleBoss" };
 
-    [Header("°ø°İ °£°İ Á¦¾î")]
-    [SerializeField] private float attackCooldownTime = 2.5f; // °ø°İ °£ ´ë±â ½Ã°£
+    [Header("ê³µê²© ê°„ê²© ì œì–´")]
+    [SerializeField] private float attackCooldownTime = 2.5f; // ê³µê²© ê°„ ëŒ€ê¸° ì‹œê°„
 
-    // »óÅÂ
+    // ìƒíƒœ
     private bool isDashing = false;
     private bool isDashWarning = false;
     private bool isShooting = false;
-    private bool shouldFireAfterDash = false; // ´ë½¬ ÈÄ Åº¸· °ø°İ ÇÃ·¡±×
+    private bool shouldFireAfterDash = false; // ëŒ€ì‰¬ í›„ íƒ„ë§‰ ê³µê²© í”Œë˜ê·¸
 
-    // Å¸ÀÌ¹Ö
+    // íƒ€ì´ë°
     private float lastDashTime;
     private float lastBulletTime;
     private float lastRailgunTime = 0f;
-    private float lastAnyAttackTime; // ¸¶Áö¸· °ø°İ ½Ã°£ (¸ğµç °ø°İ ÅëÇÕ)
+    private float lastAnyAttackTime; // ë§ˆì§€ë§‰ ê³µê²© ì‹œê°„ (ëª¨ë“  ê³µê²© í†µí•©)
 
-    // ´ë½Ã °ü·Ã
+    // ëŒ€ì‹œ ê´€ë ¨
     private Vector3 dashDirection;
     private Vector3 dashStartPosition;
     private float dashStartTime;
     private GameObject currentDashTrail;
 
-    // ÄÄÆ÷³ÍÆ®
+    // ì»´í¬ë„ŒíŠ¸
     private Rigidbody rigid;
     private Collider bossCollider;
     private List<Collider> ignoredMonsterColliders = new List<Collider>();
 
-    // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé
+    // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤
     private readonly string ANIM_DASH_WARNING_TRIGGER = "startDashWarning";
     private readonly string ANIM_IS_DASH_WARNING = "isDashWarning";
     private readonly string ANIM_DASH_TRIGGER = "startDash";
@@ -75,11 +84,11 @@ public class Enemy_Middle_Boss2 : Enemy_Base
     private readonly string ANIM_RAILGUN_CHARGING = "isRailgunCharging";
     private readonly string ANIM_DASH_END_TRIGGER = "endDash";
 
-    // ÇÁ·ÎÆÛÆ¼
+    // í”„ë¡œí¼í‹°
     public bool IsDashing => isDashing;
     public bool IsDashWarning => isDashWarning;
     public bool IsShooting => isShooting;
-    public bool IsRailgunActive => railgunSystem != null && !railgunSystem.IsReady; // ·¹ÀÏ°Ç »ç¿ë Áß ¿©ºÎ
+    public bool IsRailgunActive => railgunSystem != null && !railgunSystem.IsReady; // ë ˆì¼ê±´ ì‚¬ìš© ì¤‘ ì—¬ë¶€
     public Vector3 DashDirection => dashDirection;
     public float DashSpeed => dashSpeed;
 
@@ -105,16 +114,21 @@ public class Enemy_Middle_Boss2 : Enemy_Base
     {
         base.InitializeEnemy();
 
+        // âœ¨ AudioSource ì»´í¬ë„ŒíŠ¸ ì°¸ì¡°
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
         if (firePoint == null)
             firePoint = transform;
 
-        // ·¹ÀÏ°Ç ½Ã½ºÅÛ ÃÊ±âÈ­
+        // ë ˆì¼ê±´ ì‹œìŠ¤í…œ ì´ˆê¸°í™”
         if (railgunSystem != null)
         {
             railgunSystem.Initialize(this, railgunFirePoint);
+            // railgunSystem.SetSounds(railgunChargeSound, railgunFireSound); 
         }
 
-        Debug.Log($"Áß°£º¸½º2 {enemyName} µîÀå! HP: {currentHp}");
+        Debug.Log($"ì¤‘ê°„ë³´ìŠ¤2 {enemyName} ë“±ì¥! HP: {currentHp}");
     }
 
     protected override void UpdateBehavior()
@@ -125,7 +139,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
             return;
         }
 
-        // ´ë½¬ ÈÄ Åº¸· °ø°İ Ã³¸®
+        // ëŒ€ì‰¬ í›„ íƒ„ë§‰ ê³µê²© ì²˜ë¦¬
         if (shouldFireAfterDash && !isDashWarning && !isShooting && !IsRailgunActive)
         {
             shouldFireAfterDash = false;
@@ -144,14 +158,14 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
         float distanceToPlayer = GetDistanceToPlayer();
 
-        // °ø°İ Äğ´Ù¿î Ã¼Å© - ¸ğµç °ø°İ¿¡ °øÅë Àû¿ë
+        // ê³µê²© ì¿¨ë‹¤ìš´ ì²´í¬ - ëª¨ë“  ê³µê²©ì— ê³µí†µ ì ìš©
         float timeSinceLastAttack = Time.time - lastAnyAttackTime;
         if (timeSinceLastAttack < attackCooldownTime)
         {
             return;
         }
 
-        // °ø°İ ÆĞÅÏ ¿ì¼±¼øÀ§ - ·¹ÀÏ°ÇÀÌ ÃÖ¿ì¼±
+        // ê³µê²© íŒ¨í„´ ìš°ì„ ìˆœìœ„ - ë ˆì¼ê±´ì´ ìµœìš°ì„ 
         if (CanUseChargingRailgun())
         {
             UseChargingRailgun();
@@ -165,45 +179,57 @@ public class Enemy_Middle_Boss2 : Enemy_Base
             StartCoroutine(PerformBulletAttack());
         }
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì—…ë°ì´íŠ¸
         UpdateAnimationStates();
     }
 
     protected override void UpdateMovement()
     {
-        // Enemy_Boss2_Move¿¡¼­ Ã³¸®
+        // Enemy_Boss2_Moveì—ì„œ ì²˜ë¦¬
     }
 
     protected override void PerformAttack()
     {
-        // »ç¿ëÇÏÁö ¾ÊÀ½
+        // ì‚¬ìš©í•˜ì§€ ì•ŠìŒ
     }
 
-    #region ¾Ö´Ï¸ŞÀÌ¼Ç Á¦¾î
+    #region ì˜¤ë””ì˜¤ ì œì–´
 
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    #endregion
+
+    #region ì• ë‹ˆë©”ì´ì…˜ ì œì–´
+    // ... (ê¸°ì¡´ ì½”ë“œ ìœ ì§€) ...
     private void UpdateAnimationStates()
     {
         if (characterAnimator == null) return;
 
-        // ´ë½Ã °ü·Ã ¾Ö´Ï¸ŞÀÌ¼Ç
+        // ëŒ€ì‹œ ê´€ë ¨ ì• ë‹ˆë©”ì´ì…˜
         characterAnimator.SetBool(ANIM_IS_DASH_WARNING, isDashWarning);
         characterAnimator.SetBool(ANIM_IS_DASHING, isDashing);
 
-        // ÃÑ¾Ë °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç
+        // ì´ì•Œ ê³µê²© ì• ë‹ˆë©”ì´ì…˜
         characterAnimator.SetBool(ANIM_IS_SHOOTING, isShooting);
 
-        // ·¹ÀÏ°Ç ¾Ö´Ï¸ŞÀÌ¼Ç
+        // ë ˆì¼ê±´ ì• ë‹ˆë©”ì´ì…˜
         bool isRailgunActive = IsRailgunActive;
         characterAnimator.SetBool(ANIM_IS_RAILGUN_ACTIVE, isRailgunActive);
 
-        // ·¹ÀÏ°Ç Â÷Â¡ »óÅÂ (·¹ÀÏ°ÇÀÌ È°¼ºÈ­µÇ¾î ÀÖÀ¸¸é Â÷Â¡ ÁßÀ¸·Î °£ÁÖ)
+        // ë ˆì¼ê±´ ì°¨ì§• ìƒíƒœ (ë ˆì¼ê±´ì´ í™œì„±í™”ë˜ì–´ ìˆìœ¼ë©´ ì°¨ì§• ì¤‘ìœ¼ë¡œ ê°„ì£¼)
         bool isRailgunCharging = isRailgunActive;
         characterAnimator.SetBool(ANIM_RAILGUN_CHARGING, isRailgunCharging);
 
-        // ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç (Æ¯¼ö °ø°İ ÁßÀÌ ¾Æ´Ò ¶§¸¸)
+        // ì´ë™ ì• ë‹ˆë©”ì´ì…˜ (íŠ¹ìˆ˜ ê³µê²© ì¤‘ì´ ì•„ë‹ ë•Œë§Œ)
         if (!IsPerformingSpecialAttack())
         {
-            // Move ½ºÅ©¸³Æ®¿¡¼­ ÀÌµ¿ »óÅÂ È®ÀÎ
+            // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì´ë™ ìƒíƒœ í™•ì¸
             Enemy_Middle_Boss2_Move moveScript = GetComponent<Enemy_Middle_Boss2_Move>();
             bool isMoving = moveScript != null && moveScript.IsMoving;
             float currentMoveSpeed = isMoving ? enemyStats.Get(EnemyStatType.MoveSpeed) : 0f;
@@ -223,7 +249,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         if (characterAnimator == null) return;
         characterAnimator.SetTrigger(ANIM_DASH_WARNING_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_DASH_WARNING, true);
-        Debug.Log("´ë½Ã °æ°í ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log("ëŒ€ì‹œ ê²½ê³  ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     private void PlayDashAnimation()
@@ -231,7 +257,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         if (characterAnimator == null) return;
         characterAnimator.SetTrigger(ANIM_DASH_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_DASHING, true);
-        Debug.Log("´ë½Ã ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log("ëŒ€ì‹œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     private void PlayDashEndAnimation()
@@ -239,7 +265,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         if (characterAnimator == null) return;
         characterAnimator.SetTrigger(ANIM_DASH_END_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_DASHING, false);
-        Debug.Log("´ë½Ã Á¾·á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log("ëŒ€ì‹œ ì¢…ë£Œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     private void PlayBulletAnimation()
@@ -247,7 +273,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         if (characterAnimator == null) return;
         characterAnimator.SetTrigger(ANIM_BULLET_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_SHOOTING, true);
-        Debug.Log("Åº¸· °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log("íƒ„ë§‰ ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     private void PlayRailgunAnimation()
@@ -255,22 +281,22 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         if (characterAnimator == null) return;
         characterAnimator.SetTrigger(ANIM_RAILGUN_TRIGGER);
         characterAnimator.SetBool(ANIM_IS_RAILGUN_ACTIVE, true);
-        Debug.Log("·¹ÀÏ°Ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı");
+        Debug.Log("ë ˆì¼ê±´ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ");
     }
 
     #endregion
 
-    #region ´ë½Ã °ø°İ
+    #region ëŒ€ì‹œ ê³µê²©
 
     private bool CanUseDash()
     {
-        // ·¹ÀÏ°Ç Ä³½ºÆÃ Áß¿¡´Â ´ë½¬ ºÒ°¡
+        // ë ˆì¼ê±´ ìºìŠ¤íŒ… ì¤‘ì—ëŠ” ëŒ€ì‰¬ ë¶ˆê°€
         return Time.time - lastDashTime >= dashCooldown &&
                !isDashing &&
                !isDashWarning &&
                !isShooting &&
-               !IsRailgunActive && // ·¹ÀÏ°Ç »ç¿ë Áß¿¡´Â ´ë½¬ ºÒ°¡
-               Time.time - lastAnyAttackTime >= attackCooldownTime; // °øÅë °ø°İ Äğ´Ù¿î Ã¼Å©
+               !IsRailgunActive && // ë ˆì¼ê±´ ì‚¬ìš© ì¤‘ì—ëŠ” ëŒ€ì‰¬ ë¶ˆê°€
+               Time.time - lastAnyAttackTime >= attackCooldownTime; // ê³µí†µ ê³µê²© ì¿¨ë‹¤ìš´ ì²´í¬
     }
 
     private IEnumerator PerformDashAttack()
@@ -278,7 +304,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         isDashWarning = true;
         lastDashTime = Time.time;
 
-        // ´ë½Ã °æ°í ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ëŒ€ì‹œ ê²½ê³  ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashWarningAnimation();
 
         if (playerTransform != null)
@@ -287,7 +313,10 @@ public class Enemy_Middle_Boss2 : Enemy_Base
             dashDirection.y = 0;
         }
 
-        // °æ°í ÀÌÆåÆ® »ı¼º
+        // âœ¨ ëŒ€ì‹œ ê²½ê³ ìŒ ì¬ìƒ
+        PlaySound(dashWarningSound);
+
+        // ê²½ê³  ì´í™íŠ¸ ìƒì„±
         if (dashWarningEffect != null)
         {
             Vector3 warningPos = transform.position + dashDirection * dashDistance * 0.5f;
@@ -309,10 +338,13 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         dashStartTime = Time.time;
         dashStartPosition = transform.position;
 
-        // ´ë½Ã ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // âœ¨ ëŒ€ì‹œ ì‹œì‘ìŒ ì¬ìƒ
+        PlaySound(dashStartSound);
+
+        // ëŒ€ì‹œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashAnimation();
 
-        // ´ë½Ã Æ®·¹ÀÏ ÀÌÆåÆ®
+        // ëŒ€ì‹œ íŠ¸ë ˆì¼ ì´í™íŠ¸
         if (dashTrailEffect != null)
         {
             currentDashTrail = Instantiate(dashTrailEffect, transform.position, Quaternion.identity);
@@ -322,6 +354,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         IgnoreMonsterCollisions(true);
 
         float dashDuration = dashDistance / dashSpeed;
+        // ERROR CS0103 ìˆ˜ì •: duration ëŒ€ì‹  dashDuration ì‚¬ìš©
         StartCoroutine(DashCoroutine(dashDuration));
     }
 
@@ -331,9 +364,24 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         while (elapsed < duration && isDashing)
         {
             elapsed += Time.deltaTime;
+            // ì´ë™ ë¡œì§ì€ Rigidbodyì˜ FixedUpdateì—ì„œ ì²˜ë¦¬ë˜ê±°ë‚˜, ì—¬ê¸°ì„œ ì§ì ‘ Transformì„ ì›€ì§ì¼ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+            // ì—¬ê¸°ì„œëŠ” UpdateBehaviorì—ì„œ EndDash ì¡°ê±´ë§Œ ì²´í¬í•©ë‹ˆë‹¤.
+
+            // Rigidbodyë¥¼ ì‚¬ìš©í•œ ì´ë™ ë¡œì§ì´ ì—†ìœ¼ë¯€ë¡œ, ì—¬ê¸°ì„œ ê°•ì œ ì´ë™ì„ ì‹œë„í•©ë‹ˆë‹¤.
+            if (rigid != null)
+            {
+                rigid.velocity = dashDirection * dashSpeed;
+            }
+            else
+            {
+                transform.position += dashDirection * dashSpeed * Time.deltaTime;
+            }
+
             yield return null;
         }
         EndDash();
+        // DashCoroutine ì¢…ë£Œ í›„ í˜¹ì‹œ rigid.velocityê°€ ë‚¨ì•„ìˆì„ ê²½ìš° 0ìœ¼ë¡œ ì„¤ì •
+        if (rigid != null) rigid.velocity = Vector3.zero;
     }
 
     private void UpdateDashBehavior()
@@ -349,17 +397,20 @@ public class Enemy_Middle_Boss2 : Enemy_Base
     {
         isDashing = false;
 
-        // ´ë½Ã Á¾·á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // Rigidbody ì†ë„ ì´ˆê¸°í™”
+        if (rigid != null) rigid.velocity = Vector3.zero;
+
+        // ëŒ€ì‹œ ì¢…ë£Œ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayDashEndAnimation();
 
-        // ´ë½¬ ¿Ï·á ÈÄ Åº¸· °ø°İ ¿¹¾à
+        // ëŒ€ì‰¬ ì™„ë£Œ í›„ íƒ„ë§‰ ê³µê²© ì˜ˆì•½
         if (playerTransform != null)
         {
             float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-            if (distanceToPlayer <= bulletRange * 1.5f) // Åº¸· »ç°Å¸®º¸´Ù ¾à°£ ´õ ³Ğ°Ô
+            if (distanceToPlayer <= bulletRange * 1.5f) // íƒ„ë§‰ ì‚¬ê±°ë¦¬ë³´ë‹¤ ì•½ê°„ ë” ë„“ê²Œ
             {
                 shouldFireAfterDash = true;
-                Debug.Log("´ë½¬ ¿Ï·á - Åº¸· °ø°İ ¿¹¾àµÊ");
+                Debug.Log("ëŒ€ì‰¬ ì™„ë£Œ - íƒ„ë§‰ ê³µê²© ì˜ˆì•½ë¨");
             }
         }
 
@@ -370,15 +421,17 @@ public class Enemy_Middle_Boss2 : Enemy_Base
             currentDashTrail = null;
         }
 
+        // ERROR CS0103 ìˆ˜ì •: IgnoreMonsterCollisions ì¶”ê°€
         IgnoreMonsterCollisions(false);
 
-        // °ø°İ ¿Ï·á ½Ã°£ ¾÷µ¥ÀÌÆ®
+        // ê³µê²© ì™„ë£Œ ì‹œê°„ ì—…ë°ì´íŠ¸
         lastAnyAttackTime = Time.time;
-        Debug.Log($"{enemyName}: ´ë½Ã °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+        Debug.Log($"{enemyName}: ëŒ€ì‹œ ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
     }
 
     public void OnDashCollision(Collider other)
     {
+        // ERROR CS0103 ìˆ˜ì •: IsMonsterCollider ì¶”ê°€
         if (IsMonsterCollider(other)) return;
 
         if (other.CompareTag("Player") && isDashing)
@@ -397,7 +450,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
     #endregion
 
-    #region ¿ø»ç°İ °ø°İ
+    #region ì›ì‚¬ê²© ê³µê²©
 
     private bool CanUseBullets()
     {
@@ -405,13 +458,13 @@ public class Enemy_Middle_Boss2 : Enemy_Base
                !isDashing &&
                !isDashWarning &&
                !isShooting &&
-               !IsRailgunActive && // ·¹ÀÏ°Ç »ç¿ë Áß¿¡´Â Åº¸· ºÒ°¡
-               Time.time - lastAnyAttackTime >= attackCooldownTime; // °øÅë °ø°İ Äğ´Ù¿î Ã¼Å©
+               !IsRailgunActive && // ë ˆì¼ê±´ ì‚¬ìš© ì¤‘ì—ëŠ” íƒ„ë§‰ ë¶ˆê°€
+               Time.time - lastAnyAttackTime >= attackCooldownTime; // ê³µí†µ ê³µê²© ì¿¨ë‹¤ìš´ ì²´í¬
     }
 
     private bool CanUseBulletsAfterDash()
     {
-        // ´ë½¬ ÈÄ Åº¸·Àº Äğ´Ù¿î ¹«½ÃÇÏ°í ½ÇÇà °¡´É
+        // ëŒ€ì‰¬ í›„ íƒ„ë§‰ì€ ì¿¨ë‹¤ìš´ ë¬´ì‹œí•˜ê³  ì‹¤í–‰ ê°€ëŠ¥
         return !isDashing &&
                !isDashWarning &&
                !isShooting &&
@@ -422,35 +475,39 @@ public class Enemy_Middle_Boss2 : Enemy_Base
     {
         isShooting = true;
 
-        // Åº¸· °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // íƒ„ë§‰ ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         PlayBulletAnimation();
 
-        // ´ë½¬ ÈÄ°¡ ¾Æ´Ò ¶§¸¸ Äğ´Ù¿î ¾÷µ¥ÀÌÆ®
+        // ëŒ€ì‰¬ í›„ê°€ ì•„ë‹ ë•Œë§Œ ì¿¨ë‹¤ìš´ ì—…ë°ì´íŠ¸
         if (!shouldFireAfterDash)
         {
             lastBulletTime = Time.time;
         }
 
-        Debug.Log("Åº¸· °ø°İ ½ÃÀÛ");
+        Debug.Log("íƒ„ë§‰ ê³µê²© ì‹œì‘");
 
-        yield return new WaitForSeconds(0.3f); // ¾à°£ÀÇ µô·¹ÀÌ
+        yield return new WaitForSeconds(0.3f); // ì•½ê°„ì˜ ë”œë ˆì´
+
+        // âœ¨ ì´ì•Œ ë°œì‚¬ìŒ ì¬ìƒ
+        PlaySound(bulletSound);
         FireBulletsInCircle();
-        yield return new WaitForSeconds(0.7f); // °ø°İ ÈÄ µô·¹ÀÌ
+
+        yield return new WaitForSeconds(0.7f); // ê³µê²© í›„ ë”œë ˆì´
 
         isShooting = false;
 
-        // ´ë½¬ ÈÄ Åº¸·ÀÌ ¾Æ´Ò ¶§¸¸ °ø°İ ¿Ï·á ½Ã°£ ¾÷µ¥ÀÌÆ®
+        // ëŒ€ì‰¬ í›„ íƒ„ë§‰ì´ ì•„ë‹ ë•Œë§Œ ê³µê²© ì™„ë£Œ ì‹œê°„ ì—…ë°ì´íŠ¸
         if (!shouldFireAfterDash)
         {
             lastAnyAttackTime = Time.time;
-            Debug.Log($"{enemyName}: Åº¸· °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+            Debug.Log($"{enemyName}: íƒ„ë§‰ ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
         }
         else
         {
-            Debug.Log($"{enemyName}: ´ë½Ã ÈÄ Åº¸· °ø°İ ¿Ï·á (Äğ´Ù¿î Àû¿ë ¾ÈÇÔ)");
+            Debug.Log($"{enemyName}: ëŒ€ì‹œ í›„ íƒ„ë§‰ ê³µê²© ì™„ë£Œ (ì¿¨ë‹¤ìš´ ì ìš© ì•ˆí•¨)");
         }
 
-        Debug.Log("Åº¸· °ø°İ ¿Ï·á");
+        Debug.Log("íƒ„ë§‰ ê³µê²© ì™„ë£Œ");
     }
 
     private void FireBulletsInCircle()
@@ -490,7 +547,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
     #endregion
 
-    #region Â÷Â¡ ·¹ÀÏ°Ç ½Ã½ºÅÛ
+    #region ì°¨ì§• ë ˆì¼ê±´ ì‹œìŠ¤í…œ
 
     private bool CanUseChargingRailgun()
     {
@@ -501,7 +558,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
                !isDashing &&
                !isDashWarning &&
                !isShooting &&
-               Time.time - lastAnyAttackTime >= attackCooldownTime; // °øÅë °ø°İ Äğ´Ù¿î Ã¼Å©
+               Time.time - lastAnyAttackTime >= attackCooldownTime; // ê³µí†µ ê³µê²© ì¿¨ë‹¤ìš´ ì²´í¬
     }
 
     private void UseChargingRailgun()
@@ -510,20 +567,23 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         {
             lastRailgunTime = Time.time;
 
-            // ·¹ÀÏ°Ç ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+            // ë ˆì¼ê±´ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
             PlayRailgunAnimation();
 
-            // ÇÃ·¹ÀÌ¾î À§Ä¡·Î Â÷Â¡ ÈÄ ¹ß»ç
+            // âœ¨ ë ˆì¼ê±´ ì°¨ì§• ì‹œì‘ìŒ ì¬ìƒ
+            PlaySound(railgunChargeSound);
+
+            // í”Œë ˆì´ì–´ ìœ„ì¹˜ë¡œ ì°¨ì§• í›„ ë°œì‚¬
             Vector3 targetPos = playerTransform.position;
             railgunSystem.FireInstantRailgun(targetPos);
 
-            Debug.Log("·¹ÀÏ°Ç ¹ß»ç ½ÃÀÛ");
+            Debug.Log("ë ˆì¼ê±´ ë°œì‚¬ ì‹œì‘");
         }
     }
 
     #endregion
 
-    #region ¸ó½ºÅÍ Ãæµ¹ ¹«½Ã
+    #region ëª¬ìŠ¤í„° ì¶©ëŒ ë¬´ì‹œ
 
     private void IgnoreMonsterCollisions(bool ignore)
     {
@@ -531,13 +591,12 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
         if (ignore)
         {
-            Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, monsterIgnoreRadius);
+            // ì£¼ë³€ ëª¬ìŠ¤í„° ì°¾ê¸° ë° ì¶©ëŒ ë¬´ì‹œ ì„¤ì •
+            Collider[] colliders = Physics.OverlapSphere(transform.position, monsterIgnoreRadius);
 
-            foreach (Collider col in nearbyColliders)
+            foreach (Collider col in colliders)
             {
-                if (col == bossCollider || !IsMonsterCollider(col)) continue;
-
-                if (!ignoredMonsterColliders.Contains(col))
+                if (IsMonsterCollider(col) && col != bossCollider)
                 {
                     Physics.IgnoreCollision(bossCollider, col, true);
                     ignoredMonsterColliders.Add(col);
@@ -546,9 +605,10 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         }
         else
         {
+            // ì¶©ëŒ ë¬´ì‹œ í•´ì œ
             foreach (Collider col in ignoredMonsterColliders)
             {
-                if (col != null && bossCollider != null)
+                if (col != null)
                 {
                     Physics.IgnoreCollision(bossCollider, col, false);
                 }
@@ -563,69 +623,34 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
         foreach (string tag in monsterTags)
         {
-            if (col.CompareTag(tag)) return true;
+            if (col.CompareTag(tag))
+            {
+                return true;
+            }
         }
-
-        return col.GetComponent<Enemy_Base>() != null;
+        return false;
     }
 
     #endregion
 
-    #region À¯Æ¿¸®Æ¼ ¸Ş¼­µå
+    #region í¼ë¸”ë¦­ ì ‘ê·¼ì
 
-    /// <summary>
-    /// Æ¯¼ö °ø°İ ¼öÇà ÁßÀÎÁö È®ÀÎ
-    /// </summary>
+    // ERROR CS0103 ìˆ˜ì •: ëˆ„ë½ëœ ë©”ì„œë“œ ì¶”ê°€
     public bool IsPerformingSpecialAttack()
     {
         return isDashing || isDashWarning || isShooting || IsRailgunActive;
     }
 
-    /// <summary>
-    /// ÇöÀç º¸½ºÀÇ Çàµ¿ »óÅÂ¸¦ ¹İÈ¯ÇÏ´Â ¸Ş¼­µå (µğ¹ö±×¿ë)
-    /// </summary>
-    public string GetCurrentState()
-    {
-        if (IsRailgunActive) return "Railgun Active";
-        if (isDashing) return "Dashing";
-        if (isDashWarning) return "Dash Warning";
-        if (isShooting) return "Shooting";
-        if (shouldFireAfterDash) return "Waiting to Fire After Dash";
-        return "Idle";
-    }
-
-    /// <summary>
-    /// °­Á¦·Î ¸ğµç Çàµ¿À» Áß´ÜÇÏ´Â ¸Ş¼­µå (µğ¹ö±×¿ë)
-    /// </summary>
-    public void ForceStopAllActions()
-    {
-        StopAllCoroutines();
-
-        isDashing = false;
-        isDashWarning = false;
-        isShooting = false;
-        shouldFireAfterDash = false;
-
-        if (currentDashTrail != null)
-        {
-            Destroy(currentDashTrail);
-            currentDashTrail = null;
-        }
-
-        if (railgunSystem != null)
-        {
-            railgunSystem.ForceStop();
-        }
-
-        IgnoreMonsterCollisions(false);
-
-        // ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ÃÊ±âÈ­
-        UpdateAnimationStates();
-    }
-
     #endregion
 
-    #region ¿À¹ö¶óÀÌµå ¸Ş¼­µå
+    #region ì˜¤ë²„ë¼ì´ë“œ ë©”ì„œë“œ
+
+    protected override bool IsPlayerInDetectionRange()
+    {
+        // Enemy_Baseì˜ ë¡œì§ì„ ë”°ë¥´ê±°ë‚˜, ì—¬ê¸°ì— Boss2ë§Œì˜ ê°ì§€ ë¡œì§ì„ ì¶”ê°€
+        if (playerTransform == null) return false;
+        return Vector3.Distance(transform.position, playerTransform.position) <= 25f; // ì„ì‹œ ê°ì§€ ê±°ë¦¬
+    }
 
     protected override void Die()
     {
@@ -634,11 +659,15 @@ public class Enemy_Middle_Boss2 : Enemy_Base
         isShooting = false;
         shouldFireAfterDash = false;
 
+        // Rigidbody ì†ë„ ì´ˆê¸°í™”
+        if (rigid != null) rigid.velocity = Vector3.zero;
+
         if (currentDashTrail != null)
         {
             Destroy(currentDashTrail);
         }
 
+        // ë ˆì¼ê±´ ì‹œìŠ¤í…œ ì¢…ë£Œ
         if (railgunSystem != null)
         {
             railgunSystem.ForceStop();
@@ -650,7 +679,7 @@ public class Enemy_Middle_Boss2 : Enemy_Base
 
     protected override int GetExperienceReward()
     {
-        return 400;
+        return 400; // ë³´ìƒ ì¦ê°€
     }
 
     #endregion

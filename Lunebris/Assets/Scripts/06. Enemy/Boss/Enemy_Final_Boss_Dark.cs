@@ -5,101 +5,112 @@ using System.Collections.Generic;
 using Player;
 
 /// <summary>
-/// ÅºÈ¯ ÆĞÅÏ Á¾·ù
+/// íƒ„í™˜ íŒ¨í„´ ì¢…ë¥˜
 /// </summary>
 public enum BulletPattern
 {
-    Straight,   // Á÷¼± °ø°İ
-    Circular,   // ¿øÇü °ø°İ  
-    Spiral,     // ³ª¼±Çü °ø°İ
-    Fan,        // ºÎÃ¤²Ã °ø°İ
-    Homing,     // À¯µµÅº °ø°İ
-    Burst       // Æø¹ß °ø°İ
+    Straight,   // ì§ì„  ê³µê²©
+    Circular,   // ì›í˜• ê³µê²©  
+    Spiral,     // ë‚˜ì„ í˜• ê³µê²©
+    Fan,        // ë¶€ì±„ê¼´ ê³µê²©
+    Homing,     // ìœ ë„íƒ„ ê³µê²©
+    Burst       // í­ë°œ ê³µê²©
 }
 
 /// <summary>
-/// ÃÖÁ¾º¸½º - ¾îµÒ ¸ğµå (²ø¾î´ç±â±â ÅºÈ¯, ¾îµÒ ¹Ù´Ú, º¸½º ÅºÈ¯, ´ë½Ã, ±Ù°Å¸® °ø°İ) - Áß°£º¸½º ÆĞÅÏ Àû¿ë
+/// ìµœì¢…ë³´ìŠ¤ - ì–´ë‘  ëª¨ë“œ (ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜, ì–´ë‘  ë°”ë‹¥, ë³´ìŠ¤ íƒ„í™˜, ëŒ€ì‹œ, ê·¼ê±°ë¦¬ ê³µê²©) - ì¤‘ê°„ë³´ìŠ¤ íŒ¨í„´ ì ìš©
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Final_Boss_Dark : Enemy_Base
 {
-    [Header("²ø¾î´ç±â±â ÅºÈ¯")]
+    [Header("ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜")]
     [SerializeField] private GameObject pullBulletPrefab;
     [SerializeField] private float pullBulletSpeed = 10f;
     [SerializeField] private int pullBulletSpawnCount = 16;
-    [SerializeField] private float mapRadius = 15f; // ¸Ê ¹İ°æ °¨¼Ò
-    [SerializeField] private float pullBulletSpawnInterval = 10f; // ÀûÀıÇÑ °£°İÀ¸·Î Á¶Á¤
-    [SerializeField] private float pullBulletRange = 18f; // ¹üÀ§ °¨¼Ò (ÀÌÁ¦ °Å¸® Ã¼Å©¿¡ »ç¿ë ¾ÈµÊ)
+    [SerializeField] private float mapRadius = 15f; // ë§µ ë°˜ê²½ ê°ì†Œ
+    [SerializeField] private float pullBulletSpawnInterval = 10f; // ì ì ˆí•œ ê°„ê²©ìœ¼ë¡œ ì¡°ì •
+    [SerializeField] private float pullBulletRange = 18f; // ë²”ìœ„ ê°ì†Œ (ì´ì œ ê±°ë¦¬ ì²´í¬ì— ì‚¬ìš© ì•ˆë¨)
 
-    [Header("¾îµÒ ¹Ù´Ú")]
+    [Header("ì–´ë‘  ë°”ë‹¥")]
     [SerializeField] private GameObject darkFloorHazardPrefab;
     [SerializeField] private float darkFloorDamage = 30f;
     [SerializeField] private float darkFloorCooldown = 5f;
 
-    [Header("º¸½º ÅºÈ¯")]
+    [Header("ë³´ìŠ¤ íƒ„í™˜")]
     [SerializeField] private GameObject bossBulletPrefab;
     [SerializeField] private float bossBulletDamage = 50f;
     [SerializeField] private float bossBulletCooldown = 3f;
     [SerializeField] private int bossBulletCount = 8;
-    [SerializeField] private float bossBulletRange = 10f; // ¹üÀ§ °¨¼Ò
+    [SerializeField] private float bossBulletRange = 10f; // ë²”ìœ„ ê°ì†Œ
     [SerializeField] private float bossBulletSpeed = 12f;
 
-    [Header("´ë½Ã °ø°İ")]
-    [SerializeField] private float dashSpeed = 20f; // ¼Óµµ °¨¼Ò
-    [SerializeField] private float dashRange = 8f; // ´ë½Ã ¹üÀ§ °¨¼Ò
+    [Header("ëŒ€ì‹œ ê³µê²©")]
+    [SerializeField] private float dashSpeed = 20f; // ì†ë„ ê°ì†Œ
+    [SerializeField] private float dashRange = 8f; // ëŒ€ì‹œ ë²”ìœ„ ê°ì†Œ
     [SerializeField] private float dashDamage = 80f;
     [SerializeField] private float dashCooldown = 6f;
-    [SerializeField] private float dashDuration = 0.8f; // ´ë½Ã ½Ã°£ °¨¼Ò
+    [SerializeField] private float dashDuration = 0.8f; // ëŒ€ì‹œ ì‹œê°„ ê°ì†Œ
     [SerializeField] private GameObject dashChargeEffect;
     [SerializeField] private GameObject dashTrailEffect;
 
-    [Header("±Ù°Å¸® °ø°İ")]
-    [SerializeField] private float meleeRange = 4f; // ±ÙÁ¢ ¹üÀ§ °¨¼Ò
+    [Header("ê·¼ê±°ë¦¬ ê³µê²©")]
+    [SerializeField] private float meleeRange = 4f; // ê·¼ì ‘ ë²”ìœ„ ê°ì†Œ
     [SerializeField] private float meleeDamage = 100f;
     [SerializeField] private float meleeCooldown = 4f;
     [SerializeField] private GameObject meleeAttackEffect;
-    [SerializeField] private float meleeAttackRadius = 5f; // °ø°İ ¹İ°æ °¨¼Ò
+    [SerializeField] private float meleeAttackRadius = 5f; // ê³µê²© ë°˜ê²½ ê°ì†Œ
 
-    [Header("ÅºÈ¯ ÆĞÅÏ ¼³Á¤")]
+    [Header("íƒ„í™˜ íŒ¨í„´ ì„¤ì •")]
     [SerializeField] private BulletPattern[] bulletPatterns;
-    [SerializeField] private float patternSwitchChance = 0.3f; // 30% È®·ü·Î ÆĞÅÏ º¯°æ
+    [SerializeField] private float patternSwitchChance = 0.3f; // 30% í™•ë¥ ë¡œ íŒ¨í„´ ë³€ê²½
 
-    [Header("ÀÌÆåÆ®")]
+    [Header("ì´í™íŠ¸")]
     [SerializeField] private GameObject pullBulletChargeEffect;
     [SerializeField] private GameObject darkFloorEffect;
 
-    // »óÅÂ ÇÃ·¡±× (Áß°£º¸½º ÆĞÅÏ)
+    // âœ¨ ì˜¤ë””ì˜¤ ì„¤ì • ì¶”ê°€
+    [Header("ì˜¤ë””ì˜¤ ì„¤ì •")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip pullChargeSound;   // ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ì°¨ì§€/ì‹œì „
+    [SerializeField] private AudioClip pullFireSound;     // ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ë°œì‚¬
+    [SerializeField] private AudioClip darkFloorCastSound; // ì–´ë‘  ë°”ë‹¥ ì‹œì „
+    [SerializeField] private AudioClip bossBulletSound;    // ë³´ìŠ¤ íƒ„í™˜ ë°œì‚¬ (ëª¨ë“  íŒ¨í„´ ê³µí†µ)
+    [SerializeField] private AudioClip dashChargeSound;    // ëŒ€ì‹œ ì¤€ë¹„/ì°¨ì§€
+    [SerializeField] private AudioClip dashExecuteSound;   // ëŒ€ì‹œ ëŒì§„
+    [SerializeField] private AudioClip meleeAttackSound;   // ê·¼ê±°ë¦¬ ê³µê²©
+
+    // ìƒíƒœ í”Œë˜ê·¸ (ì¤‘ê°„ë³´ìŠ¤ íŒ¨í„´)
     private bool isCreatingPullBullets = false;
     private bool isCreatingDarkFloor = false;
     private bool isShootingBossBullets = false;
     private bool isDashing = false;
     private bool isMeleeAttacking = false;
 
-    // °ø°İ Å¸ÀÌ¹Ö °ü¸®
+    // ê³µê²© íƒ€ì´ë° ê´€ë¦¬
     private float lastPullBulletTime = 0f;
     private float lastDarkFloorTime = 0f;
     private float lastBossBulletTime = 0f;
     private float lastDashTime = 0f;
     private float lastMeleeTime = 0f;
 
-    // È°¼º ¿ÀºêÁ§Æ® °ü¸®
+    // í™œì„± ì˜¤ë¸Œì íŠ¸ ê´€ë¦¬
     private List<GameObject> activePullBullets = new();
     private GameObject activeDarkFloorHazard;
     private Coroutine pullBulletSpawnRoutine;
 
-    // ÅºÈ¯ ÆĞÅÏ °ü¸®
+    // íƒ„í™˜ íŒ¨í„´ ê´€ë¦¬
     private BulletPattern currentBulletPattern = BulletPattern.Straight;
     private int consecutiveAttacks = 0;
 
-    // ´ë½Ã °ü·Ã
+    // ëŒ€ì‹œ ê´€ë ¨
     private Vector3 dashStartPosition;
     private Vector3 dashTargetPosition;
     private float dashStartTime;
 
-    // Move ½ºÅ©¸³Æ® ÂüÁ¶
+    // Move ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡°
     private Enemy_Final_Boss_Dark_Move moveScript;
 
-    // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé (»ó¼ö·Î Á¤ÀÇ)
+    // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤ (ìƒìˆ˜ë¡œ ì •ì˜)
     private readonly string ANIM_IS_MOVING = "isMoving";
     private readonly string ANIM_MOVE_SPEED = "moveSpeed";
     private readonly string ANIM_IS_DEAD = "isDead";
@@ -120,10 +131,10 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     private readonly string ANIM_BULLET_PATTERN = "bulletPattern";
     private readonly string ANIM_CURRENT_PHASE = "currentPhase";
 
-    // ¾Ö´Ï¸ŞÀÌÅÍ ÂüÁ¶
+    // ì• ë‹ˆë©”ì´í„° ì°¸ì¡°
     private Animator bossAnimator;
 
-    // °ø°³ ÇÁ·ÎÆÛÆ¼ (Move ½ºÅ©¸³Æ®¿¡¼­ ÂüÁ¶ °¡´É)
+    // ê³µê°œ í”„ë¡œí¼í‹° (Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì°¸ì¡° ê°€ëŠ¥)
     public bool IsCreatingPullBullets => isCreatingPullBullets;
     public bool IsCreatingDarkFloor => isCreatingDarkFloor;
     public bool IsShootingBossBullets => isShootingBossBullets;
@@ -143,7 +154,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             moveScript = gameObject.AddComponent<Enemy_Final_Boss_Dark_Move>();
         }
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÄÄÆ÷³ÍÆ® °¡Á®¿À±â
+        // ì• ë‹ˆë©”ì´í„° ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
         bossAnimator = GetComponent<Animator>();
         if (bossAnimator == null)
         {
@@ -152,7 +163,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         if (bossAnimator == null)
         {
-            Debug.LogWarning($"{name}: Animator°¡ ¾ø½À´Ï´Ù. ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ Àç»ıµÇÁö ¾Ê½À´Ï´Ù.");
+            Debug.LogWarning($"{name}: Animatorê°€ ì—†ìŠµë‹ˆë‹¤. ì• ë‹ˆë©”ì´ì…˜ì´ ì¬ìƒë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.");
         }
 
         base.Awake();
@@ -161,7 +172,11 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     protected override void InitializeEnemy()
     {
         base.InitializeEnemy();
-        Debug.Log("¾îµÒ ¸ğµå º¸½º È°¼ºÈ­! ¾îµÒÀÇ ÈûÀ» »ç¿ëÇÕ´Ï´Ù.");
+        Debug.Log("ì–´ë‘  ëª¨ë“œ ë³´ìŠ¤ í™œì„±í™”! ì–´ë‘ ì˜ í˜ì„ ì‚¬ìš©í•©ë‹ˆë‹¤.");
+
+        // âœ¨ AudioSource ì»´í¬ë„ŒíŠ¸ ì°¸ì¡°
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
 
         InitializeDarkMode();
     }
@@ -174,13 +189,13 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     private void InitializeDarkMode()
     {
-        // ¾îµÒ ¹Ù´Ú ÇØÀúµå »ı¼º
+        // ì–´ë‘  ë°”ë‹¥ í•´ì €ë“œ ìƒì„±
         CreateDarkFloorHazard();
 
-        // ÁÖ±âÀûÀÎ ²ø¾î´ç±â±â ÅºÈ¯ ½Ã½ºÅÛ ºñÈ°¼ºÈ­ (¼öµ¿ »ı¼º¸¸ »ç¿ë)
+        // ì£¼ê¸°ì ì¸ ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ì‹œìŠ¤í…œ ë¹„í™œì„±í™” (ìˆ˜ë™ ìƒì„±ë§Œ ì‚¬ìš©)
         // pullBulletSpawnRoutine = StartCoroutine(SpawnPullBulletsPeriodically());
 
-        // ¿¬¼Ó °ø°İ ·çÆ¾ ½ÃÀÛ
+        // ì—°ì† ê³µê²© ë£¨í‹´ ì‹œì‘
         StartCoroutine(ContinuousAttackRoutine());
     }
 
@@ -190,29 +205,29 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         float distanceToPlayer = GetDistanceToPlayer();
 
-        // °ø°İ ¿ì¼±¼øÀ§ (°Å¸®º°·Î Áß°£º¸½º ÆĞÅÏ Àû¿ë)
+        // ê³µê²© ìš°ì„ ìˆœìœ„ (ê±°ë¦¬ë³„ë¡œ ì¤‘ê°„ë³´ìŠ¤ íŒ¨í„´ ì ìš©)
         if (distanceToPlayer <= meleeRange && CanUseMeleeAttack())
         {
-            // ±Ù°Å¸®¿¡¼­ ±ÙÁ¢ °ø°İ »ç¿ë
+            // ê·¼ê±°ë¦¬ì—ì„œ ê·¼ì ‘ ê³µê²© ì‚¬ìš©
             StartCoroutine(PerformMeleeAttack());
         }
         else if (distanceToPlayer <= dashRange && distanceToPlayer > meleeRange && CanUseDash())
         {
-            // Áß°Å¸®¿¡¼­ ´ë½Ã °ø°İ »ç¿ë
+            // ì¤‘ê±°ë¦¬ì—ì„œ ëŒ€ì‹œ ê³µê²© ì‚¬ìš©
             StartCoroutine(PerformDashAttack());
         }
         else if (distanceToPlayer <= bossBulletRange && CanUseBossBullets())
         {
-            // Áß°Å¸®¿¡¼­ º¸½º ÅºÈ¯ »ç¿ë
+            // ì¤‘ê±°ë¦¬ì—ì„œ ë³´ìŠ¤ íƒ„í™˜ ì‚¬ìš©
             StartCoroutine(PerformBossBulletAttack());
         }
         else if (CanUseDarkFloor())
         {
-            // ¾îµÒ ¹Ù´Ú Àç»ı¼º
+            // ì–´ë‘  ë°”ë‹¥ ì¬ìƒì„±
             StartCoroutine(RefreshDarkFloorAttack());
         }
 
-        // ²ø¾î´ç±â±â ÅºÈ¯Àº °Å¸® »ó°ü¾øÀÌ ½Ã°£ ±â¹İÀ¸·Î¸¸ Ã¼Å©
+        // ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ì€ ê±°ë¦¬ ìƒê´€ì—†ì´ ì‹œê°„ ê¸°ë°˜ìœ¼ë¡œë§Œ ì²´í¬
         if (CanUsePullBullets())
         {
             StartCoroutine(CreatePullBulletsAttack());
@@ -221,32 +236,44 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     protected override void UpdateMovement()
     {
-        // Enemy_Final_Boss_Dark_Move¿¡¼­ Ã³¸®
+        // Enemy_Final_Boss_Dark_Moveì—ì„œ ì²˜ë¦¬
     }
 
     protected override void PerformAttack()
     {
-        // ±âº» °ø°İÀº »ç¿ëÇÏÁö ¾ÊÀ½
+        // ê¸°ë³¸ ê³µê²©ì€ ì‚¬ìš©í•˜ì§€ ì•ŠìŒ
     }
 
     protected override void Update()
     {
         base.Update();
 
-        // ÁÖ±âÀûÀ¸·Î ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
-        if (Time.frameCount % 10 == 0) // 10ÇÁ·¹ÀÓ¸¶´Ù ¾÷µ¥ÀÌÆ®
+        // ì£¼ê¸°ì ìœ¼ë¡œ ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
+        if (Time.frameCount % 10 == 0) // 10í”„ë ˆì„ë§ˆë‹¤ ì—…ë°ì´íŠ¸
         {
             UpdateAnimatorParameters();
         }
     }
 
-    #region ¿¬¼Ó °ø°İ ½Ã½ºÅÛ
+    #region ì˜¤ë””ì˜¤ ì œì–´
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    #endregion
+
+    #region ì—°ì† ê³µê²© ì‹œìŠ¤í…œ
 
     private IEnumerator ContinuousAttackRoutine()
     {
         while (currentHp > 0)
         {
-            // Áö¼ÓÀûÀÎ º¸½º ÅºÈ¯ °ø°İ (±âº» °ø°İ)
+            // ì§€ì†ì ì¸ ë³´ìŠ¤ íƒ„í™˜ ê³µê²© (ê¸°ë³¸ ê³µê²©)
             if (!IsPerformingAnyAttack() && playerTransform != null)
             {
                 float distanceToPlayer = GetDistanceToPlayer();
@@ -267,7 +294,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region ´ë½Ã °ø°İ
+    #region ëŒ€ì‹œ ê³µê²©
 
     private bool CanUseDash()
     {
@@ -281,39 +308,42 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isDashing = true;
         lastDashTime = Time.time;
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
             bossAnimator.SetTrigger(ANIM_DASH_ATTACK_TRIGGER);
         }
 
-        // ´ë½Ã ÁØºñ ÀÌÆåÆ®
+        // ëŒ€ì‹œ ì¤€ë¹„ ì´í™íŠ¸
         GameObject chargeEffect = null;
         if (dashChargeEffect != null)
         {
             chargeEffect = Instantiate(dashChargeEffect, transform.position, Quaternion.identity);
         }
 
-        // ÇÃ·¹ÀÌ¾î À§Ä¡ °è»ê
+        // í”Œë ˆì´ì–´ ìœ„ì¹˜ ê³„ì‚°
         Vector3 playerPos = playerTransform.position;
         dashStartPosition = transform.position;
 
-        // ÇÃ·¹ÀÌ¾î µÚÂÊÀ¸·Î ´ë½Ã (¿À¹ö½¸ °¨¼Ò)
+        // í”Œë ˆì´ì–´ ë’¤ìª½ìœ¼ë¡œ ëŒ€ì‹œ (ì˜¤ë²„ìŠ› ê°ì†Œ)
         Vector3 dashDirection = (playerPos - transform.position).normalized;
-        dashTargetPosition = playerPos + dashDirection * 1.5f; // ¿À¹ö½¸ °Å¸® °¨¼Ò
-        dashTargetPosition.y = transform.position.y; // YÃà °íÁ¤
+        dashTargetPosition = playerPos + dashDirection * 1.5f; // ì˜¤ë²„ìŠ› ê±°ë¦¬ ê°ì†Œ
+        dashTargetPosition.y = transform.position.y; // Yì¶• ê³ ì •
 
         dashStartTime = Time.time;
 
-        yield return new WaitForSeconds(0.8f); // Â÷Áö ½Ã°£
+        // âœ¨ ëŒ€ì‹œ ì¤€ë¹„ ì†Œë¦¬ ì¬ìƒ
+        PlaySound(dashChargeSound);
+
+        yield return new WaitForSeconds(0.8f); // ì°¨ì§€ ì‹œê°„
 
         if (chargeEffect != null)
         {
             Destroy(chargeEffect);
         }
 
-        // ´ë½Ã Æ®·¹ÀÏ ÀÌÆåÆ®
+        // ëŒ€ì‹œ íŠ¸ë ˆì¼ ì´í™íŠ¸
         GameObject trailEffect = null;
         if (dashTrailEffect != null)
         {
@@ -321,9 +351,12 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             trailEffect.transform.SetParent(transform);
         }
 
-        Debug.Log("´ÙÅ© º¸½º ´ë½Ã °ø°İ ½ÃÀÛ!");
+        Debug.Log("ë‹¤í¬ ë³´ìŠ¤ ëŒ€ì‹œ ê³µê²© ì‹œì‘!");
 
-        // ´ë½Ã ½ÇÇà
+        // âœ¨ ëŒ€ì‹œ ëŒì§„ ì†Œë¦¬ ì¬ìƒ
+        PlaySound(dashExecuteSound);
+
+        // ëŒ€ì‹œ ì‹¤í–‰
         yield return StartCoroutine(ExecuteDash());
 
         if (trailEffect != null)
@@ -333,7 +366,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         }
 
         isDashing = false;
-        UpdateAnimatorParameters(); // ¾Ö´Ï¸ŞÀÌÅÍ »óÅÂ ¾÷µ¥ÀÌÆ®
+        UpdateAnimatorParameters(); // ì• ë‹ˆë©”ì´í„° ìƒíƒœ ì—…ë°ì´íŠ¸
     }
 
     private IEnumerator ExecuteDash()
@@ -346,14 +379,14 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             elapsed += Time.deltaTime;
             float progress = elapsed / dashDuration;
 
-            // ºü¸¥ ÀÌµ¿ (EaseInOutQuad)
+            // ë¹ ë¥¸ ì´ë™ (EaseInOutQuad)
             float smoothProgress = progress < 0.5f ?
                 2f * progress * progress :
                 -1f + (4f - 2f * progress) * progress;
 
             transform.position = Vector3.Lerp(startPos, dashTargetPosition, smoothProgress);
 
-            // ´ë½Ã Áß Ãæµ¹ Ã¼Å©
+            // ëŒ€ì‹œ ì¤‘ ì¶©ëŒ ì²´í¬
             CheckDashCollision();
 
             yield return null;
@@ -367,22 +400,22 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         if (playerTransform == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-        if (distanceToPlayer <= 2f) // Ãæµ¹ °Å¸® °¨¼Ò
+        if (distanceToPlayer <= 2f) // ì¶©ëŒ ê±°ë¦¬ ê°ì†Œ
         {
-            // ÇÃ·¹ÀÌ¾î¿¡°Ô µ¥¹ÌÁö Àû¿ë
+            // í”Œë ˆì´ì–´ì—ê²Œ ë°ë¯¸ì§€ ì ìš©
             var playerComponent = playerTransform.GetComponent<Player.Player>();
             if (playerComponent != null)
             {
                 playerComponent.DecreaseHP(dashDamage);
             }
 
-            Debug.Log($"´ÙÅ© º¸½º ´ë½Ã·Î ÇÃ·¹ÀÌ¾î¿¡°Ô {dashDamage} µ¥¹ÌÁö!");
+            Debug.Log($"ë‹¤í¬ ë³´ìŠ¤ ëŒ€ì‹œë¡œ í”Œë ˆì´ì–´ì—ê²Œ {dashDamage} ë°ë¯¸ì§€!");
         }
     }
 
     #endregion
 
-    #region ±Ù°Å¸® °ø°İ
+    #region ê·¼ê±°ë¦¬ ê³µê²©
 
     private bool CanUseMeleeAttack()
     {
@@ -395,49 +428,52 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isMeleeAttacking = true;
         lastMeleeTime = Time.time;
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
             bossAnimator.SetTrigger(ANIM_MELEE_ATTACK_TRIGGER);
         }
 
-        // ±ÙÁ¢ °ø°İ ÀÌÆåÆ®
+        // ê·¼ì ‘ ê³µê²© ì´í™íŠ¸
         if (meleeAttackEffect != null)
         {
             GameObject effect = Instantiate(meleeAttackEffect, transform.position, Quaternion.identity);
             Destroy(effect, 3f);
         }
 
-        yield return new WaitForSeconds(0.5f); // °ø°İ ÁØºñ ½Ã°£
+        // âœ¨ ê·¼ê±°ë¦¬ ê³µê²© ì†Œë¦¬ ì¬ìƒ
+        PlaySound(meleeAttackSound);
 
-        // ¹üÀ§ ³» ÇÃ·¹ÀÌ¾î Ã£±â
+        yield return new WaitForSeconds(0.5f); // ê³µê²© ì¤€ë¹„ ì‹œê°„
+
+        // ë²”ìœ„ ë‚´ í”Œë ˆì´ì–´ ì°¾ê¸°
         Collider[] hits = Physics.OverlapSphere(transform.position, meleeAttackRadius);
 
         foreach (Collider hit in hits)
         {
             if (hit.CompareTag("Player"))
             {
-                // Player ÄÄÆ÷³ÍÆ®¸¦ Ã£¾Æ¼­ µ¥¹ÌÁö Àû¿ë
+                // Player ì»´í¬ë„ŒíŠ¸ë¥¼ ì°¾ì•„ì„œ ë°ë¯¸ì§€ ì ìš©
                 var playerComponent = hit.GetComponent<Player.Player>();
                 if (playerComponent != null)
                 {
                     playerComponent.DecreaseHP(meleeDamage);
                 }
 
-                Debug.Log($"´ÙÅ© º¸½º ±ÙÁ¢ °ø°İÀ¸·Î {meleeDamage} µ¥¹ÌÁö!");
+                Debug.Log($"ë‹¤í¬ ë³´ìŠ¤ ê·¼ì ‘ ê³µê²©ìœ¼ë¡œ {meleeDamage} ë°ë¯¸ì§€!");
                 break;
             }
         }
 
-        yield return new WaitForSeconds(0.5f); // °ø°İ ÈÄ µô·¹ÀÌ
+        yield return new WaitForSeconds(0.5f); // ê³µê²© í›„ ë”œë ˆì´
         isMeleeAttacking = false;
-        UpdateAnimatorParameters(); // ¾Ö´Ï¸ŞÀÌÅÍ »óÅÂ ¾÷µ¥ÀÌÆ®
+        UpdateAnimatorParameters(); // ì• ë‹ˆë©”ì´í„° ìƒíƒœ ì—…ë°ì´íŠ¸
     }
 
     #endregion
 
-    #region ÅºÈ¯ »ı¼º ÇÙ½É ¸Ş¼­µå
+    #region íƒ„í™˜ ìƒì„± í•µì‹¬ ë©”ì„œë“œ
 
     private void CreateBossBullet(Vector3 direction, float speed)
     {
@@ -452,7 +488,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         }
         else
         {
-            Debug.LogWarning("bossBulletPrefabÀÌ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
+            Debug.LogWarning("bossBulletPrefabì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!");
         }
     }
 
@@ -462,14 +498,14 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         {
             GameObject bullet = Instantiate(bossBulletPrefab, transform.position, Quaternion.LookRotation(initialDirection));
 
-            // À¯µµÅº ½ºÅ©¸³Æ® Ãß°¡ (ÀÓ½Ã·Î ÀÏ¹İ ÅºÈ¯À¸·Î ´ëÃ¼)
+            // ìœ ë„íƒ„ ìŠ¤í¬ë¦½íŠ¸ ì¶”ê°€ (ì„ì‹œë¡œ ì¼ë°˜ íƒ„í™˜ìœ¼ë¡œ ëŒ€ì²´)
             Enemy_Final_Boss_Bullet bulletScript = bullet.GetComponent<Enemy_Final_Boss_Bullet>();
             if (bulletScript != null)
             {
                 bulletScript.Initialize(bossBulletDamage * 1.5f, initialDirection * bossBulletSpeed * 0.8f);
             }
 
-            // À¯µµÅº Ç¥½Ã¸¦ À§ÇØ »ö»ó º¯°æ
+            // ìœ ë„íƒ„ í‘œì‹œë¥¼ ìœ„í•´ ìƒ‰ìƒ ë³€ê²½
             Renderer renderer = bullet.GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -481,15 +517,15 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         }
         else
         {
-            Debug.LogWarning("bossBulletPrefabÀÌ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
+            Debug.LogWarning("bossBulletPrefabì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!");
         }
     }
 
     #endregion
 
-    #region ÁÖ±âÀû ²ø¾î´ç±â±â ÅºÈ¯ ½Ã½ºÅÛ (ÇöÀç ºñÈ°¼ºÈ­)
+    #region ì£¼ê¸°ì  ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ì‹œìŠ¤í…œ (í˜„ì¬ ë¹„í™œì„±í™”)
 
-    // ÁÖ±âÀû »ı¼ºÀº ºñÈ°¼ºÈ­ÇÏ°í °Å¸® ±â¹İ ¼öµ¿ »ı¼º¸¸ »ç¿ë
+    // ì£¼ê¸°ì  ìƒì„±ì€ ë¹„í™œì„±í™”í•˜ê³  ê±°ë¦¬ ê¸°ë°˜ ìˆ˜ë™ ìƒì„±ë§Œ ì‚¬ìš©
     private IEnumerator SpawnPullBulletsPeriodically()
     {
         yield return new WaitForSeconds(pullBulletSpawnInterval);
@@ -525,12 +561,12 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region ²ø¾î´ç±â±â ÅºÈ¯ °ø°İ
+    #region ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ê³µê²©
 
     private bool CanUsePullBullets()
     {
-        return Time.time - lastPullBulletTime >= pullBulletSpawnInterval && // ½Ã°£ ±â¹İÀ¸·Î¸¸ Ã¼Å©
-               !IsPerformingAnyAttack(); // È®·ü Á¦ÇÑ Á¦°Å
+        return Time.time - lastPullBulletTime >= pullBulletSpawnInterval && // ì‹œê°„ ê¸°ë°˜ìœ¼ë¡œë§Œ ì²´í¬
+               !IsPerformingAnyAttack(); // í™•ë¥  ì œí•œ ì œê±°
     }
 
     private IEnumerator CreatePullBulletsAttack()
@@ -538,21 +574,24 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isCreatingPullBullets = true;
         lastPullBulletTime = Time.time;
 
-        Debug.Log("´ÙÅ© º¸½º: ²ø¾î´ç±â±â ÅºÈ¯ °ø°İ! (½Ã°£ ±â¹İ ÀÚµ¿ ¹ßµ¿)"); // µğ¹ö±× ·Î±× ¼öÁ¤
+        Debug.Log("ë‹¤í¬ ë³´ìŠ¤: ëŒì–´ë‹¹ê¸°ê¸° íƒ„í™˜ ê³µê²©! (ì‹œê°„ ê¸°ë°˜ ìë™ ë°œë™)"); // ë””ë²„ê·¸ ë¡œê·¸ ìˆ˜ì •
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
             bossAnimator.SetTrigger(ANIM_PULL_BULLET_CAST_TRIGGER);
         }
 
-        // Â÷Áö ÀÌÆåÆ®
+        // ì°¨ì§€ ì´í™íŠ¸
         GameObject chargeEffect = null;
         if (pullBulletChargeEffect != null)
         {
             chargeEffect = Instantiate(pullBulletChargeEffect, transform.position + Vector3.up * 3f, Quaternion.identity);
         }
+
+        // âœ¨ ëŒì–´ë‹¹ê¸°ê¸° ì°¨ì§€ ì†Œë¦¬ ì¬ìƒ
+        PlaySound(pullChargeSound);
 
         yield return new WaitForSeconds(1f);
 
@@ -561,9 +600,12 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             Destroy(chargeEffect);
         }
 
+        // âœ¨ ëŒì–´ë‹¹ê¸°ê¸° ë°œì‚¬ ì†Œë¦¬ ì¬ìƒ (ì „ì²´ ë°œì‚¬ ì‹œì‘ ì‹œ)
+        PlaySound(pullFireSound);
+
         yield return CreatePullBullets();
         isCreatingPullBullets = false;
-        UpdateAnimatorParameters(); // ¾Ö´Ï¸ŞÀÌÅÍ »óÅÂ ¾÷µ¥ÀÌÆ®
+        UpdateAnimatorParameters(); // ì• ë‹ˆë©”ì´í„° ìƒíƒœ ì—…ë°ì´íŠ¸
     }
 
     private IEnumerator CreatePullBullets()
@@ -573,7 +615,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         Vector3 playerPos = playerTransform.position;
         Vector3 bossPos = transform.position;
 
-        // º¸½º -> ÇÃ·¹ÀÌ¾î ¹æÇâ
+        // ë³´ìŠ¤ -> í”Œë ˆì´ì–´ ë°©í–¥
         Vector3 bossToPlayer = (playerPos - bossPos).normalized;
 
         float angleStep = 120f / (pullBulletSpawnCount - 1);
@@ -582,12 +624,12 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         {
             float angle = -60f + angleStep * i;
 
-            // ÇÃ·¹ÀÌ¾î µÚÂÊ¿¡ ÅºÈ¯ »ı¼º (º¸½º¿Í ¹İ´ë ¹æÇâ)
+            // í”Œë ˆì´ì–´ ë’¤ìª½ì— íƒ„í™˜ ìƒì„± (ë³´ìŠ¤ì™€ ë°˜ëŒ€ ë°©í–¥)
             Vector3 rotatedDir = Quaternion.Euler(0, angle, 0) * bossToPlayer;
             Vector3 spawnPos = playerPos + rotatedDir * mapRadius;
             spawnPos.y = 2f;
 
-            // ÅºÈ¯ÀÌ º¸½º ¹æÇâÀ¸·Î ³¯¾Æ°¡µµ·Ï ¼³Á¤
+            // íƒ„í™˜ì´ ë³´ìŠ¤ ë°©í–¥ìœ¼ë¡œ ë‚ ì•„ê°€ë„ë¡ ì„¤ì •
             Vector3 toBoss = (bossPos - spawnPos).normalized;
 
             GameObject bullet = Instantiate(pullBulletPrefab, spawnPos, Quaternion.LookRotation(toBoss));
@@ -600,7 +642,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region ¾îµÒ ¹Ù´Ú ÇØÀúµå
+    #region ì–´ë‘  ë°”ë‹¥ í•´ì €ë“œ
 
     private bool CanUseDarkFloor()
     {
@@ -614,12 +656,15 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         isCreatingDarkFloor = true;
         lastDarkFloorTime = Time.time;
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
             bossAnimator.SetTrigger(ANIM_DARK_FLOOR_CAST_TRIGGER);
         }
+
+        // âœ¨ ì–´ë‘  ë°”ë‹¥ ì‹œì „ ì†Œë¦¬ ì¬ìƒ
+        PlaySound(darkFloorCastSound);
 
         yield return new WaitForSeconds(0.5f);
 
@@ -627,14 +672,14 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         yield return new WaitForSeconds(0.5f);
         isCreatingDarkFloor = false;
-        UpdateAnimatorParameters(); // ¾Ö´Ï¸ŞÀÌÅÍ »óÅÂ ¾÷µ¥ÀÌÆ®
+        UpdateAnimatorParameters(); // ì• ë‹ˆë©”ì´í„° ìƒíƒœ ì—…ë°ì´íŠ¸
     }
 
     private void CreateDarkFloorHazard()
     {
         if (darkFloorHazardPrefab == null) return;
 
-        // ±âÁ¸ ¾îµÒ ¹Ù´Ú Á¦°Å
+        // ê¸°ì¡´ ì–´ë‘  ë°”ë‹¥ ì œê±°
         if (activeDarkFloorHazard != null)
         {
             Destroy(activeDarkFloorHazard);
@@ -648,7 +693,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             darkFloorScript.Initialize(darkFloorDamage, transform);
         }
 
-        // ÀÌÆåÆ® »ı¼º
+        // ì´í™íŠ¸ ìƒì„±
         if (darkFloorEffect != null)
         {
             GameObject effect = Instantiate(darkFloorEffect, transform.position, Quaternion.identity);
@@ -658,7 +703,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region º¸½º ÅºÈ¯ °ø°İ
+    #region ë³´ìŠ¤ íƒ„í™˜ ê³µê²©
 
     private bool CanUseBossBullets()
     {
@@ -678,18 +723,21 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
             yield break;
         }
 
-        // ÆĞÅÏ ¼±ÅÃ (·£´ıÇÏ°Ô º¯°æÇÏ°Å³ª ¿¬¼Ó °ø°İ È½¼ö¿¡ µû¶ó)
+        // íŒ¨í„´ ì„ íƒ (ëœë¤í•˜ê²Œ ë³€ê²½í•˜ê±°ë‚˜ ì—°ì† ê³µê²© íšŸìˆ˜ì— ë”°ë¼)
         SelectBulletPattern();
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
             bossAnimator.SetTrigger(ANIM_BULLET_ATTACK_TRIGGER);
-            bossAnimator.SetFloat(ANIM_BULLET_PATTERN, (float)currentBulletPattern); // FloatÀ¸·Î º¯°æ
+            bossAnimator.SetFloat(ANIM_BULLET_PATTERN, (float)currentBulletPattern); // Floatìœ¼ë¡œ ë³€ê²½
         }
 
-        // ¼±ÅÃµÈ ÆĞÅÏ¿¡ µû¶ó °ø°İ ½ÇÇà
+        // âœ¨ ë³´ìŠ¤ íƒ„í™˜ ë°œì‚¬ ì†Œë¦¬ ì¬ìƒ (íŒ¨í„´ ì‹¤í–‰ ì§ì „)
+        PlaySound(bossBulletSound);
+
+        // ì„ íƒëœ íŒ¨í„´ì— ë”°ë¼ ê³µê²© ì‹¤í–‰
         switch (currentBulletPattern)
         {
             case BulletPattern.Straight:
@@ -714,38 +762,38 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         consecutiveAttacks++;
         isShootingBossBullets = false;
-        UpdateAnimatorParameters(); // ¾Ö´Ï¸ŞÀÌÅÍ »óÅÂ ¾÷µ¥ÀÌÆ®
+        UpdateAnimatorParameters(); // ì• ë‹ˆë©”ì´í„° ìƒíƒœ ì—…ë°ì´íŠ¸
     }
 
     private void SelectBulletPattern()
     {
-        // Ã¼·ÂÀÌ ³·À»¼ö·Ï ´õ À§ÇèÇÑ ÆĞÅÏ »ç¿ë
+        // ì²´ë ¥ì´ ë‚®ì„ìˆ˜ë¡ ë” ìœ„í—˜í•œ íŒ¨í„´ ì‚¬ìš©
         float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
 
         if (Random.value < patternSwitchChance || consecutiveAttacks >= 3)
         {
             if (healthPercent > 0.7f)
             {
-                // Ã¼·Â 70% ÀÌ»ó: ±âº» ÆĞÅÏµé
+                // ì²´ë ¥ 70% ì´ìƒ: ê¸°ë³¸ íŒ¨í„´ë“¤
                 currentBulletPattern = (BulletPattern)Random.Range(0, 3);
             }
             else if (healthPercent > 0.4f)
             {
-                // Ã¼·Â 40-70%: Áß±Ş ÆĞÅÏµé
+                // ì²´ë ¥ 40-70%: ì¤‘ê¸‰ íŒ¨í„´ë“¤
                 currentBulletPattern = (BulletPattern)Random.Range(1, 5);
             }
             else
             {
-                // Ã¼·Â 40% ÀÌÇÏ: ¸ğµç ÆĞÅÏ (À§Çè!)
+                // ì²´ë ¥ 40% ì´í•˜: ëª¨ë“  íŒ¨í„´ (ìœ„í—˜!)
                 currentBulletPattern = (BulletPattern)Random.Range(2, 6);
             }
 
             consecutiveAttacks = 0;
-            Debug.Log($"´ÙÅ© º¸½º ÅºÈ¯ ÆĞÅÏ º¯°æ: {currentBulletPattern}");
+            Debug.Log($"ë‹¤í¬ ë³´ìŠ¤ íƒ„í™˜ íŒ¨í„´ ë³€ê²½: {currentBulletPattern}");
         }
     }
 
-    #region ´Ù¾çÇÑ ÅºÈ¯ ÆĞÅÏµé
+    #region ë‹¤ì–‘í•œ íƒ„í™˜ íŒ¨í„´ë“¤
 
     private IEnumerator StraightBulletAttack()
     {
@@ -799,7 +847,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     private IEnumerator FanBulletAttack()
     {
         Vector3 playerDir = (playerTransform.position - transform.position).normalized;
-        float fanAngle = 60f; // ºÎÃ¤²Ã °¢µµ
+        float fanAngle = 60f; // ë¶€ì±„ê¼´ ê°ë„
         float angleStep = fanAngle / (bossBulletCount - 1);
 
         for (int i = 0; i < bossBulletCount; i++)
@@ -817,7 +865,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
     {
         for (int i = 0; i < bossBulletCount * 0.6f; i++)
         {
-            // À¯µµÅºÀº Àû°Ô ¹ß»çÇÏÁö¸¸ À§Çè
+            // ìœ ë„íƒ„ì€ ì ê²Œ ë°œì‚¬í•˜ì§€ë§Œ ìœ„í—˜
             Vector3 randomDir = new Vector3(
                 Random.Range(-1f, 1f),
                 0,
@@ -831,16 +879,16 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     private IEnumerator BurstBulletAttack()
     {
-        // 3¹øÀÇ Æø¹ßÀû ¹ß»ç
+        // 3ë²ˆì˜ í­ë°œì  ë°œì‚¬
         for (int burst = 0; burst < 3; burst++)
         {
-            // °¢ Æø¹ß¸¶´Ù ¿øÇüÀ¸·Î ¹ß»ç
+            // ê° í­ë°œë§ˆë‹¤ ì›í˜•ìœ¼ë¡œ ë°œì‚¬
             float burstCount = bossBulletCount * 0.7f;
             float angleStep = 360f / burstCount;
 
             for (int i = 0; i < burstCount; i++)
             {
-                float angle = i * angleStep + (burst * 15f); // ¾à°£ÀÇ È¸Àü Ãß°¡
+                float angle = i * angleStep + (burst * 15f); // ì•½ê°„ì˜ íšŒì „ ì¶”ê°€
                 Vector3 direction = new Vector3(
                     Mathf.Cos(angle * Mathf.Deg2Rad),
                     0,
@@ -858,16 +906,16 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     #endregion
 
-    #region ¾Ö´Ï¸ŞÀÌÅÍ °ü¸®
+    #region ì• ë‹ˆë©”ì´í„° ê´€ë¦¬
 
     /// <summary>
-    /// ¸ğµç ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ¸¦ ÇöÀç »óÅÂ¿¡ ¸Â°Ô ¾÷µ¥ÀÌÆ®
+    /// ëª¨ë“  ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„°ë¥¼ í˜„ì¬ ìƒíƒœì— ë§ê²Œ ì—…ë°ì´íŠ¸
     /// </summary>
     private void UpdateAnimatorParameters()
     {
         if (bossAnimator == null) return;
 
-        // Bool ÆÄ¶ó¹ÌÅÍµé
+        // Bool íŒŒë¼ë¯¸í„°ë“¤
         bossAnimator.SetBool(ANIM_IS_MOVING, moveScript != null && moveScript.IsMoving());
         bossAnimator.SetBool(ANIM_IS_DEAD, isDead);
         bossAnimator.SetBool(ANIM_IS_CREATING_PULL_BULLETS, isCreatingPullBullets);
@@ -876,7 +924,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
         bossAnimator.SetBool(ANIM_IS_DASHING, isDashing);
         bossAnimator.SetBool(ANIM_IS_MELEE_ATTACKING, isMeleeAttacking);
 
-        // Float ÆÄ¶ó¹ÌÅÍµé
+        // Float íŒŒë¼ë¯¸í„°ë“¤
         float currentSpeed = moveScript != null && moveScript.IsMoving() ? 5f : 0f;
         bossAnimator.SetFloat(ANIM_MOVE_SPEED, currentSpeed);
 
@@ -885,68 +933,68 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         bossAnimator.SetFloat(ANIM_ATTACK_INTENSITY, GetAttackIntensity());
 
-        // ÆäÀÌÁî¸¦ FloatÀ¸·Î ´ëÃ¼ (Unity ¹öÀü È£È¯¼º)
+        // í˜ì´ì¦ˆë¥¼ Floatìœ¼ë¡œ ëŒ€ì²´ (Unity ë²„ì „ í˜¸í™˜ì„±)
         bossAnimator.SetFloat(ANIM_CURRENT_PHASE, GetCurrentPhase());
     }
 
     /// <summary>
-    /// ÇöÀç ÆäÀÌÁî ¹İÈ¯ (Ã¼·Â ±âÁØ)
+    /// í˜„ì¬ í˜ì´ì¦ˆ ë°˜í™˜ (ì²´ë ¥ ê¸°ì¤€)
     /// </summary>
     private int GetCurrentPhase()
     {
         float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
 
-        if (healthPercent > 0.7f) return 1;      // 1ÆäÀÌÁî: 70% ÀÌ»ó
-        else if (healthPercent > 0.4f) return 2; // 2ÆäÀÌÁî: 40-70%
-        else return 3;                           // 3ÆäÀÌÁî: 40% ÀÌÇÏ
+        if (healthPercent > 0.7f) return 1;      // 1í˜ì´ì¦ˆ: 70% ì´ìƒ
+        else if (healthPercent > 0.4f) return 2; // 2í˜ì´ì¦ˆ: 40-70%
+        else return 3;                           // 3í˜ì´ì¦ˆ: 40% ì´í•˜
     }
 
     /// <summary>
-    /// °ø°İ °­µµ ¹İÈ¯ (Ã¼·Â°ú ¿¬¼Ó °ø°İ ±âÁØ)
+    /// ê³µê²© ê°•ë„ ë°˜í™˜ (ì²´ë ¥ê³¼ ì—°ì† ê³µê²© ê¸°ì¤€)
     /// </summary>
     private float GetAttackIntensity()
     {
         float healthPercent = currentHp / enemyStats.Get(EnemyStatType.MaxHp);
         float baseIntensity = 1f;
 
-        // Ã¼·ÂÀÌ ³·À»¼ö·Ï °­µµ Áõ°¡
-        if (healthPercent <= 0.4f) baseIntensity = 3f;      // ºĞ³ë ¸ğµå
-        else if (healthPercent <= 0.7f) baseIntensity = 2f; // °­ÇÔ
-        else baseIntensity = 1f;                             // º¸Åë
+        // ì²´ë ¥ì´ ë‚®ì„ìˆ˜ë¡ ê°•ë„ ì¦ê°€
+        if (healthPercent <= 0.4f) baseIntensity = 3f;      // ë¶„ë…¸ ëª¨ë“œ
+        else if (healthPercent <= 0.7f) baseIntensity = 2f; // ê°•í•¨
+        else baseIntensity = 1f;                             // ë³´í†µ
 
-        // ¿¬¼Ó °ø°İ ½Ã °­µµ Áõ°¡
+        // ì—°ì† ê³µê²© ì‹œ ê°•ë„ ì¦ê°€
         if (consecutiveAttacks >= 3) baseIntensity += 0.5f;
 
         return Mathf.Clamp(baseIntensity, 0f, 3f);
     }
 
     /// <summary>
-    /// ÇÇ°İ ½Ã È£ÃâµÇ´Â ¸Ş¼­µå (¾Ö´Ï¸ŞÀÌ¼Ç Æ÷ÇÔ)
+    /// í”¼ê²© ì‹œ í˜¸ì¶œë˜ëŠ” ë©”ì„œë“œ (ì• ë‹ˆë©”ì´ì…˜ í¬í•¨)
     /// </summary>
     public override void TakeDamage(float baseDamage, DamageType damageType = DamageType.Physical, ElementType attackerElement = ElementType.Neutral)
     {
         if (isDead) return;
 
-        // ±âº» ÇÇ°İ Ã³¸®
+        // ê¸°ë³¸ í”¼ê²© ì²˜ë¦¬
         base.TakeDamage(baseDamage, damageType, attackerElement);
 
-        // ÇÇ°İ ¾Ö´Ï¸ŞÀÌ¼Ç
+        // í”¼ê²© ì• ë‹ˆë©”ì´ì…˜
         if (bossAnimator != null && !isDead)
         {
             bossAnimator.SetTrigger(ANIM_HIT_TRIGGER);
         }
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
     }
 
     #endregion
 
-    #region Á¤¸® ¹× ¿À¹ö¶óÀÌµå
+    #region ì •ë¦¬ ë° ì˜¤ë²„ë¼ì´ë“œ
 
     private void CleanupModeAttacks()
     {
-        // ÁÖ±âÀû ½ºÆù ·çÆ¾ÀÌ ºñÈ°¼ºÈ­µÇ¾î ÀÖÀ¸¹Ç·Î Á¤¸®ÇÒ ÇÊ¿ä ¾øÀ½
+        // ì£¼ê¸°ì  ìŠ¤í° ë£¨í‹´ì´ ë¹„í™œì„±í™”ë˜ì–´ ìˆìœ¼ë¯€ë¡œ ì •ë¦¬í•  í•„ìš” ì—†ìŒ
         // if (pullBulletSpawnRoutine != null)
         // {
         //     StopCoroutine(pullBulletSpawnRoutine);
@@ -965,14 +1013,14 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     protected override void Die()
     {
-        // ¸ğµç »óÅÂ ÃÊ±âÈ­
+        // ëª¨ë“  ìƒíƒœ ì´ˆê¸°í™”
         isCreatingPullBullets = false;
         isCreatingDarkFloor = false;
         isShootingBossBullets = false;
         isDashing = false;
         isMeleeAttacking = false;
 
-        // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì—…ë°ì´íŠ¸
         UpdateAnimatorParameters();
         if (bossAnimator != null)
         {
@@ -981,18 +1029,18 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
         CleanupModeAttacks();
 
-        Debug.Log("¾îµÒÀÇ ÈûÀÌ... »ç¶óÁø´Ù...");
+        Debug.Log("ì–´ë‘ ì˜ í˜ì´... ì‚¬ë¼ì§„ë‹¤...");
         base.Die();
     }
 
     protected override int GetExperienceReward()
     {
-        return 1500; // ÃÖÁ¾º¸½º´ä°Ô ³ôÀº °æÇèÄ¡
+        return 1500; // ìµœì¢…ë³´ìŠ¤ë‹µê²Œ ë†’ì€ ê²½í—˜ì¹˜
     }
 
     #endregion
 
-    #region ÆÛºí¸¯ Á¢±ÙÀÚ ¹× À¯Æ¿¸®Æ¼
+    #region í¼ë¸”ë¦­ ì ‘ê·¼ì ë° ìœ í‹¸ë¦¬í‹°
 
     public void SetPullBulletSpawnInterval(float interval) => pullBulletSpawnInterval = interval;
 
@@ -1004,7 +1052,7 @@ public class Enemy_Final_Boss_Dark : Enemy_Base
 
     public bool IsPerformingSpecialAttack() => IsPerformingAnyAttack();
 
-    // Move ½ºÅ©¸³Æ®¿¡¼­ »ç¿ëÇÒ ¼ö ÀÖ´Â Ãß°¡ ¸Ş¼­µåµé
+    // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì‚¬ìš©í•  ìˆ˜ ìˆëŠ” ì¶”ê°€ ë©”ì„œë“œë“¤
     public float GetDashSpeed() => dashSpeed;
     public float GetMeleeRange() => meleeRange;
     public float GetDashRange() => dashRange;

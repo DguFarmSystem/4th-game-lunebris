@@ -4,12 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Áß°£º¸½º ¸ó½ºÅÍ (¹ì¼­·ù¿ë - ´Ü¼øÈ­)
+/// ì¤‘ê°„ë³´ìŠ¤ ëª¬ìŠ¤í„° (ë±€ì„œë¥˜ìš© - ë‹¨ìˆœí™”)
 /// </summary>
 [DisallowMultipleComponent]
 public class Enemy_Middle_Boss : Enemy_Base
 {
-    [Header("±×·¦ °ø°İ ¼³Á¤")]
+    [Header("ê·¸ë© ê³µê²© ì„¤ì •")]
     [SerializeField] private float grabRange = 12f;
     [SerializeField] private float grabDamage = 60f;
     [SerializeField] private float grabCooldown = 6f;
@@ -18,7 +18,7 @@ public class Enemy_Middle_Boss : Enemy_Base
     [SerializeField] private float grabProjectileSpeed = 15f;
     [SerializeField] private Transform grabFirePoint;
 
-    [Header("ÃÑ¾Ë °ø°İ ¼³Á¤")]
+    [Header("ì´ì•Œ ê³µê²© ì„¤ì •")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float bulletSpeed = 10f;
@@ -28,7 +28,7 @@ public class Enemy_Middle_Boss : Enemy_Base
     [SerializeField] private float dashDistance = 4f;
     [SerializeField] private float dashSpeed = 1f;
 
-    [Header("±Ù°Å¸® °ø°İ ¼³Á¤")]
+    [Header("ê·¼ê±°ë¦¬ ê³µê²© ì„¤ì •")]
     [SerializeField] private float meleeRange = 4f;
     [SerializeField] private float meleeDamage = 80f;
     [SerializeField] private float meleeCooldown = 3f;
@@ -36,7 +36,7 @@ public class Enemy_Middle_Boss : Enemy_Base
     [SerializeField] private float meleeKnockbackForce = 10f;
     [SerializeField] private float meleeAttackDuration = 1f;
 
-    [Header("ÀåÆÇ °ø°İ ¼³Á¤")]
+    [Header("ì¥íŒ ê³µê²© ì„¤ì •")]
     [SerializeField] private GameObject floorHazardPrefab;
     [SerializeField] private GameObject floorHazardOrbPrefab;
     [SerializeField] private float floorHazardDamage = 40f;
@@ -51,42 +51,49 @@ public class Enemy_Middle_Boss : Enemy_Base
     [SerializeField] private float orbSpeed = 12f;
     [SerializeField] private float orbArcHeight = 5f;
 
-    [Header("ÀÌÆåÆ® ¹× ÇÁ¸®ÆÕ")]
+    [Header("ì´í™íŠ¸ ë° í”„ë¦¬íŒ¹")]
     [SerializeField] private GameObject grabProjectilePrefab;
     [SerializeField] private GameObject meleeEffectPrefab;
 
-    [Header("°ø°İ °£°İ Á¦¾î")]
-    [SerializeField] private float attackCooldownTime = 1f; // °ø°İ °£ ´ë±â ½Ã°£ 
-    [SerializeField] private float maxChaseDistance = 20f; // ÃÖ´ë ÃßÀû °Å¸®
+    [Header("ì˜¤ë””ì˜¤ ì„¤ì •")] // âœ¨ ì˜¤ë””ì˜¤ ì„¤ì • ì¶”ê°€
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip grabSound;
+    [SerializeField] private AudioClip bulletSound;
+    [SerializeField] private AudioClip meleeSound;
+    [SerializeField] private AudioClip floorHazardThrowSound;
 
-    // º¸½º »óÅÂ
+    [Header("ê³µê²© ê°„ê²© ì œì–´")]
+    [SerializeField] private float attackCooldownTime = 1f; // ê³µê²© ê°„ ëŒ€ê¸° ì‹œê°„ 
+    [SerializeField] private float maxChaseDistance = 20f; // ìµœëŒ€ ì¶”ì  ê±°ë¦¬
+
+    // ë³´ìŠ¤ ìƒíƒœ
     private bool isGrabbing = false;
     private bool isShooting = false;
     private bool isCreatingFloorHazard = false;
     private bool isDashing = false;
     private bool isMeleeAttacking = false;
 
-    // °ø°İ »óÅÂ °ü¸®
-    private bool isAnyAttackInProgress = false; // ¸ğµç °ø°İ ÅëÇÕ ÇÃ·¡±×
+    // ê³µê²© ìƒíƒœ ê´€ë¦¬
+    private bool isAnyAttackInProgress = false; // ëª¨ë“  ê³µê²© í†µí•© í”Œë˜ê·¸
     private float lastGrabTime;
     private float lastBulletTime;
     private float lastFloorHazardTime;
     private float lastMeleeTime;
-    private float lastAnyAttackTime; // ¸¶Áö¸· °ø°İ ½Ã°£ (¸ğµç °ø°İ ÅëÇÕ)
+    private float lastAnyAttackTime; // ë§ˆì§€ë§‰ ê³µê²© ì‹œê°„ (ëª¨ë“  ê³µê²© í†µí•©)
 
-    // ÇöÀç ±×·¦µÈ ÇÃ·¹ÀÌ¾î Á¤º¸
+    // í˜„ì¬ ê·¸ë©ëœ í”Œë ˆì´ì–´ ì •ë³´
     private Transform grabbedPlayer = null;
     private bool isPlayerBeingPulled = false;
     private float pullStartTime;
     private float currentPullDuration;
 
-    // ÇöÀç È°¼ºÈ­µÈ ÀåÆÇ °³¼ö ÃßÀû
+    // í˜„ì¬ í™œì„±í™”ëœ ì¥íŒ ê°œìˆ˜ ì¶”ì 
     private int currentFloorHazardCount = 0;
 
-    // ÀÌµ¿ ½ºÅ©¸³Æ® ÂüÁ¶
+    // ì´ë™ ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡°
     private Enemy_Middle_Boss_Move moveScript;
 
-    // ¾Ö´Ï¸ŞÀÌÅÍ ÆÄ¶ó¹ÌÅÍ ÀÌ¸§µé
+    // ì• ë‹ˆë©”ì´í„° íŒŒë¼ë¯¸í„° ì´ë¦„ë“¤
     private readonly string ANIM_GRAB_TRIGGER = "startGrab";
     private readonly string ANIM_IS_GRABBING = "isGrabbing";
     private readonly string ANIM_BULLET_TRIGGER = "startBullet";
@@ -99,7 +106,7 @@ public class Enemy_Middle_Boss : Enemy_Base
     private readonly string ANIM_ATTACK_TRIGGER = "attack";
     private readonly string ANIM_IS_ATTACKING = "isAttacking";
 
-    // Move ½ºÅ©¸³Æ®¿¡¼­ ÂüÁ¶ÇÒ ¼ö ÀÖ´Â ÇÁ·ÎÆÛÆ¼µé
+    // Move ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ì°¸ì¡°í•  ìˆ˜ ìˆëŠ” í”„ë¡œí¼í‹°ë“¤
     public bool IsGrabbing => isGrabbing;
     public bool IsShooting => isShooting;
     public bool IsPlayerBeingPulled => isPlayerBeingPulled;
@@ -109,7 +116,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     protected override void Awake()
     {
-        // Áß°£º¸½º ±âº» ¼³Á¤
+        // ì¤‘ê°„ë³´ìŠ¤ ê¸°ë³¸ ì„¤ì •
         enemyType = EnemyType.MiddleBoss;
         elementType = ElementType.Tenebris;
         primaryDamageType = DamageType.Magical;
@@ -122,89 +129,105 @@ public class Enemy_Middle_Boss : Enemy_Base
     {
         base.InitializeEnemy();
 
-        // ÀÌµ¿ ½ºÅ©¸³Æ® ÂüÁ¶
+        // ì´ë™ ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡°
         moveScript = GetComponent<Enemy_Middle_Boss_Move>();
 
-        // ¹ß»çÁ¡ÀÌ ¾øÀ¸¸é ÀÚ½ÅÀÇ À§Ä¡ »ç¿ë
+        // âœ¨ AudioSource ì»´í¬ë„ŒíŠ¸ ì°¸ì¡°
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        // ë°œì‚¬ì ì´ ì—†ìœ¼ë©´ ìì‹ ì˜ ìœ„ì¹˜ ì‚¬ìš©
         if (firePoint == null)
             firePoint = transform;
         if (grabFirePoint == null)
             grabFirePoint = transform;
 
-        Debug.Log($"Áß°£º¸½º {enemyName} µîÀå! HP: {currentHp}");
+        Debug.Log($"ì¤‘ê°„ë³´ìŠ¤ {enemyName} ë“±ì¥! HP: {currentHp}");
     }
 
     protected override void UpdateBehavior()
     {
-        // ÇÃ·¹ÀÌ¾î¸¦ ²ø¾î´ç±â´Â ÁßÀÌ¸é ´Ù¸¥ Çàµ¿ Á¦ÇÑ
+        // í”Œë ˆì´ì–´ë¥¼ ëŒì–´ë‹¹ê¸°ëŠ” ì¤‘ì´ë©´ ë‹¤ë¥¸ í–‰ë™ ì œí•œ
         if (isPlayerBeingPulled)
         {
             UpdatePullBehavior();
             return;
         }
 
-        // ¾Æ¹« °ø°İÀÌ¶óµµ ÁøÇà ÁßÀÌ¸é ¸®ÅÏ
+        // ì•„ë¬´ ê³µê²©ì´ë¼ë„ ì§„í–‰ ì¤‘ì´ë©´ ë¦¬í„´
         if (isAnyAttackInProgress)
         {
             return;
         }
 
-        // ÇÃ·¹ÀÌ¾î°¡ ¾øÀ¸¸é ¸®ÅÏ
+        // í”Œë ˆì´ì–´ê°€ ì—†ìœ¼ë©´ ë¦¬í„´
         if (playerTransform == null) return;
 
         float distanceToPlayer = GetDistanceToPlayer();
 
-        // ³Ê¹« ¸Ö¸é ÃßÀû¸¸ ÇÏ°í °ø°İÇÏÁö ¾ÊÀ½
+        // ë„ˆë¬´ ë©€ë©´ ì¶”ì ë§Œ í•˜ê³  ê³µê²©í•˜ì§€ ì•ŠìŒ
         if (distanceToPlayer > maxChaseDistance)
         {
             return;
         }
 
-        // °ø°İ Äğ´Ù¿î Ã¼Å© - ¸ğµç °ø°İ¿¡ °øÅë Àû¿ë
+        // ê³µê²© ì¿¨ë‹¤ìš´ ì²´í¬ - ëª¨ë“  ê³µê²©ì— ê³µí†µ ì ìš©
         float timeSinceLastAttack = Time.time - lastAnyAttackTime;
         if (timeSinceLastAttack < attackCooldownTime)
         {
             return;
         }
 
-        // °Å¸®¿¡ µû¸¥ °ø°İ ÆĞÅÏ ¼±ÅÃ (±Ù°Å¸® °ø°İÀº Á¶°ÇÀ» ´õ ±î´Ù·Ó°Ô)
+        // ê±°ë¦¬ì— ë”°ë¥¸ ê³µê²© íŒ¨í„´ ì„ íƒ (ê·¼ê±°ë¦¬ ê³µê²©ì€ ì¡°ê±´ì„ ë” ê¹Œë‹¤ë¡­ê²Œ)
         if (distanceToPlayer <= meleeRange && CanUseMelee() && Time.time - lastMeleeTime >= meleeCooldown * 3f)
         {
-            // ±Ù°Å¸® °ø°İ (´õ ±ä Äğ´Ù¿î Àû¿ë)
-            Debug.Log($"{enemyName}: ±Ù°Å¸® °ø°İ ½ÃÀü! °Å¸®: {distanceToPlayer:F1}m");
+            // ê·¼ê±°ë¦¬ ê³µê²© (ë” ê¸´ ì¿¨ë‹¤ìš´ ì ìš©)
+            Debug.Log($"{enemyName}: ê·¼ê±°ë¦¬ ê³µê²© ì‹œì „! ê±°ë¦¬: {distanceToPlayer:F1}m");
             StartCoroutine(PerformMeleeAttack());
         }
         else if (distanceToPlayer >= grabRange * 0.8f && CanUseGrab())
         {
-            Debug.Log($"{enemyName}: ±×·¦ °ø°İ ½ÃÀü! °Å¸®: {distanceToPlayer:F1}m");
+            Debug.Log($"{enemyName}: ê·¸ë© ê³µê²© ì‹œì „! ê±°ë¦¬: {distanceToPlayer:F1}m");
             StartCoroutine(PerformGrabAttack());
         }
         else if (distanceToPlayer <= floorHazardRange && CanUseFloorHazard())
         {
-            Debug.Log($"{enemyName}: ÀåÆÇ °ø°İ ½ÃÀü! °Å¸®: {distanceToPlayer:F1}m");
+            Debug.Log($"{enemyName}: ì¥íŒ ê³µê²© ì‹œì „! ê±°ë¦¬: {distanceToPlayer:F1}m");
             StartCoroutine(PerformFloorHazardAttack());
         }
         else if (distanceToPlayer <= bulletRange && CanUseBullets())
         {
-            Debug.Log($"{enemyName}: ÃÑ¾Ë °ø°İ ½ÃÀü! °Å¸®: {distanceToPlayer:F1}m");
+            Debug.Log($"{enemyName}: ì´ì•Œ ê³µê²© ì‹œì „! ê±°ë¦¬: {distanceToPlayer:F1}m");
             StartCoroutine(PerformBulletAttack());
         }
 
-        // ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ ¾÷µ¥ÀÌÆ®
+        // ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœ ì—…ë°ì´íŠ¸
         UpdateAnimationStates();
     }
 
     protected override void UpdateMovement()
     {
-        // Enemy_Middle_Boss_Move°¡ Ã³¸®
+        // Enemy_Middle_Boss_Moveê°€ ì²˜ë¦¬
     }
 
     protected override void PerformAttack()
     {
-        // »ç¿ë ¾È ÇÔ
+        // ì‚¬ìš© ì•ˆ í•¨
     }
 
-    #region ¾Ö´Ï¸ŞÀÌ¼Ç Á¦¾î
+    #region ì˜¤ë””ì˜¤ ì œì–´
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    #endregion
+
+    #region ì• ë‹ˆë©”ì´ì…˜ ì œì–´
 
     private void UpdateAnimationStates()
     {
@@ -217,7 +240,7 @@ public class Enemy_Middle_Boss : Enemy_Base
         characterAnimator.SetBool(ANIM_IS_DASHING, isDashing);
         characterAnimator.SetBool(ANIM_IS_ATTACKING, isMeleeAttacking);
 
-        // ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç
+        // ì´ë™ ì• ë‹ˆë©”ì´ì…˜
         bool isMoving = moveScript != null ? moveScript.IsMoving : false;
         bool shouldBeMoving = isMoving && !IsPerformingSpecialAttack();
         float currentMoveSpeed = shouldBeMoving ? enemyStats.Get(EnemyStatType.MoveSpeed) : 0f;
@@ -263,7 +286,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ±Ù°Å¸® °ø°İ
+    #region ê·¼ê±°ë¦¬ ê³µê²©
 
     private bool CanUseMelee()
     {
@@ -272,29 +295,33 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     private IEnumerator PerformMeleeAttack()
     {
-        // ÀÌ¹Ì °ø°İ ÁßÀÌ¸é Áß´Ü
+        // ì´ë¯¸ ê³µê²© ì¤‘ì´ë©´ ì¤‘ë‹¨
         if (isAnyAttackInProgress)
         {
-            Debug.Log($"{enemyName}: ÀÌ¹Ì °ø°İ ÁßÀÌ¹Ç·Î ±Ù°Å¸® °ø°İ Ãë¼Ò!");
+            Debug.Log($"{enemyName}: ì´ë¯¸ ê³µê²© ì¤‘ì´ë¯€ë¡œ ê·¼ê±°ë¦¬ ê³µê²© ì·¨ì†Œ!");
             yield break;
         }
 
-        isAnyAttackInProgress = true; // °ø°İ ½ÃÀÛ
+        isAnyAttackInProgress = true; // ê³µê²© ì‹œì‘
         isMeleeAttacking = true;
         lastMeleeTime = Time.time;
 
-        Debug.Log($"{enemyName}: ±Ù°Å¸® °ø°İ ½ÃÀÛ!");
+        Debug.Log($"{enemyName}: ê·¼ê±°ë¦¬ ê³µê²© ì‹œì‘!");
 
         PlayMeleeAnimation();
         yield return new WaitForSeconds(0.5f);
+
+        // âœ¨ ê·¼ê±°ë¦¬ ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
+        PlaySound(meleeSound);
         ExecuteMeleeAttack();
+
         yield return new WaitForSeconds(meleeAttackDuration - 0.5f);
 
         isMeleeAttacking = false;
-        isAnyAttackInProgress = false; // °ø°İ ¿ÏÀü Á¾·á
-        lastAnyAttackTime = Time.time; // °ø°İÀÌ ¿ÏÀüÈ÷ ³¡³¯ ¶§ ¼³Á¤
+        isAnyAttackInProgress = false; // ê³µê²© ì™„ì „ ì¢…ë£Œ
+        lastAnyAttackTime = Time.time; // ê³µê²©ì´ ì™„ì „íˆ ëë‚  ë•Œ ì„¤ì •
 
-        Debug.Log($"{enemyName}: ±Ù°Å¸® °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+        Debug.Log($"{enemyName}: ê·¼ê±°ë¦¬ ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
     }
 
     private void ExecuteMeleeAttack()
@@ -347,7 +374,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ±×·¦ Åõ»çÃ¼ °ø°İ
+    #region ê·¸ë© íˆ¬ì‚¬ì²´ ê³µê²©
 
     private bool CanUseGrab()
     {
@@ -367,6 +394,8 @@ public class Enemy_Middle_Boss : Enemy_Base
 
         if (playerTransform != null)
         {
+            // âœ¨ ê·¸ë© ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
+            PlaySound(grabSound);
             FireGrabProjectile();
         }
 
@@ -374,7 +403,7 @@ public class Enemy_Middle_Boss : Enemy_Base
         isGrabbing = false;
         isAnyAttackInProgress = false;
         lastAnyAttackTime = Time.time;
-        Debug.Log($"{enemyName}: ±×·¦ °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+        Debug.Log($"{enemyName}: ê·¸ë© ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
     }
 
     private void FireGrabProjectile()
@@ -454,7 +483,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ÃÑ¾Ë °ø°İ
+    #region ì´ì•Œ ê³µê²©
 
     private bool CanUseBullets()
     {
@@ -474,13 +503,17 @@ public class Enemy_Middle_Boss : Enemy_Base
 
         PlayBulletAnimation();
         yield return new WaitForSeconds(0.3f);
+
+        // âœ¨ ì´ì•Œ ê³µê²© ì‚¬ìš´ë“œ ì¬ìƒ
+        PlaySound(bulletSound);
         FireBulletsInCircle();
+
         yield return new WaitForSeconds(0.5f);
 
         isShooting = false;
         isAnyAttackInProgress = false;
         lastAnyAttackTime = Time.time;
-        Debug.Log($"{enemyName}: ÃÑ¾Ë °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+        Debug.Log($"{enemyName}: ì´ì•Œ ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
     }
 
     private void FireBulletsInCircle()
@@ -519,7 +552,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ´ë½Ã ½Ã½ºÅÛ
+    #region ëŒ€ì‹œ ì‹œìŠ¤í…œ
 
     private IEnumerator PerformDash()
     {
@@ -534,7 +567,7 @@ public class Enemy_Middle_Boss : Enemy_Base
         Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
         Vector3 dashDirection = directionToPlayer;
 
-        // °£´ÜÇÑ Àå¾Ö¹° Ã¼Å©
+        // ê°„ë‹¨í•œ ì¥ì• ë¬¼ ì²´í¬
         if (Physics.Raycast(transform.position, dashDirection, dashDistance))
         {
             dashDirection = -dashDirection;
@@ -545,7 +578,7 @@ public class Enemy_Middle_Boss : Enemy_Base
             }
         }
 
-        // ´ë½Ã ½ÇÇà
+        // ëŒ€ì‹œ ì‹¤í–‰
         float dashDuration = 1f;
         float elapsed = 0f;
         Vector3 startPosition = transform.position;
@@ -571,7 +604,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ÀåÆÇ °ø°İ
+    #region ì¥íŒ ê³µê²©
 
     private bool CanUseFloorHazard()
     {
@@ -593,6 +626,8 @@ public class Enemy_Middle_Boss : Enemy_Base
 
         if (playerTransform != null)
         {
+            // âœ¨ ì¥íŒ íˆ¬ì²™ ì‚¬ìš´ë“œ ì¬ìƒ
+            PlaySound(floorHazardThrowSound);
             ThrowFloorHazardOrbs();
         }
 
@@ -600,7 +635,7 @@ public class Enemy_Middle_Boss : Enemy_Base
         isCreatingFloorHazard = false;
         isAnyAttackInProgress = false;
         lastAnyAttackTime = Time.time;
-        Debug.Log($"{enemyName}: ÀåÆÇ °ø°İ ¿Ï·á! ´ÙÀ½ °ø°İ±îÁö {attackCooldownTime}ÃÊ ´ë±â");
+        Debug.Log($"{enemyName}: ì¥íŒ ê³µê²© ì™„ë£Œ! ë‹¤ìŒ ê³µê²©ê¹Œì§€ {attackCooldownTime}ì´ˆ ëŒ€ê¸°");
     }
 
     private void ThrowFloorHazardOrbs()
@@ -667,7 +702,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     private Vector3 FindValidHazardPosition(List<Vector3> existingPositions)
     {
-        const int maxAttempts = 10; // ½Ãµµ È½¼ö ÁÙÀÓ
+        const int maxAttempts = 10; // ì‹œë„ íšŸìˆ˜ ì¤„ì„
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
@@ -719,11 +754,11 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ¿À¹ö¶óÀÌµå ¸Ş¼­µå
+    #region ì˜¤ë²„ë¼ì´ë“œ ë©”ì„œë“œ
 
     protected override void Die()
     {
-        // ¸ğµç »óÅÂ ÃÊ±âÈ­
+        // ëª¨ë“  ìƒíƒœ ì´ˆê¸°í™”
         isAnyAttackInProgress = false;
         isGrabbing = false;
         isShooting = false;
@@ -744,7 +779,7 @@ public class Enemy_Middle_Boss : Enemy_Base
 
     #endregion
 
-    #region ÆÛºí¸¯ Á¢±ÙÀÚ
+    #region í¼ë¸”ë¦­ ì ‘ê·¼ì
 
     public bool IsPerformingSpecialAttack() => isAnyAttackInProgress || isPlayerBeingPulled;
 
