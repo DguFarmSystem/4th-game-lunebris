@@ -1,22 +1,28 @@
 using UnityEngine;
 
 /// <summary>
-/// ÅÊÄ¿°¡ ´øÁö´Â ½½·Î¿ì ±¸Ã¼ Åõ»çÃ¼
+/// íƒ±ì»¤ê°€ ë˜ì§€ëŠ” ìŠ¬ë¡œìš° êµ¬ì²´ íˆ¬ì‚¬ì²´
 /// </summary>
 public class Enemy_Tanker_SlowProjectile : MonoBehaviour
 {
-    [Header("Åõ»çÃ¼ ¼³Á¤")]
+    [Header("íˆ¬ì‚¬ì²´ ì„¤ì •")]
     [SerializeField] private float speed = 8f;
     [SerializeField] private float lifeTime = 5f;
-    [SerializeField] private float arcHeight = 2f; // Æ÷¹°¼± ³ôÀÌ
+    [SerializeField] private float arcHeight = 2f; // í¬ë¬¼ì„  ë†’ì´
 
-    [Header("ÀåÆÇ ¼³Á¤")]
-    [SerializeField] private GameObject slowAreaPrefab; // ½½·Î¿ì ÀåÆÇ ÇÁ¸®ÆÕ
+    [Header("ì¥íŒ ì„¤ì •")]
+    [SerializeField] private GameObject slowAreaPrefab; // ìŠ¬ë¡œìš° ì¥íŒ í”„ë¦¬íŒ¹
     [SerializeField] private float areaRadius = 3f;
     [SerializeField] private float slowDuration = 5f;
-    [SerializeField] private float slowAmount = 0.5f; // ÀÌµ¿¼Óµµ 50% °¨¼Ò
+    [SerializeField] private float slowAmount = 0.5f; // ì´ë™ì†ë„ 50% ê°ì†Œ
+
+    [Header("íš¨ê³¼ìŒ ì„¤ì •")]
+    [SerializeField] private AudioClip explosionSound; // í­ë°œ íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip destroySound; // ì¼ë°˜ ì‚­ì œ íš¨ê³¼ìŒ
+    [SerializeField] private float soundVolume = 1f; // íš¨ê³¼ìŒ ë³¼ë¥¨
 
     private Rigidbody rb;
+    private AudioSource audioSource;
     private Vector3 targetPosition;
     private bool hasExploded = false;
     private bool isLaunched = false;
@@ -24,17 +30,29 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+
+        // AudioSource ì»´í¬ë„ŒíŠ¸ í™•ì¸ ë° ì¶”ê°€
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // AudioSource ê¸°ë³¸ ì„¤ì •
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œë¡œ ì„¤ì •
+        audioSource.volume = soundVolume;
     }
 
     private void Start()
     {
-        // ¼ö¸í ½Ã°£ ÈÄ ÀÚµ¿ Á¦°Å
+        // ìˆ˜ëª… ì‹œê°„ í›„ ìë™ ì œê±°
         Destroy(gameObject, lifeTime);
     }
 
     private void Update()
     {
-        // ¹ß»çµÆ´Âµ¥ ¼Óµµ°¡ ³Ê¹« ´À·ÁÁö¸é °­Á¦ Æø¹ß
+        // ë°œì‚¬ëëŠ”ë° ì†ë„ê°€ ë„ˆë¬´ ëŠë ¤ì§€ë©´ ê°•ì œ í­ë°œ
         if (isLaunched && rb.velocity.magnitude < 1f)
         {
             CreateSlowArea();
@@ -42,14 +60,26 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
     }
 
     /// <summary>
-    /// Åõ»çÃ¼ ¹ß»ç
+    /// ì˜¤ë¸Œì íŠ¸ê°€ íŒŒê´´ë˜ê¸° ì§ì „ì— í˜¸ì¶œ
     /// </summary>
-    /// <param name="direction">¹ß»ç ¹æÇâ</param>
+    private void OnDestroy()
+    {
+        // íš¨ê³¼ìŒ ì¬ìƒì„ ìœ„í•œ ì„ì‹œ ì˜¤ë¸Œì íŠ¸ ìƒì„± (ì˜¤ë¸Œì íŠ¸ê°€ ì‚­ì œë˜ì–´ë„ íš¨ê³¼ìŒì´ ëê¹Œì§€ ì¬ìƒë˜ë„ë¡)
+        if (!hasExploded && destroySound != null && Application.isPlaying)
+        {
+            PlaySoundAtPosition(destroySound, transform.position, soundVolume);
+        }
+    }
+
+    /// <summary>
+    /// íˆ¬ì‚¬ì²´ ë°œì‚¬
+    /// </summary>
+    /// <param name="direction">ë°œì‚¬ ë°©í–¥</param>
     public void Launch(Vector3 direction)
     {
         isLaunched = true;
 
-        // Æ÷¹°¼± ±Ëµµ·Î ¹ß»ç
+        // í¬ë¬¼ì„  ê¶¤ë„ë¡œ ë°œì‚¬
         Vector3 launchVelocity = CalculateArcVelocity(direction, speed, arcHeight);
 
         if (rb != null)
@@ -57,11 +87,11 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
             rb.velocity = launchVelocity;
         }
 
-        Debug.Log($"Åõ»çÃ¼ ¹ß»ç! ¼Óµµ: {launchVelocity}");
+        Debug.Log($"íˆ¬ì‚¬ì²´ ë°œì‚¬! ì†ë„: {launchVelocity}");
     }
 
     /// <summary>
-    /// Æ÷¹°¼± ¼Óµµ °è»ê
+    /// í¬ë¬¼ì„  ì†ë„ ê³„ì‚°
     /// </summary>
     private Vector3 CalculateArcVelocity(Vector3 direction, float speed, float height)
     {
@@ -73,12 +103,12 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // ÀÌ¹Ì Æø¹ßÇßÀ¸¸é ¹«½Ã
+        // ì´ë¯¸ í­ë°œí–ˆìœ¼ë©´ ë¬´ì‹œ
         if (hasExploded) return;
 
-        Debug.Log($"Åõ»çÃ¼ Ãæµ¹: {collision.gameObject.name}");
+        Debug.Log($"íˆ¬ì‚¬ì²´ ì¶©ëŒ: {collision.gameObject.name}");
 
-        // ÇÃ·¹ÀÌ¾î°¡ ¾Æ´Ñ ¸ğµç ¿ÀºêÁ§Æ®¿Í Ãæµ¹½Ã Æø¹ß
+        // í”Œë ˆì´ì–´ ì•„ë‹Œ ëª¨ë“  ì˜¤ë¸Œì íŠ¸ì™€ ì¶©ëŒì‹œ í­ë°œ
         if (!collision.gameObject.CompareTag("Enemy"))
         {
             CreateSlowArea();
@@ -87,12 +117,12 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // ÀÌ¹Ì Æø¹ßÇßÀ¸¸é ¹«½Ã
+        // ì´ë¯¸ í­ë°œí–ˆìœ¼ë©´ ë¬´ì‹œ
         if (hasExploded) return;
 
-        Debug.Log($"Åõ»çÃ¼ Æ®¸®°Å: {other.name}");
+        Debug.Log($"íˆ¬ì‚¬ì²´ íŠ¸ë¦¬ê±°: {other.name}");
 
-        // ÇÃ·¹ÀÌ¾î¿Í Ãæµ¹½Ã Áï½Ã Æø¹ß
+        // í”Œë ˆì´ì–´ì™€ ì¶©ëŒì‹œ ì¦‰ì‹œ í­ë°œ
         if (other.CompareTag("Player"))
         {
             CreateSlowArea();
@@ -100,7 +130,7 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
     }
 
     /// <summary>
-    /// ½½·Î¿ì ÀåÆÇ »ı¼º
+    /// ìŠ¬ë¡œìš° ì¥íŒ ìƒì„±
     /// </summary>
     private void CreateSlowArea()
     {
@@ -108,18 +138,24 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
 
         hasExploded = true;
 
-        Debug.Log("½½·Î¿ì ÀåÆÇ »ı¼º!");
+        Debug.Log("ìŠ¬ë¡œìš° ì¥íŒ ìƒì„±!");
 
-        // ÀåÆÇ »ı¼º À§Ä¡ (Áö¸é¿¡ ¸ÂÃã)
+        // í­ë°œ íš¨ê³¼ìŒ ì¬ìƒ
+        if (explosionSound != null)
+        {
+            PlaySoundAtPosition(explosionSound, transform.position, soundVolume);
+        }
+
+        // ì¥íŒ ìƒì„± ìœ„ì¹˜ (ì§€ë©´ì— ë§ì¶¤)
         Vector3 areaPosition = transform.position;
-        areaPosition.y = 0.1f; // Áö¸é »ìÂ¦ À§
+        areaPosition.y = 0.1f; // ì§€ë©´ ì‚´ì§ ìœ„
 
-        // ÀåÆÇ ÇÁ¸®ÆÕÀÌ ÀÖÀ¸¸é »ı¼º
+        // ì¥íŒ í”„ë¦¬íŒ¹ì´ ìˆìœ¼ë©´ ìƒì„±
         if (slowAreaPrefab != null)
         {
             GameObject areaObj = Instantiate(slowAreaPrefab, areaPosition, Quaternion.identity);
 
-            // ÀåÆÇ ½ºÅ©¸³Æ® ¼³Á¤
+            // ì¥íŒ ìŠ¤í¬ë¦½íŠ¸ ì„¤ì •
             Enemy_Tanker_SlowArea slowArea = areaObj.GetComponent<Enemy_Tanker_SlowArea>();
             if (slowArea != null)
             {
@@ -128,25 +164,25 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
         }
         else
         {
-            // ÇÁ¸®ÆÕÀÌ ¾øÀ¸¸é ±âº» ÀåÆÇ »ı¼º
+            // í”„ë¦¬íŒ¹ì´ ì—†ìœ¼ë©´ ê¸°ë³¸ ì¥íŒ ìƒì„±
             CreateDefaultSlowArea(areaPosition);
         }
 
-        // Åõ»çÃ¼ ÆÄ±«
+        // íˆ¬ì‚¬ì²´ íŒŒê´´
         Destroy(gameObject);
     }
 
     /// <summary>
-    /// ±âº» ÀåÆÇ »ı¼º (ÇÁ¸®ÆÕÀÌ ¾øÀ» ¶§)
+    /// ê¸°ë³¸ ì¥íŒ ìƒì„± (í”„ë¦¬íŒ¹ì´ ì—†ì„ ë•Œ)
     /// </summary>
     private void CreateDefaultSlowArea(Vector3 position)
     {
-        // ±âº» ¿øÇü ¿ÀºêÁ§Æ® »ı¼º
+        // ê¸°ë³¸ ì›í˜• ì˜¤ë¸Œì íŠ¸ ìƒì„±
         GameObject area = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         area.transform.position = position;
         area.transform.localScale = new Vector3(areaRadius * 2, 0.1f, areaRadius * 2);
 
-        // ¹İÅõ¸í »¡°£»ö ¸ÓÆ¼¸®¾ó
+        // ë°˜íˆ¬ëª… ë¹¨ê°„ìƒ‰ ë¨¸í‹°ë¦¬ì–¼
         Renderer renderer = area.GetComponent<Renderer>();
         Material mat = new Material(Shader.Find("Standard"));
         mat.color = new Color(1f, 0f, 0f, 0.3f);
@@ -160,12 +196,67 @@ public class Enemy_Tanker_SlowProjectile : MonoBehaviour
         mat.renderQueue = 3000;
         renderer.material = mat;
 
-        // Äİ¶óÀÌ´õ¸¦ Æ®¸®°Å·Î ¼³Á¤
+        // ì½œë¼ì´ë”ë¥¼ íŠ¸ë¦¬ê±°ë¡œ ì„¤ì •
         Collider collider = area.GetComponent<Collider>();
         collider.isTrigger = true;
 
-        // SlowArea ÄÄÆ÷³ÍÆ® Ãß°¡
+        // SlowArea ì»´í¬ë„ŒíŠ¸ ì¶”ê°€
         Enemy_Tanker_SlowArea slowArea = area.AddComponent<Enemy_Tanker_SlowArea>();
         slowArea.Initialize(areaRadius, slowDuration, slowAmount);
+    }
+
+    /// <summary>
+    /// íŠ¹ì • ìœ„ì¹˜ì—ì„œ íš¨ê³¼ìŒ ì¬ìƒ (ì˜¤ë¸Œì íŠ¸ê°€ ì‚­ì œë˜ì–´ë„ íš¨ê³¼ìŒì´ ê³„ì† ì¬ìƒë˜ë„ë¡)
+    /// </summary>
+    /// <param name="clip">ì¬ìƒí•  ì˜¤ë””ì˜¤ í´ë¦½</param>
+    /// <param name="position">ì¬ìƒ ìœ„ì¹˜</param>
+    /// <param name="volume">ë³¼ë¥¨</param>
+    private void PlaySoundAtPosition(AudioClip clip, Vector3 position, float volume = 1f)
+    {
+        if (clip == null) return;
+
+        // ì„ì‹œ ì˜¤ë¸Œì íŠ¸ ìƒì„±
+        GameObject tempAudioObject = new GameObject("TempAudio_" + clip.name);
+        tempAudioObject.transform.position = position;
+
+        // AudioSource ì¶”ê°€ ë° ì„¤ì •
+        AudioSource tempAudioSource = tempAudioObject.AddComponent<AudioSource>();
+        tempAudioSource.clip = clip;
+        tempAudioSource.volume = volume;
+        tempAudioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œ
+        tempAudioSource.rolloffMode = AudioRolloffMode.Linear;
+        tempAudioSource.minDistance = 5f;
+        tempAudioSource.maxDistance = 50f;
+
+        // íš¨ê³¼ìŒ ì¬ìƒ
+        tempAudioSource.Play();
+
+        // íš¨ê³¼ìŒ ì¬ìƒì´ ëë‚˜ë©´ ì„ì‹œ ì˜¤ë¸Œì íŠ¸ ì‚­ì œ
+        Destroy(tempAudioObject, clip.length);
+    }
+
+    /// <summary>
+    /// íš¨ê³¼ìŒ ì¦‰ì‹œ ì¬ìƒ (ì˜¤ë¸Œì íŠ¸ê°€ ì•„ì§ ì¡´ì¬í•  ë•Œ)
+    /// </summary>
+    /// <param name="clip">ì¬ìƒí•  ì˜¤ë””ì˜¤ í´ë¦½</param>
+    public void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip, soundVolume);
+        }
+    }
+
+    /// <summary>
+    /// íš¨ê³¼ìŒ ë³¼ë¥¨ ì„¤ì •
+    /// </summary>
+    /// <param name="volume">ë³¼ë¥¨ ê°’ (0~1)</param>
+    public void SetSoundVolume(float volume)
+    {
+        soundVolume = Mathf.Clamp01(volume);
+        if (audioSource != null)
+        {
+            audioSource.volume = soundVolume;
+        }
     }
 }

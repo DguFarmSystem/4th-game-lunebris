@@ -1,64 +1,74 @@
 using UnityEngine;
 using System.Collections;
-using Enemy; // Enemy ³×ÀÓ½ºÆäÀÌ½º Ãß°¡
+using Enemy; // Enemy ë„¤ì„ìŠ¤í˜ì´ìŠ¤ ì¶”ê°€
 
 /// <summary>
-/// 360µµ ºö °ø°İ ½Ã½ºÅÛ
-/// ÇÊ¿äÇÑ ÄÄÆ÷³ÍÆ®: Collider (IsTrigger = true), Rigidbody (UseGravity = false)
+/// 360ë„ ë¹” ê³µê²© ì‹œìŠ¤í…œ
+/// í•„ìš”í•œ ì»´í¬ë„ŒíŠ¸: Collider (IsTrigger = true), Rigidbody (UseGravity = false)
 /// </summary>
 public class Enemy_Final_Boss_360Beam : MonoBehaviour
 {
-    [Header("ºö ¼³Á¤")]
-    [SerializeField] private GameObject beamPrefab; // Enemy_Final_Boss_360Beam ÇÁ¸®ÆÕ
+    [Header("ë¹” ì„¤ì •")]
+    [SerializeField] private GameObject beamPrefab; // Enemy_Final_Boss_360Beam í”„ë¦¬íŒ¹
     [SerializeField] private float beamDamage = 80f;
     [SerializeField] private float beamSpeed = 15f;
     [SerializeField] private float beamLifetime = 5f;
 
-    [Header("ºÎ¸Ş¶û ¼³Á¤")]
-    [SerializeField] private bool isBoomerang = false;        // ºÎ¸Ş¶û ¸ğµå È°¼ºÈ­
-    [SerializeField] private float maxDistance = 10f;        // ÃÖ´ë ÀüÁø °Å¸®
-    [SerializeField] private float returnSpeed = 20f;        // µ¹¾Æ¿À´Â ¼Óµµ (´õ ºü¸£°Ô)
-    [SerializeField] private bool destroyOnReturn = true;     // ¿øÁ¡ µµ´Ş ½Ã Á¦°Å
+    [Header("ë¶€ë©”ë‘ ì„¤ì •")]
+    [SerializeField] private bool isBoomerang = false;        // ë¶€ë©”ë‘ ëª¨ë“œ í™œì„±í™”
+    [SerializeField] private float maxDistance = 10f;        // ìµœëŒ€ ì „ì§„ ê±°ë¦¬
+    [SerializeField] private float returnSpeed = 20f;        // ëŒì•„ì˜¤ëŠ” ì†ë„ (ë” ë¹ ë¥´ê²Œ)
+    [SerializeField] private bool destroyOnReturn = true;     // ì›ì  ë„ë‹¬ ì‹œ ì œê±°
 
-    [Header("360µµ ÆĞÅÏ ¼³Á¤")]
-    [SerializeField] private int beamCount = 2;             // 360µµ ¾È¿¡¼­ ¹ß»çÇÒ °³¼ö
-    [SerializeField] private bool fireAllAtOnce = false;     // true¸é ¸ğµç ¹æÇâ µ¿½Ã¿¡ ¹ß»ç
-    [SerializeField] private bool rotateWhileFiring = false; // true¸é È¸ÀüÇÏ¸ç ¼øÂ÷ ¹ß»ç
-    [SerializeField] private float delayBetweenBeams = 0.1f; // ¼øÂ÷ ¹ß»ç ½Ã Áö¿¬½Ã°£
-    [SerializeField] private float rotationSpeed = 60f;      // È¸Àü ¼Óµµ (deg/sec)
+    [Header("360ë„ íŒ¨í„´ ì„¤ì •")]
+    [SerializeField] private int beamCount = 2;             // 360ë„ ì•ˆì—ì„œ ë°œì‚¬í•  ê°œìˆ˜
+    [SerializeField] private bool fireAllAtOnce = false;     // trueë©´ ëª¨ë“  ë°©í–¥ ë™ì‹œì— ë°œì‚¬
+    [SerializeField] private bool rotateWhileFiring = false; // trueë©´ íšŒì „í•˜ë©° ìˆœì°¨ ë°œì‚¬
+    [SerializeField] private float delayBetweenBeams = 0.1f; // ìˆœì°¨ ë°œì‚¬ ì‹œ ì§€ì—°ì‹œê°„
+    [SerializeField] private float rotationSpeed = 60f;      // íšŒì „ ì†ë„ (deg/sec)
 
-    [Header("½½·Î¿ì È¿°ú ¼³Á¤")]
+    [Header("ìŠ¬ë¡œìš° íš¨ê³¼ ì„¤ì •")]
     [SerializeField] private bool applySlowEffect = true;
     [SerializeField] private float slowDuration = 2.5f;
-    [SerializeField] private float slowIntensity = 0.6f; // 60% ¼Óµµ °¨¼Ò
+    [SerializeField] private float slowIntensity = 0.6f; // 60% ì†ë„ ê°ì†Œ
+
+    [Header("ğŸµ ì˜¤ë””ì˜¤ ì„¤ì • ì¶”ê°€")] // âœ¨ ì¶”ê°€ë¨
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip beamFireSound;   // ë¹” ë°œì‚¬ íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip beamHitSound;    // í”Œë ˆì´ì–´ í”¼ê²© íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip beamReturnSound; // ë¶€ë©”ë‘ ë³µê·€ íš¨ê³¼ìŒ
 
     private bool isFiring = false;
     private bool isSingleBeam = false;
     private Vector3 beamVelocity;
     private float damage;
 
-    // Enemy_Base µ¥¹ÌÁö ½Ã½ºÅÛ Âü°í¿ë
+    // Enemy_Base ë°ë¯¸ì§€ ì‹œìŠ¤í…œ ì°¸ê³ ìš©
     private EnemyStatSystem creatorStats;
     private ElementType creatorElement = ElementType.Lux;
     private DamageType damageType = DamageType.Magical;
 
-    // ºÎ¸Ş¶û ½Ã½ºÅÛ º¯¼ö
+    // ë¶€ë©”ë‘ ì‹œìŠ¤í…œ ë³€ìˆ˜
     private bool isReturning = false;
     private Vector3 startPosition;
-    private Vector3 targetPosition; // µ¹¾Æ°¥ À§Ä¡ (º¸½º À§Ä¡)
+    private Vector3 targetPosition; // ëŒì•„ê°ˆ ìœ„ì¹˜ (ë³´ìŠ¤ ìœ„ì¹˜)
     private float traveledDistance = 0f;
 
-    // ½½·Î¿ì È¿°ú ¼³Á¤ (¿ÜºÎ¿¡¼­ ¼³Á¤ °¡´É)
+    // ìŠ¬ë¡œìš° íš¨ê³¼ ì„¤ì • (ì™¸ë¶€ì—ì„œ ì„¤ì • ê°€ëŠ¥)
     private float externalSlowDuration = 0f;
     private float externalSlowIntensity = 0f;
 
     private void Start()
     {
-        // ºÎ¸Ş¶û ¸ğµå ÃÊ±âÈ­
+        // âœ¨ ì˜¤ë””ì˜¤ì†ŒìŠ¤ ìë™ ì—°ê²°
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        // ë¶€ë©”ë‘ ëª¨ë“œ ì´ˆê¸°í™”
         if (isBoomerang && isSingleBeam)
         {
             startPosition = transform.position;
-            // º¸½º À§Ä¡¸¦ Ã£¾Æ¼­ Å¸°ÙÀ¸·Î ¼³Á¤
+            // ë³´ìŠ¤ ìœ„ì¹˜ë¥¼ ì°¾ì•„ì„œ íƒ€ê²Ÿìœ¼ë¡œ ì„¤ì •
             GameObject boss = GameObject.FindGameObjectWithTag("Enemy");
             if (boss != null)
             {
@@ -66,25 +76,32 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             }
             else
             {
-                targetPosition = startPosition; // º¸½º¸¦ ¸ø Ã£À¸¸é ½ÃÀÛ À§Ä¡·Î
+                targetPosition = startPosition; // ë³´ìŠ¤ë¥¼ ëª» ì°¾ìœ¼ë©´ ì‹œì‘ ìœ„ì¹˜ë¡œ
             }
         }
 
-        // ´ÜÀÏ ºö ¸ğµå°¡ ¾Æ´Ñ °æ¿ì ÀÚµ¿À¸·Î 360µµ ÆĞÅÏ ½ÇÇà
+        // ë‹¨ì¼ ë¹” ëª¨ë“œê°€ ì•„ë‹Œ ê²½ìš° ìë™ìœ¼ë¡œ 360ë„ íŒ¨í„´ ì‹¤í–‰
         if (!isSingleBeam)
         {
             Fire360Beams();
         }
         else
         {
-            // ´ÜÀÏ ºö ¸ğµåÀÎ °æ¿ì Á÷Á¢ ÀÌµ¿ (ºÎ¸Ş¶û Æ÷ÇÔ)
+            // ë‹¨ì¼ ë¹” ëª¨ë“œì¸ ê²½ìš° ì§ì ‘ ì´ë™ (ë¶€ë©”ë‘ í¬í•¨)
             StartCoroutine(MoveSingleBeam());
         }
     }
 
+    // âœ¨ íš¨ê³¼ìŒ ì¬ìƒ í•¨ìˆ˜
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
+    }
+
     /// <summary>
-    /// Enemy_Final_Boss_Light¿¡¼­ È£ÃâÇÏ´Â Initialize ¸Ş¼Òµå
-    /// ´ÜÀÏ ºöÀ¸·Î µ¿ÀÛÇÏµµ·Ï ¼³Á¤
+    /// Enemy_Final_Boss_Lightì—ì„œ í˜¸ì¶œí•˜ëŠ” Initialize ë©”ì†Œë“œ
+    /// ë‹¨ì¼ ë¹”ìœ¼ë¡œ ë™ì‘í•˜ë„ë¡ ì„¤ì •
     /// </summary>
     public void Initialize(float beamDamage, Vector3 velocity)
     {
@@ -92,7 +109,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         this.beamVelocity = velocity;
         this.isSingleBeam = true;
 
-        // ÀÌµ¿ ¹æÇâÀ¸·Î È¸Àü
+        // ì´ë™ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
@@ -100,7 +117,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// ºÎ¸Ş¶û ¿É¼Ç°ú ÇÔ²² Initialize
+    /// ë¶€ë©”ë‘ ì˜µì…˜ê³¼ í•¨ê»˜ Initialize
     /// </summary>
     public void Initialize(float beamDamage, Vector3 velocity, bool enableBoomerang, float maxDist = 10f, Vector3 returnTarget = default)
     {
@@ -115,7 +132,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             this.targetPosition = returnTarget;
         }
 
-        // ÀÌµ¿ ¹æÇâÀ¸·Î È¸Àü
+        // ì´ë™ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
@@ -123,7 +140,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// Enemy ½ºÅÈ ½Ã½ºÅÛÀ» Æ÷ÇÔÇÑ Initialize (´õ Á¤È®ÇÑ µ¥¹ÌÁö °è»ê¿ë)
+    /// Enemy ìŠ¤íƒ¯ ì‹œìŠ¤í…œì„ í¬í•¨í•œ Initialize (ë” ì •í™•í•œ ë°ë¯¸ì§€ ê³„ì‚°ìš©)
     /// </summary>
     public void Initialize(float beamDamage, Vector3 velocity, EnemyStatSystem enemyStats, ElementType elementType)
     {
@@ -133,7 +150,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         this.creatorStats = enemyStats;
         this.creatorElement = elementType;
 
-        // ÀÌµ¿ ¹æÇâÀ¸·Î È¸Àü
+        // ì´ë™ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
@@ -141,7 +158,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// ¸ğµç ¿É¼ÇÀ» Æ÷ÇÔÇÑ Complete Initialize
+    /// ëª¨ë“  ì˜µì…˜ì„ í¬í•¨í•œ Complete Initialize
     /// </summary>
     public void Initialize(float beamDamage, Vector3 velocity, EnemyStatSystem enemyStats, ElementType elementType,
                           bool enableBoomerang, float maxDist = 10f, Vector3 returnTarget = default)
@@ -159,7 +176,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             this.targetPosition = returnTarget;
         }
 
-        // ÀÌµ¿ ¹æÇâÀ¸·Î È¸Àü
+        // ì´ë™ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
@@ -167,7 +184,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// ¿ÜºÎ¿¡¼­ ½½·Î¿ì È¿°ú ¼³Á¤ (Enemy_Final_Boss_Light¿¡¼­ È£Ãâ)
+    /// ì™¸ë¶€ì—ì„œ ìŠ¬ë¡œìš° íš¨ê³¼ ì„¤ì • (Enemy_Final_Boss_Lightì—ì„œ í˜¸ì¶œ)
     /// </summary>
     public void SetSlowEffect(float duration, float intensity)
     {
@@ -177,11 +194,14 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// 360µµ ¸ğµç ¹æÇâÀ¸·Î ºö ¹ß»ç
+    /// 360ë„ ëª¨ë“  ë°©í–¥ìœ¼ë¡œ ë¹” ë°œì‚¬
     /// </summary>
     public void Fire360Beams()
     {
         if (isFiring) return;
+
+        // âœ¨ ë¹” ë°œì‚¬ ì‚¬ìš´ë“œ ì¬ìƒ
+        PlaySound(beamFireSound);
 
         if (fireAllAtOnce)
         {
@@ -197,16 +217,6 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Enemy Á¤º¸¿Í ÇÔ²² 360µµ ºö ¹ß»ç (´õ Á¤È®ÇÑ µ¥¹ÌÁö °è»ê¿ë)
-    /// </summary>
-    public void Fire360Beams(EnemyStatSystem enemyStats, ElementType elementType)
-    {
-        this.creatorStats = enemyStats;
-        this.creatorElement = elementType;
-        Fire360Beams();
-    }
-
     private void FireAllDirectionsAtOnce()
     {
         Vector3 origin = transform.position;
@@ -220,7 +230,7 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             FireSingleBeam(origin, direction * beamSpeed);
         }
 
-        // 360µµ ÆĞÅÏ ¹ß»ç ÈÄ ÀÚ½ÅÀº Á¦°Å
+        // 360ë„ íŒ¨í„´ ë°œì‚¬ í›„ ìì‹ ì€ ì œê±°
         Destroy(gameObject, 0.5f);
     }
 
@@ -241,7 +251,6 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         }
 
         isFiring = false;
-        // 360µµ ÆĞÅÏ ¹ß»ç ÈÄ ÀÚ½ÅÀº Á¦°Å
         Destroy(gameObject, 0.5f);
     }
 
@@ -259,33 +268,20 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             Vector3 direction = rotation * Vector3.forward;
 
             FireSingleBeam(origin, direction * beamSpeed);
-
-            // ½ÇÁ¦ ¿ÀºêÁ§Æ®µµ È¸Àü½ÃÅ°°í ½Í´Ù¸é ¾Æ·¡ ÁÖ¼® ÇØÁ¦
-            // transform.rotation = Quaternion.Euler(0f, currentAngle, 0f);
-
             yield return new WaitForSeconds(delayBetweenBeams);
-
             currentAngle += angleStep;
-
-            // È¸Àü ¼Óµµ Àû¿ëÇØº¸°í ½Í´Ù¸é ¾Æ·¡ ÁÖ¼® ÇØÁ¦
-            // yield return RotateOverTime(angleStep);
         }
 
         isFiring = false;
-        // 360µµ ÆĞÅÏ ¹ß»ç ÈÄ ÀÚ½ÅÀº Á¦°Å
         Destroy(gameObject, 0.5f);
     }
 
-    /// <summary>
-    /// ºö 1°³ »ı¼º (360µµ ÆĞÅÏ¿ë)
-    /// </summary>
     private void FireSingleBeam(Vector3 position, Vector3 velocity)
     {
         GameObject beam = Instantiate(beamPrefab, position, Quaternion.LookRotation(velocity.normalized));
         var beamScript = beam.GetComponent<Enemy_Final_Boss_360Beam>();
         if (beamScript != null)
         {
-            // creatorStats°¡ ÀÖÀ¸¸é Á¤È®ÇÑ µ¥¹ÌÁö °è»ê, ¾øÀ¸¸é ±âº» µ¥¹ÌÁö »ç¿ë
             if (creatorStats != null)
             {
                 beamScript.Initialize(beamDamage, velocity, creatorStats, creatorElement);
@@ -295,7 +291,6 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
                 beamScript.Initialize(beamDamage, velocity);
             }
 
-            // ½½·Î¿ì È¿°ú Àü´Ş
             if (applySlowEffect)
             {
                 float finalSlowDuration = externalSlowDuration > 0 ? externalSlowDuration : slowDuration;
@@ -306,13 +301,12 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
     }
 
     /// <summary>
-    /// ´ÜÀÏ ºö ÀÌµ¿ Ã³¸® (ºÎ¸Ş¶û Æ÷ÇÔ)
+    /// ë‹¨ì¼ ë¹” ì´ë™ ì²˜ë¦¬ (ë¶€ë©”ë‘ í¬í•¨)
     /// </summary>
     private IEnumerator MoveSingleBeam()
     {
         float timer = 0f;
 
-        // ºÎ¸Ş¶û ¸ğµå°¡ ¾Æ´Ñ °æ¿ì ±âÁ¸ ¹æ½Ä
         if (!isBoomerang)
         {
             while (timer < beamLifetime)
@@ -325,19 +319,17 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             yield break;
         }
 
-        // ºÎ¸Ş¶û ¸ğµå - 1´Ü°è: ÀüÁø
         while (!isReturning && timer < beamLifetime)
         {
-            Vector3 movement = beamVelocity * Time.deltaTime;
-            transform.position += movement;
-            traveledDistance += movement.magnitude;
+            transform.position += beamVelocity * Time.deltaTime;
+            traveledDistance += beamVelocity.magnitude * Time.deltaTime;
 
-            // ÃÖ´ë °Å¸®¿¡ µµ´ŞÇÏ¸é µ¹¾Æ°¡±â ½ÃÀÛ
             if (traveledDistance >= maxDistance)
             {
-                yield return new WaitForSeconds(2.0f); // 2ÃÊ µ¿¾È ´ë±â
+                // âœ¨ ë³µê·€ ì‚¬ìš´ë“œ ì¬ìƒ
+                PlaySound(beamReturnSound);
+                yield return new WaitForSeconds(2.0f);
                 isReturning = true;
-                Debug.Log("ºöÀÌ ÃÖ´ë °Å¸®¿¡ µµ´Ş! µ¹¾Æ°©´Ï´Ù.");
                 break;
             }
 
@@ -345,35 +337,26 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             yield return null;
         }
 
-        // ºÎ¸Ş¶û ¸ğµå - 2´Ü°è: µ¹¾Æ°¡±â
         if (isReturning)
         {
             while (timer < beamLifetime)
             {
-                // Å¸°Ù À§Ä¡ ¾÷µ¥ÀÌÆ® (º¸½º°¡ ¿òÁ÷ÀÏ ¼ö ÀÖÀ¸¹Ç·Î)
                 GameObject boss = GameObject.FindGameObjectWithTag("Enemy");
                 if (boss != null)
                 {
                     targetPosition = boss.transform.position;
                 }
 
-                // µ¹¾Æ°¥ ¹æÇâ °è»ê
                 Vector3 returnDirection = (targetPosition - transform.position).normalized;
-                Vector3 returnMovement = returnDirection * returnSpeed * Time.deltaTime;
+                transform.position += returnDirection * returnSpeed * Time.deltaTime;
 
-                // À§Ä¡ ¾÷µ¥ÀÌÆ®
-                transform.position += returnMovement;
-
-                // È¸Àü ¾÷µ¥ÀÌÆ® (µ¹¾Æ°¡´Â ¹æÇâÀ¸·Î)
                 if (returnDirection != Vector3.zero)
                 {
                     transform.rotation = Quaternion.LookRotation(returnDirection);
                 }
 
-                // ¸ñÇ¥ ÁöÁ¡¿¡ ÃæºĞÈ÷ °¡±î¿öÁö¸é Á¦°Å
                 if (destroyOnReturn && Vector3.Distance(transform.position, targetPosition) < 1f)
                 {
-                    Debug.Log("ºöÀÌ ¿øÁ¡¿¡ µµ´ŞÇÏ¿© Á¦°ÅµË´Ï´Ù.");
                     Destroy(gameObject);
                     yield break;
                 }
@@ -383,68 +366,41 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
             }
         }
 
-        // ½Ã°£ ÃÊ°ú·Î Á¦°Å
         Destroy(gameObject);
-    }
-
-    /// <summary>
-    /// ºÎµå·¯¿î È¸ÀüÀÌ ÇÊ¿äÇÑ °æ¿ì »ç¿ë
-    /// </summary>
-    private IEnumerator RotateOverTime(float angle)
-    {
-        float rotated = 0f;
-
-        while (rotated < angle)
-        {
-            float step = rotationSpeed * Time.deltaTime;
-            transform.Rotate(0f, step, 0f);
-            rotated += step;
-            yield return null;
-        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // º¸½º¿Í Ãæµ¹ ½Ã ¹«½Ã (¹°¸®Àû ¹Ğ¾î³»±â ¹æÁö)
         if (other.CompareTag("Enemy"))
         {
-            return; // ¾Æ¹«°Íµµ ÇÏÁö ¾ÊÀ½
+            return;
         }
 
-        // ÇÃ·¹ÀÌ¾î¿Í Ãæµ¹ ½Ã µ¥¹ÌÁö Ã³¸®
         if (other.CompareTag("Player"))
         {
-            // ÇÃ·¹ÀÌ¾î ½ºÅ©¸³Æ® Ã£±â (Enemy_Base ¹æ½Ä Âü°í)
+            // âœ¨ í”Œë ˆì´ì–´ í”¼ê²© ì‚¬ìš´ë“œ ì¬ìƒ
+            PlaySound(beamHitSound);
+
             var playerScript = other.GetComponent<Player.Player>();
             if (playerScript != null)
             {
                 float finalDamage = isSingleBeam ? damage : beamDamage;
 
-                // Enemy_Base.csÀÇ DealDamageToPlayer ¹æ½ÄÀ» Âü°íÇÑ µ¥¹ÌÁö °è»ê
                 if (creatorStats != null)
                 {
-                    // DamageCalculator »ç¿ë (Enemy_Base¿Í µ¿ÀÏÇÑ ¹æ½Ä)
                     finalDamage = DamageCalculator.CalculateDamageToPlayer(
                         creatorStats,
                         creatorElement,
                         damageType,
                         playerScript.GetPlayerStat(),
-                        ElementType.Neutral // ÇÃ·¹ÀÌ¾î ¼Ó¼º
+                        ElementType.Neutral
                     );
                 }
 
-                // ÇÃ·¹ÀÌ¾î¿¡°Ô µ¥¹ÌÁö Àû¿ë (Enemy_Base¿Í µ¿ÀÏÇÑ ¹æ½Ä)
                 playerScript.DecreaseHP(finalDamage);
-
-                string phase = isReturning ? "µ¹¾Æ°¡´Â Áß" : "ÀüÁø Áß";
-                Debug.Log($"360ºöÀÌ {phase} ÇÃ·¹ÀÌ¾î¿¡°Ô {finalDamage:F1} {damageType} µ¥¹ÌÁö¸¦ ÀÔÇû½À´Ï´Ù!");
-
-                // ½½·Î¿ì È¿°ú Àû¿ë
                 ApplySlowEffectToPlayer(playerScript);
             }
 
-            // ºÎ¸Ş¶û ¸ğµå°¡ ¾Æ´Ï°Å³ª, ºÎ¸Ş¶û ¸ğµå¿¡¼­ ÀüÁø ÁßÀÏ ¶§¸¸ Á¦°Å
-            // µ¹¾Æ°¡´Â Áß¿¡´Â Á¦°ÅÇÏÁö ¾ÊÀ½ (°è¼Ó µ¥¹ÌÁö °¡´É)
             if (isSingleBeam && (!isBoomerang || !isReturning))
             {
                 Destroy(gameObject);
@@ -452,65 +408,17 @@ public class Enemy_Final_Boss_360Beam : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ÇÃ·¹ÀÌ¾î¿¡°Ô ½½·Î¿ì È¿°ú Àû¿ë
-    /// </summary>
     private void ApplySlowEffectToPlayer(Player.Player player)
     {
         if (!applySlowEffect || player == null) return;
 
-        // ¿ÜºÎ¿¡¼­ ¼³Á¤µÈ °ªÀÌ ÀÖÀ¸¸é ¿ì¼± »ç¿ë
         float finalSlowDuration = externalSlowDuration > 0 ? externalSlowDuration : slowDuration;
         float finalSlowIntensity = externalSlowIntensity > 0 ? externalSlowIntensity : slowIntensity;
 
-        GameObject playerObj = player.gameObject;
-
-        // ¹æ¹ı 1: Player ½ºÅ©¸³Æ®¿¡ ApplySlowEffect ¸Ş¼­µå°¡ ÀÖ´Â °æ¿ì
         var slowMethod = player.GetType().GetMethod("ApplySlowEffect");
         if (slowMethod != null)
         {
             slowMethod.Invoke(player, new object[] { finalSlowDuration, finalSlowIntensity });
-            Debug.Log($"360ºö - ÇÃ·¹ÀÌ¾î¿¡°Ô ½½·Î¿ì È¿°ú Àû¿ë: {finalSlowIntensity * 100}% °¨¼Ó, {finalSlowDuration}ÃÊ Áö¼Ó");
-            return;
-        }
-
-        // ¹æ¹ı 2: Player Movement ÄÄÆ÷³ÍÆ®°¡ ÀÖ´Â °æ¿ì
-        var movementComponent = playerObj.GetComponent<MonoBehaviour>();
-        if (movementComponent != null)
-        {
-            var moveSlowMethod = movementComponent.GetType().GetMethod("ApplySlowEffect");
-            if (moveSlowMethod != null)
-            {
-                moveSlowMethod.Invoke(movementComponent, new object[] { finalSlowDuration, finalSlowIntensity });
-                Debug.Log($"360ºö - ÇÃ·¹ÀÌ¾î ÀÌµ¿¿¡ ½½·Î¿ì È¿°ú Àû¿ë: {finalSlowIntensity * 100}% °¨¼Ó, {finalSlowDuration}ÃÊ Áö¼Ó");
-                return;
-            }
-        }
-
-        // ¹æ¹ı 3: Á÷Á¢ Rigidbody Á¦¾î (ÀÓ½Ã ¹æ¹ı)
-        var playerRb = playerObj.GetComponent<Rigidbody>();
-        if (playerRb != null)
-        {
-            StartCoroutine(ApplyTemporarySlowEffect(playerRb, finalSlowDuration, finalSlowIntensity));
-            Debug.Log($"360ºö - ÇÃ·¹ÀÌ¾î¿¡°Ô ÀÓ½Ã ½½·Î¿ì È¿°ú Àû¿ë: {finalSlowIntensity * 100}% °¨¼Ó, {finalSlowDuration}ÃÊ Áö¼Ó");
-        }
-    }
-
-    /// <summary>
-    /// ÀÓ½Ã ½½·Î¿ì È¿°ú (Rigidbody Á÷Á¢ Á¦¾î)
-    /// </summary>
-    private IEnumerator ApplyTemporarySlowEffect(Rigidbody playerRb, float duration, float intensity)
-    {
-        float originalDrag = playerRb.drag;
-        float slowDrag = originalDrag + (intensity * 10f); // µå·¡±× Áõ°¡·Î ½½·Î¿ì È¿°ú
-
-        playerRb.drag = slowDrag;
-        yield return new WaitForSeconds(duration);
-
-        // Rigidbody°¡ ¾ÆÁ÷ Á¸ÀçÇÏ´ÂÁö È®ÀÎ
-        if (playerRb != null)
-        {
-            playerRb.drag = originalDrag;
         }
     }
 }
