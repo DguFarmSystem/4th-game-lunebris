@@ -18,6 +18,15 @@ public class HealItem : Item
         Invoke("DestroyObject", 30.0f);
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            ApplyEffect();
+            Debug.Log("아이템 습득 후 체력 증가 시킴");
+        }
+    }
+
     public override void ApplyEffect()
     {
         Debug.Log($"{itemName} 효과 발동! 체력 {healAmount} 회복!");
@@ -26,6 +35,10 @@ public class HealItem : Item
         player.IncreaseHP(healAmount);
         Debug.Log("체력 증가, 현재 체력: " + player.GetCurrentHP());
         // 효과가 적용되면 즉시 파괴
+        Destroy(gameObject);
+    }
+    public void DestroyObject()
+    {
         Destroy(gameObject);
     }
 }
