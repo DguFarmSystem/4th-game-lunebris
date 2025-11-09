@@ -470,7 +470,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 56, y: 1.17, z: 59.14}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6334061641265633839}
@@ -543,9 +543,9 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -957,6 +957,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5525181856511901774}
     m_Modifications:
+    - target: {fileID: 1279553381315913833, guid: 9165634834788024b81db111970fc55b, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2954726158051100246, guid: 9165634834788024b81db111970fc55b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1000,6 +1004,10 @@ PrefabInstance:
     - target: {fileID: 2954726158051531382, guid: 9165634834788024b81db111970fc55b, type: 3}
       propertyPath: m_Name
       value: ms04_03_Demon_6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954726158051531382, guid: 9165634834788024b81db111970fc55b, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

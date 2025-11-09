@@ -2,38 +2,89 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// ÃÖÁ¾º¸½º ºû ¸ğµå - ºû ±âµÕ °ø°İ (´ÜÀÏ ±âµÕ + ½½·Î¿ì È¿°ú)
+/// ìµœì¢…ë³´ìŠ¤ ë¹› ëª¨ë“œ - ë¹› ê¸°ë‘¥ ê³µê²© (ë‹¨ì¼ ê¸°ë‘¥ + ìŠ¬ë¡œìš° íš¨ê³¼)
 /// </summary>
 public class Enemy_Final_Boss_LightPillar : MonoBehaviour
 {
-    [Header("ºû ±âµÕ ¼³Á¤")]
+    [Header("ë¹› ê¸°ë‘¥ ì„¤ì •")]
     [SerializeField] private float pillarRadius = 4f;
     [SerializeField] private float pillarHeight = 20f;
 
-    [Header("°ø°İ ¼³Á¤")]
+    [Header("ê³µê²© ì„¤ì •")]
     [SerializeField] private float warningDuration = 1.5f;
     [SerializeField] private float activeDuration = 2f;
 
-    [Header("½½·Î¿ì È¿°ú ¼³Á¤")]
+    [Header("ìŠ¬ë¡œìš° íš¨ê³¼ ì„¤ì •")]
     [SerializeField] private float slowDuration = 3f;
-    [SerializeField] private float slowIntensity = 0.7f; // 70% ¼Óµµ °¨¼Ò
+    [SerializeField] private float slowIntensity = 0.7f; // 70% ì†ë„ ê°ì†Œ
 
-    [Header("ÀÌÆåÆ®")]
-    [SerializeField] private GameObject warningEffect;   // ÇÁ¸®ÆÕ
+    [Header("ì´í™íŠ¸")]
+    [SerializeField] private GameObject warningEffect;   // í”„ë¦¬íŒ¹
     [SerializeField] private GameObject pillarEffect;
     [SerializeField] private Light pillarLight;
+
+    [Header("===== íš¨ê³¼ìŒ ì„¤ì • =====")]
+    [Header("ê²½ê³  ë‹¨ê³„ íš¨ê³¼ìŒ")]
+    [SerializeField] private AudioClip warningStartSound;      // ê²½ê³  ì‹œì‘ íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip warningLoopSound;       // ê²½ê³  ì§€ì† íš¨ê³¼ìŒ (ë£¨í”„)
+    [SerializeField] private AudioClip warningEndSound;        // ê²½ê³  ì¢…ë£Œ íš¨ê³¼ìŒ
+
+    [Header("í™œì„±í™” ë‹¨ê³„ íš¨ê³¼ìŒ")]
+    [SerializeField] private AudioClip pillarActivateSound;    // ê¸°ë‘¥ í™œì„±í™” íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip pillarActiveLoopSound;  // ê¸°ë‘¥ í™œì„± ìƒíƒœ ì§€ì†ìŒ (ë£¨í”„)
+    [SerializeField] private AudioClip pillarDeactivateSound;  // ê¸°ë‘¥ ë¹„í™œì„±í™” íš¨ê³¼ìŒ
+
+    [Header("íƒ€ê²© íš¨ê³¼ìŒ")]
+    [SerializeField] private AudioClip playerHitSound;         // í”Œë ˆì´ì–´ íƒ€ê²© íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip slowApplySound;         // ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš© íš¨ê³¼ìŒ
+
+    [Header("ë¹› íš¨ê³¼ìŒ")]
+    [SerializeField] private AudioClip lightChargeSound;       // ë¹› ì°¨ì§• íš¨ê³¼ìŒ
+    [SerializeField] private AudioClip lightBurstSound;        // ë¹› í­ë°œ íš¨ê³¼ìŒ
+
+    [Header("íš¨ê³¼ìŒ ë³¼ë¥¨ ì„¤ì •")]
+    [SerializeField] private float masterVolume = 1f;          // ì „ì²´ íš¨ê³¼ìŒ ë³¼ë¥¨
+    [SerializeField] private float warningVolume = 0.7f;       // ê²½ê³  íš¨ê³¼ìŒ ë³¼ë¥¨
+    [SerializeField] private float activeVolume = 1f;          // í™œì„±í™” íš¨ê³¼ìŒ ë³¼ë¥¨
+    [SerializeField] private float hitVolume = 0.9f;           // íƒ€ê²© íš¨ê³¼ìŒ ë³¼ë¥¨
+    [SerializeField] private float ambientVolume = 0.5f;       // ì§€ì† íš¨ê³¼ìŒ ë³¼ë¥¨
 
     private GameObject instantiatedWarningEffect;
     private float damage;
     private bool isActive = false;
     private AudioSource audioSource;
+    private AudioSource loopAudioSource;  // ë£¨í”„ ì‚¬ìš´ë“œìš© ë³„ë„ AudioSource
     private CapsuleCollider damageCollider;
 
     private void Awake()
     {
+        // ê¸°ì¡´ ì˜¤ë””ì˜¤ì†ŒìŠ¤ ë˜ëŠ” ìƒˆë¡œ ìƒì„±
         audioSource = GetComponent<AudioSource>();
-        damageCollider = GetComponent<CapsuleCollider>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
 
+        // ì˜¤ë””ì˜¤ì†ŒìŠ¤ ì„¤ì •
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 1f; // 3D ì‚¬ìš´ë“œ
+        audioSource.rolloffMode = AudioRolloffMode.Linear;
+        audioSource.minDistance = 5f;
+        audioSource.maxDistance = 50f;
+        audioSource.volume = masterVolume;
+
+        // ë£¨í”„ìš© ì˜¤ë””ì˜¤ì†ŒìŠ¤ ì¶”ê°€
+        loopAudioSource = gameObject.AddComponent<AudioSource>();
+        loopAudioSource.playOnAwake = false;
+        loopAudioSource.spatialBlend = 1f;
+        loopAudioSource.rolloffMode = AudioRolloffMode.Linear;
+        loopAudioSource.minDistance = 5f;
+        loopAudioSource.maxDistance = 50f;
+        loopAudioSource.loop = true;
+        loopAudioSource.volume = ambientVolume * masterVolume;
+
+        // ì½œë¼ì´ë” ì„¤ì •
+        damageCollider = GetComponent<CapsuleCollider>();
         if (damageCollider == null)
             damageCollider = gameObject.AddComponent<CapsuleCollider>();
 
@@ -42,7 +93,7 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
         damageCollider.height = pillarHeight;
         damageCollider.center = new Vector3(0, pillarHeight * 0.5f, 0);
         damageCollider.enabled = false;
-        damageCollider.material = null; // ¹°¸® ÀçÁú Á¦°Å
+        damageCollider.material = null; // ë¬¼ë¦¬ ì¬ì§ˆ ì œê±°
 
         if (pillarLight == null)
         {
@@ -74,7 +125,7 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
     }
 
     /// <summary>
-    /// ½½·Î¿ì È¿°ú ¼³Á¤
+    /// ìŠ¬ë¡œìš° íš¨ê³¼ ì„¤ì •
     /// </summary>
     public void SetSlowEffect(float duration, float intensity)
     {
@@ -92,18 +143,40 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
 
     private IEnumerator WarningPhase()
     {
+        // ê²½ê³  ì‹œì‘ íš¨ê³¼ìŒ
+        PlaySound(warningStartSound, warningVolume);
+
+        // ë¹› ì°¨ì§• íš¨ê³¼ìŒ (ìˆì„ ê²½ìš°)
+        if (lightChargeSound != null)
+        {
+            PlaySoundDelayed(lightChargeSound, warningVolume * 0.8f, 0.2f);
+        }
+
+        // ê²½ê³  ë£¨í”„ íš¨ê³¼ìŒ ì‹œì‘
+        PlayLoopSound(warningLoopSound, ambientVolume);
+
         if (warningEffect != null)
         {
             instantiatedWarningEffect = Instantiate(
                 warningEffect,
-                transform.position + Vector3.down * 0.1f,  // ¹Ù´Ú¿¡ »ìÂ¦ À§Ä¡
+                transform.position + Vector3.down * 0.1f,  // ë°”ë‹¥ì— ì‚´ì§ ìœ„ì¹˜
                 Quaternion.identity,
-                transform // ºÎ¸ğ¸¦ ÀÌ ¿ÀºêÁ§Æ®·Î ¼³Á¤
+                transform // ë¶€ëª¨ë¥¼ ì´ ì˜¤ë¸Œì íŠ¸ë¡œ ì„¤ì •
             );
             instantiatedWarningEffect.SetActive(true);
         }
 
-        yield return new WaitForSeconds(warningDuration);
+        // ê²½ê³  ì§€ì† ì‹œê°„ì˜ 90%ê¹Œì§€ ëŒ€ê¸°
+        yield return new WaitForSeconds(warningDuration * 0.9f);
+
+        // ê²½ê³  ì¢…ë£Œ íš¨ê³¼ìŒ
+        PlaySound(warningEndSound, warningVolume);
+
+        // ë£¨í”„ ì‚¬ìš´ë“œ ì •ì§€
+        StopLoopSound();
+
+        // ë‚¨ì€ 10% ì‹œê°„ ëŒ€ê¸°
+        yield return new WaitForSeconds(warningDuration * 0.1f);
 
         if (instantiatedWarningEffect != null)
         {
@@ -113,6 +186,15 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
 
     private IEnumerator ActivePhase()
     {
+        // ê¸°ë‘¥ í™œì„±í™” íš¨ê³¼ìŒ
+        PlaySound(pillarActivateSound, activeVolume);
+
+        // ë¹› í­ë°œ íš¨ê³¼ìŒ
+        if (lightBurstSound != null)
+        {
+            PlaySoundDelayed(lightBurstSound, activeVolume * 0.9f, 0.1f);
+        }
+
         if (pillarEffect != null)
         {
             pillarEffect.SetActive(true);
@@ -121,16 +203,39 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
         damageCollider.enabled = true;
         isActive = true;
 
+        // í™œì„± ìƒíƒœ ë£¨í”„ íš¨ê³¼ìŒ ì‹œì‘
+        PlayLoopSound(pillarActiveLoopSound, ambientVolume);
+
         if (pillarLight != null)
         {
-            pillarLight.intensity = 10f;
+            // ë¹› ê°•ë„ë¥¼ ì ì§„ì ìœ¼ë¡œ ì¦ê°€
+            StartCoroutine(FadeLightIntensity(0f, 10f, 0.3f));
             pillarLight.color = Color.white;
         }
 
-        yield return new WaitForSeconds(activeDuration);
+        // í™œì„± ì§€ì† ì‹œê°„ì˜ 90%ê¹Œì§€ ëŒ€ê¸°
+        yield return new WaitForSeconds(activeDuration * 0.9f);
+
+        // ê¸°ë‘¥ ë¹„í™œì„±í™” ì¤€ë¹„ íš¨ê³¼ìŒ
+        if (pillarDeactivateSound != null)
+        {
+            PlaySound(pillarDeactivateSound, activeVolume * 0.7f);
+        }
+
+        // ë‚¨ì€ 10% ì‹œê°„ ëŒ€ê¸°
+        yield return new WaitForSeconds(activeDuration * 0.1f);
 
         isActive = false;
         damageCollider.enabled = false;
+
+        // ë£¨í”„ ì‚¬ìš´ë“œ í˜ì´ë“œ ì•„ì›ƒ
+        StartCoroutine(FadeOutLoopSound(0.5f));
+
+        // ë¹› ê°•ë„ í˜ì´ë“œ ì•„ì›ƒ
+        if (pillarLight != null)
+        {
+            StartCoroutine(FadeLightIntensity(pillarLight.intensity, 0f, 0.5f));
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -140,13 +245,19 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
             Player.Player playerComponent = other.GetComponent<Player.Player>();
             if (playerComponent != null)
             {
-                // µ¥¹ÌÁö Àû¿ë
+                // íƒ€ê²© íš¨ê³¼ìŒ ì¬ìƒ
+                PlaySound(playerHitSound, hitVolume);
+
+                // ë°ë¯¸ì§€ ì ìš©
                 playerComponent.DecreaseHP(damage);
 
-                // ½½·Î¿ì È¿°ú Àû¿ë
+                // ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©
                 ApplySlowEffectToPlayer(other.gameObject);
 
-                Debug.Log($"ÇÃ·¹ÀÌ¾î°¡ ºû ±âµÕ¿¡ ¸ÂÀ½! µ¥¹ÌÁö: {damage}, ½½·Î¿ì: {slowIntensity * 100}% °¨¼Ó {slowDuration}ÃÊ");
+                // ìŠ¬ë¡œìš° ì ìš© íš¨ê³¼ìŒ
+                PlaySoundDelayed(slowApplySound, hitVolume * 0.8f, 0.1f);
+
+                Debug.Log($"í”Œë ˆì´ì–´ê°€ ë¹› ê¸°ë‘¥ì— ë§ìŒ! ë°ë¯¸ì§€: {damage}, ìŠ¬ë¡œìš°: {slowIntensity * 100}% ê°ì† {slowDuration}ì´ˆ");
             }
         }
     }
@@ -155,16 +266,16 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
     {
         if (isActive && other.CompareTag("Player"))
         {
-            // Áö¼Ó µ¥¹ÌÁö ·ÎÁ÷Àº ÇÊ¿ä½Ã ±¸Çö
+            // ì§€ì† ë°ë¯¸ì§€ ë¡œì§ì€ í•„ìš”ì‹œ êµ¬í˜„
         }
     }
 
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î¿¡°Ô ½½·Î¿ì È¿°ú Àû¿ë
+    /// í”Œë ˆì´ì–´ì—ê²Œ ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©
     /// </summary>
     private void ApplySlowEffectToPlayer(GameObject player)
     {
-        // ¹æ¹ı 1: º¸½º ½ºÅ©¸³Æ®¸¦ ÅëÇØ ½½·Î¿ì È¿°ú Àû¿ë (°¡Àå ¾ÈÀü)
+        // ë°©ë²• 1: ë³´ìŠ¤ ìŠ¤í¬ë¦½íŠ¸ë¥¼ í†µí•´ ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš© (ê°€ì¥ ì•ˆì „)
         Enemy_Final_Boss_Light boss = FindObjectOfType<Enemy_Final_Boss_Light>();
         if (boss != null)
         {
@@ -172,21 +283,21 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
             return;
         }
 
-        // ¹æ¹ı 2: ÇÃ·¹ÀÌ¾î ½ºÅ©¸³Æ®¿¡¼­ ½½·Î¿ì ¸Ş¼­µå Á÷Á¢ È£Ãâ
+        // ë°©ë²• 2: í”Œë ˆì´ì–´ ìŠ¤í¬ë¦½íŠ¸ì—ì„œ ìŠ¬ë¡œìš° ë©”ì„œë“œ ì§ì ‘ í˜¸ì¶œ
         Player.Player playerScript = player.GetComponent<Player.Player>();
         if (playerScript != null)
         {
-            // ApplySlowEffect ¸Ş¼­µå°¡ ÀÖ´ÂÁö È®ÀÎ
+            // ApplySlowEffect ë©”ì„œë“œê°€ ìˆëŠ”ì§€ í™•ì¸
             var slowMethod = playerScript.GetType().GetMethod("ApplySlowEffect");
             if (slowMethod != null)
             {
                 slowMethod.Invoke(playerScript, new object[] { slowDuration, slowIntensity });
-                Debug.Log($"ÇÃ·¹ÀÌ¾î¿¡°Ô Á÷Á¢ ½½·Î¿ì È¿°ú Àû¿ë: {slowIntensity * 100}% °¨¼Ó, {slowDuration}ÃÊ");
+                Debug.Log($"í”Œë ˆì´ì–´ì—ê²Œ ì§ì ‘ ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©: {slowIntensity * 100}% ê°ì†, {slowDuration}ì´ˆ");
                 return;
             }
         }
 
-        // ¹æ¹ı 3: ÇÃ·¹ÀÌ¾î ÀÌµ¿ ÄÄÆ÷³ÍÆ®¿¡¼­ ½½·Î¿ì ¸Ş¼­µå È£Ãâ
+        // ë°©ë²• 3: í”Œë ˆì´ì–´ ì´ë™ ì»´í¬ë„ŒíŠ¸ì—ì„œ ìŠ¬ë¡œìš° ë©”ì„œë“œ í˜¸ì¶œ
         var movementComponents = player.GetComponents<MonoBehaviour>();
         foreach (var component in movementComponents)
         {
@@ -194,37 +305,37 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
             if (moveSlowMethod != null)
             {
                 moveSlowMethod.Invoke(component, new object[] { slowDuration, slowIntensity });
-                Debug.Log($"ÇÃ·¹ÀÌ¾î ÀÌµ¿ ÄÄÆ÷³ÍÆ®¿¡ ½½·Î¿ì È¿°ú Àû¿ë: {slowIntensity * 100}% °¨¼Ó, {slowDuration}ÃÊ");
+                Debug.Log($"í”Œë ˆì´ì–´ ì´ë™ ì»´í¬ë„ŒíŠ¸ì— ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©: {slowIntensity * 100}% ê°ì†, {slowDuration}ì´ˆ");
                 return;
             }
         }
 
-        // ¹æ¹ı 4: Á÷Á¢ Rigidbody Á¦¾î (¹é¾÷¿ë)
+        // ë°©ë²• 4: ì§ì ‘ Rigidbody ì œì–´ (ë°±ì—…ìš©)
         var playerRb = player.GetComponent<Rigidbody>();
         if (playerRb != null)
         {
             StartCoroutine(ApplyDirectSlowEffect(playerRb));
-            Debug.Log($"Rigidbody Á÷Á¢ Á¦¾î·Î ½½·Î¿ì È¿°ú Àû¿ë: {slowIntensity * 100}% °¨¼Ó, {slowDuration}ÃÊ");
+            Debug.Log($"Rigidbody ì§ì ‘ ì œì–´ë¡œ ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©: {slowIntensity * 100}% ê°ì†, {slowDuration}ì´ˆ");
         }
         else
         {
-            Debug.LogWarning("ÇÃ·¹ÀÌ¾î¿¡°Ô ½½·Î¿ì È¿°ú¸¦ Àû¿ëÇÒ ¼ö ¾ø½À´Ï´Ù!");
+            Debug.LogWarning("í”Œë ˆì´ì–´ì—ê²Œ ìŠ¬ë¡œìš° íš¨ê³¼ë¥¼ ì ìš©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
         }
     }
 
     /// <summary>
-    /// Á÷Á¢ ½½·Î¿ì È¿°ú Àû¿ë (¹é¾÷¿ë)
+    /// ì§ì ‘ ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš© (ë°±ì—…ìš©)
     /// </summary>
     private IEnumerator ApplyDirectSlowEffect(Rigidbody playerRb)
     {
         float originalDrag = playerRb.drag;
-        float slowDrag = originalDrag + (slowIntensity * 10f); // µå·¡±× Áõ°¡·Î ½½·Î¿ì È¿°ú
+        float slowDrag = originalDrag + (slowIntensity * 10f); // ë“œë˜ê·¸ ì¦ê°€ë¡œ ìŠ¬ë¡œìš° íš¨ê³¼
 
         playerRb.drag = slowDrag;
         yield return new WaitForSeconds(slowDuration);
 
-        // ¿ø·¡ µå·¡±× °ªÀ¸·Î º¹¿ø
-        if (playerRb != null) // null Ã¼Å© (ÇÃ·¹ÀÌ¾î°¡ ÆÄ±«µÉ ¼ö ÀÖÀ½)
+        // ì›ë˜ ë“œë˜ê·¸ ê°’ìœ¼ë¡œ ë³µì›
+        if (playerRb != null) // null ì²´í¬ (í”Œë ˆì´ì–´ê°€ íŒŒê´´ë  ìˆ˜ ìˆìŒ)
         {
             playerRb.drag = originalDrag;
         }
@@ -243,7 +354,162 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
 
         isActive = false;
         damageCollider.enabled = false;
+
+        // ëª¨ë“  ì‚¬ìš´ë“œ ì •ì§€
+        StopAllSounds();
     }
+
+    #region ì˜¤ë””ì˜¤ ê´€ë ¨ ë©”ì„œë“œ
+
+    /// <summary>
+    /// ì¼ë°˜ íš¨ê³¼ìŒ ì¬ìƒ
+    /// </summary>
+    private void PlaySound(AudioClip clip, float volume = 1f)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip, volume * masterVolume);
+        }
+    }
+
+    /// <summary>
+    /// ì§€ì—°ëœ íš¨ê³¼ìŒ ì¬ìƒ
+    /// </summary>
+    private void PlaySoundDelayed(AudioClip clip, float volume, float delay)
+    {
+        if (clip != null)
+        {
+            StartCoroutine(PlaySoundAfterDelay(clip, volume, delay));
+        }
+    }
+
+    private IEnumerator PlaySoundAfterDelay(AudioClip clip, float volume, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        PlaySound(clip, volume);
+    }
+
+    /// <summary>
+    /// ë£¨í”„ íš¨ê³¼ìŒ ì¬ìƒ
+    /// </summary>
+    private void PlayLoopSound(AudioClip clip, float volume = 1f)
+    {
+        if (loopAudioSource != null && clip != null)
+        {
+            loopAudioSource.clip = clip;
+            loopAudioSource.volume = volume * masterVolume;
+            loopAudioSource.Play();
+        }
+    }
+
+    /// <summary>
+    /// ë£¨í”„ íš¨ê³¼ìŒ ì •ì§€
+    /// </summary>
+    private void StopLoopSound()
+    {
+        if (loopAudioSource != null && loopAudioSource.isPlaying)
+        {
+            loopAudioSource.Stop();
+        }
+    }
+
+    /// <summary>
+    /// ë£¨í”„ ì‚¬ìš´ë“œ í˜ì´ë“œ ì•„ì›ƒ
+    /// </summary>
+    private IEnumerator FadeOutLoopSound(float fadeTime)
+    {
+        if (loopAudioSource != null && loopAudioSource.isPlaying)
+        {
+            float startVolume = loopAudioSource.volume;
+            float elapsed = 0f;
+
+            while (elapsed < fadeTime)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / fadeTime;
+                loopAudioSource.volume = Mathf.Lerp(startVolume, 0f, t);
+                yield return null;
+            }
+
+            loopAudioSource.Stop();
+            loopAudioSource.volume = ambientVolume * masterVolume; // ì›ë˜ ë³¼ë¥¨ìœ¼ë¡œ ë³µì›
+        }
+    }
+
+    /// <summary>
+    /// ëª¨ë“  ì‚¬ìš´ë“œ ì •ì§€
+    /// </summary>
+    private void StopAllSounds()
+    {
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
+
+        if (loopAudioSource != null)
+        {
+            loopAudioSource.Stop();
+        }
+    }
+
+    /// <summary>
+    /// ë¹› ê°•ë„ í˜ì´ë“œ
+    /// </summary>
+    private IEnumerator FadeLightIntensity(float startIntensity, float endIntensity, float duration)
+    {
+        if (pillarLight == null) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            pillarLight.intensity = Mathf.Lerp(startIntensity, endIntensity, t);
+            yield return null;
+        }
+
+        pillarLight.intensity = endIntensity;
+    }
+
+    #endregion
+
+    #region ë³¼ë¥¨ ì„¤ì • ë©”ì„œë“œ
+
+    /// <summary>
+    /// ë§ˆìŠ¤í„° ë³¼ë¥¨ ì„¤ì •
+    /// </summary>
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+
+        if (audioSource != null)
+        {
+            audioSource.volume = masterVolume;
+        }
+
+        if (loopAudioSource != null)
+        {
+            loopAudioSource.volume = ambientVolume * masterVolume;
+        }
+    }
+
+    /// <summary>
+    /// ê²½ê³  íš¨ê³¼ìŒ ë³¼ë¥¨ ì„¤ì •
+    /// </summary>
+    public void SetWarningVolume(float volume)
+    {
+        warningVolume = Mathf.Clamp01(volume);
+    }
+
+    /// <summary>
+    /// í™œì„±í™” íš¨ê³¼ìŒ ë³¼ë¥¨ ì„¤ì •
+    /// </summary>
+    public void SetActiveVolume(float volume)
+    {
+        activeVolume = Mathf.Clamp01(volume);
+    }
+
+    #endregion
 
     private void OnDrawGizmosSelected()
     {
@@ -276,7 +542,7 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
             Gizmos.DrawLine(point1, point2);
         }
 
-        // ½½·Î¿ì È¿°ú ¹üÀ§ Ç¥½Ã (½Ã°¢ÀûÀ¸·Î ±¸ºĞ)
+        // ìŠ¬ë¡œìš° íš¨ê³¼ ë²”ìœ„ í‘œì‹œ (ì‹œê°ì ìœ¼ë¡œ êµ¬ë¶„)
         if (isActive)
         {
             Gizmos.color = Color.cyan;
@@ -300,6 +566,12 @@ public class Enemy_Final_Boss_LightPillar : MonoBehaviour
         {
             pillarLight.range = radius * 2f;
         }
+    }
+
+    private void OnDestroy()
+    {
+        // ì˜¤ë¸Œì íŠ¸ íŒŒê´´ ì‹œ ëª¨ë“  ì‚¬ìš´ë“œ ì •ì§€
+        StopAllSounds();
     }
 
     public bool IsWarning => Time.time < warningDuration && !isActive;

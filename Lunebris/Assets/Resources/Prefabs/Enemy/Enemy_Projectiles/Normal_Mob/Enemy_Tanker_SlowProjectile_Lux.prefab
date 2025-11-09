@@ -106,6 +106,9 @@ MonoBehaviour:
   areaRadius: 3
   slowDuration: 5
   slowAmount: 0.5
+  explosionSound: {fileID: 8300000, guid: b7f8695cf65a4f24eb37544298821146, type: 3}
+  destroySound: {fileID: 0}
+  soundVolume: 1
 --- !u!54 &8759619497790049534
 Rigidbody:
   m_ObjectHideFlags: 0

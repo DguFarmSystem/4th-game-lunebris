@@ -511,7 +511,7 @@ public abstract class Enemy_Base : MonoBehaviour
     protected virtual System.Collections.IEnumerator ReturnToPoolAfterDeath()
     {
         // 죽음 애니메이션 길이만큼 대기
-        float deathAnimationLength = 2f; // 기본값
+        float deathAnimationLength = 1f; // 기본값
 
         if (characterAnimator != null && characterAnimator.runtimeAnimatorController != null)
         {
@@ -733,10 +733,29 @@ public abstract class Enemy_Base : MonoBehaviour
 
         if (other.CompareTag("Attack"))
         {
-            other.gameObject.SetActive(false);
+            // BaseAttack 컴포넌트 가져오기
+            Player.BaseAttack baseAttack = other.GetComponent<Player.BaseAttack>();
 
-            // 플레이어 공격은 기본적으로 물리 데미지로 처리
-            TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
+            if (baseAttack != null)
+            {
+                // 직접 데미지 적용
+                float directDamage = baseAttack.GetBaseDamage();
+                TakeDamage(directDamage, DamageType.Physical, ElementType.Neutral);
+
+                // 스플래쉬 효과가 있다면 실행 (직접 맞은 적 제외)
+                if (baseAttack.HasSplashEffect())
+                {
+                    baseAttack.ExecuteSplashEffect(transform.position, this);
+                }
+            }
+            else
+            {
+                // 기존 로직 (BaseAttack이 없을 경우 대비)
+                TakeDamage(10f, DamageType.Physical, ElementType.Neutral);
+            }
+
+            // 총알 비활성화
+            other.gameObject.SetActive(false);
         }
     }
 
