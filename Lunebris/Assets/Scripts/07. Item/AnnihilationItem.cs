@@ -8,7 +8,7 @@ public class AnnihilationItem : Item
     [Header("Effect")]
     public float radius = 8f; // 효과 반경
     public float damage = 9999f;         
-    public LayerMask enemyLayer = ~0;  // 에디터에서 'Enemy' 레이어로 설정 권장
+    public LayerMask enemyLayer = ~0; 
     public GameObject explosionVFX; // 폭발 이펙트
 
     private bool used = false;  
@@ -43,16 +43,14 @@ public class AnnihilationItem : Item
         {
             if (hit == null) continue;
 
-            // Enemy_Base 컴포넌트가 있으면
+            // Enemy_Base 컴포넌트가 있을 때
             var enemy = hit.GetComponentInParent<Enemy_Base>();
             if (enemy != null)
             {
-                // 적 사망 처리 (프로젝트에 맞게 수정 가능)
-                enemy.SendMessage("Die", SendMessageOptions.DontRequireReceiver);
+                enemy.SendMessage("Die", SendMessageOptions.DontRequireReceiver); //적 사망
                 continue;
             }
 
-            // Enemy_Base가 없는 경우도 대비
             hit.gameObject.SendMessage("Die", SendMessageOptions.DontRequireReceiver);
         }
 
